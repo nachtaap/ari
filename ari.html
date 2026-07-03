@@ -286,37 +286,17 @@ function coil(a,b,loops,r,sag,cls){
 const ZT=4.4;               // rig top height (hip level, like the real rig)
 let s='';
 
-/* ---------- backpack + speaker array (behind robot) ---------- */
+/* ---------- backpack + speakers (behind robot) ---------- */
 s+='<g class="gPack">';
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');
 
-// lower backpack speakers — two larger pods under the pack
+// simplified backpack speakers — two larger pods under the pack
 s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
 s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
 s+=box(8.35,-3.15,3.35, 9.15,-2.45,4.55,'b');          // lower right speaker
 s+=circX(9.15,-2.8,3.95,.36,'b')+circX(9.15,-2.8,3.95,.13,'b');
 
-// four small speakers on top of the backpack
-// outer two point outward, inner two point backward
-s+=box(5.25,-3.2,6.75, 5.95,-2.55,7.55,'b');           // top outer L, outward
-s+=circX(5.25,-2.88,7.15,.27,'b')+circX(5.25,-2.88,7.15,.095,'b');
-s+=box(6.05,-3.48,6.75, 6.7,-2.85,7.55,'b');           // top inner L, backward
-s+=circY(-3.48,6.38,7.15,.27,'b')+circY(-3.48,6.38,7.15,.095,'b');
-s+=box(6.9,-3.48,6.75, 7.55,-2.85,7.55,'b');           // top inner R, backward
-s+=circY(-3.48,7.23,7.15,.27,'b')+circY(-3.48,7.23,7.15,.095,'b');
-s+=box(7.65,-3.2,6.75, 8.35,-2.55,7.55,'b');           // top outer R, outward
-s+=circX(8.35,-2.88,7.15,.27,'b')+circX(8.35,-2.88,7.15,.095,'b');
-
-s+='<g id="sfxC" opacity="0">';                        // sound dashes, top speaker array
-s+=seg([4.75,-2.88,7.15],[4.35,-2.88,7.15],'l');       // outer L
-s+=seg([4.78,-2.88,7.45],[4.48,-2.88,7.7],'l');
-s+=seg([4.78,-2.88,6.85],[4.48,-2.88,6.6],'l');
-s+=seg([8.85,-2.88,7.15],[9.25,-2.88,7.15],'l');       // outer R
-s+=seg([8.82,-2.88,7.45],[9.12,-2.88,7.7],'l');
-s+=seg([8.82,-2.88,6.85],[9.12,-2.88,6.6],'l');
-s+=seg([6.38,-3.95,7.15],[6.38,-4.35,7.15],'l');       // inner pair, backward
-s+=seg([7.23,-3.95,7.15],[7.23,-4.35,7.15],'l');
-s+='</g><g id="sfxD" opacity="0">';                    // sound dashes, lower speaker pair
+s+='<g id="sfxC" opacity="0"></g><g id="sfxD" opacity="0">'; // keep only lower speaker pulses
 s+=seg([4.6,-2.8,3.95],[4.15,-2.8,3.95],'l');
 s+=seg([4.65,-2.8,4.35],[4.3,-2.8,4.65],'l');
 s+=seg([4.65,-2.8,3.55],[4.3,-2.8,3.25],'l');
