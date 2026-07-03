@@ -1349,11 +1349,11 @@ function frame(){
   walkAmp+=((roaming&&playing?1:0)-walkAmp)*0.05;      // ease walk in/out
   if(!reduceMotion && track && walkAmp>0.005){
     const wp=now*Math.PI*0.95;                         // relaxed stroll, ~1 step/sec, tempo-independent
-    // A.R.I.: use a simple alternating stride in screen space so it reads as forward walking,
-    // not a shearing/depth wobble.
+    // A.R.I.: use the same projected leg swing as the visitor.
+    // The legs are different shapes, but the movement should read the same in screen space.
     const wA=world.querySelector('.wlegA'), wB=world.querySelector('.wlegB');
     if(wA){
-      const a=(6.4*Math.sin(wp)*walkAmp).toFixed(2);
+      const a=(8*Math.sin(wp)*walkAmp).toFixed(2);
       wA.setAttribute('transform',`rotate(${a} ${wA.dataset.px} ${wA.dataset.py})`);
       wB.setAttribute('transform',`rotate(${-a} ${wB.dataset.px} ${wB.dataset.py})`);
     }
