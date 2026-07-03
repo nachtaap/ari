@@ -862,14 +862,14 @@ function scheduleVisitor(){
     visitor=true; visitorPhase='requesting';
     vis1=buildVisitor(gVis,pickInstr(),0);
     gVis.classList.add('here');
-    visitor2=Math.random()<0.28;
+    visitor2=Math.random()<0.04;  // rare weird crossover moment
     if(visitor2){
       vis2=buildVisitor(gVis2,pickInstr(),-2.35);
       gVis2.classList.add('here');
     }
     const req=pick(Object.keys(GENRES).filter(k=>k!==track.genre));
     const vl=document.getElementById('visitorline');
-    vl.textContent=(visitor2?'visitors request: ':'visitor requests: ')+req+' →';
+    vl.textContent=(visitor2?'rare tag-team request: ':'visitor requests: ')+req+' →';
     vl.style.color=vis1.color;
     vl.classList.add('on');
     /* the request is spoken out loud, A.R.I. answers */
@@ -883,7 +883,7 @@ function scheduleVisitor(){
         if(!playing) return;
         visitorPhase='performing';
         vl.textContent=visitor2
-          ? '+ visitors '+short(vis1.instr)+' × '+short(vis2.instr)+' →'
+          ? '+ rare duo '+short(vis1.instr)+' × '+short(vis2.instr)+' →'
           : '+ visitor '+vis1.instr+' →';
         visitorTimer=setTimeout(()=>leaveVisitors(vl), R(22000,46000));
       },1200);
