@@ -16,19 +16,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#04050a;
+    --bg:#030409;
     --cyan:#3ee8de;
     --cyan-dim:#1f8f8a;
     --purple:#a78bff;
-    --purple-dim:#6b57c9;
-    --lav:#cbb6ff;
+    --purple-dim:#5e50a8;
+    --lav:#b9a8ff;
     --magenta:#ff5fd2;
-    --orange:#ff9d4d;
-    --orange-dim:#a3622b;
+    --orange:#3ee8de;       /* folded back into the cyan/purple palette */
+    --orange-dim:#1f8f8a;
     --key:#eef6f6;
     --key-dim:#7e9496;
-    --blue:#4d8aff;
-    --faint:#141a26;
+    --blue:#a78bff;         /* speakers/details now read as purple, not extra blue */
+    --faint:#111722;
     --muted:#3a4456;
     --text:#dfeef0;
     --glow1:rgba(62,232,222,.45);
@@ -41,13 +41,13 @@
     --cyan-dim:#7fb0ac;
     --purple:#7452e8;
     --purple-dim:#a795e0;
-    --lav:#6d48e8;
+    --lav:#7452e8;
     --magenta:#d61e9e;
-    --orange:#e07a18;
-    --orange-dim:#caa06b;
+    --orange:#0b9c93;
+    --orange-dim:#7fb0ac;
     --key:#26313c;
     --key-dim:#93a0a6;
-    --blue:#2e66d8;
+    --blue:#7452e8;
     --faint:#d9dee6;
     --muted:#8b94a3;
     --text:#16202a;
@@ -194,17 +194,17 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">a fan tribute · inspired by ARIatHOME, NYC</p>
+  <p class="tribute">tiny fan-made tribute · inspired by street streams, walking music rigs and ARIatHOME</p>
 </header>
 
 <footer>
-  <span>live from the grid</span>
+  <span>tiny busker mode</span>
   <button id="themebtn" aria-label="cycle theme: auto, light, dark">
     <svg viewBox="0 0 24 24"><g id="thicon"></g></svg>
   </button>
 </footer>
 
-<div id="hint">tap A.R.I. to start the stream</div>
+<div id="hint">tap A.R.I. to tune the street signal</div>
 
 <div id="trackinfo" style="display:none">
   <div id="trackname"></div>
@@ -290,7 +290,7 @@ let s='';
 s+='<g class="gPack">';
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');
 
-// simplified backpack speakers — two larger pods under the pack
+// simplified backpack speakers — two larger pods under the pack; recognizable over literal
 s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
 s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
 s+=box(8.35,-3.15,3.35, 9.15,-2.45,4.55,'b');          // lower right speaker
@@ -1063,6 +1063,11 @@ function start(){
   hint.style.display='none';
   btn.style.display='flex';
   info.style.display='block';
+  const vl=document.getElementById('visitorline');
+  vl.textContent='A.R.I. is tuning the street signal…';
+  vl.style.color='var(--cyan-dim)';
+  vl.classList.add('on');
+  setTimeout(()=>{ if(!visitor) vl.classList.remove('on'); },4200);
   pbicon.setAttribute('d','M8 5 v14 M16 5 v14');
   step=0; bar=0;
   nextT=ctx.currentTime+0.08; trackStart=nextT;
