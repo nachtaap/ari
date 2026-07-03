@@ -114,6 +114,10 @@
   header p{
     margin-top:4px; font-size:10px; letter-spacing:.32em; color:var(--cyan-dim);
   }
+  header .tribute{
+    margin-top:10px; font-size:9px; letter-spacing:.12em; color:var(--muted);
+    text-transform:none; max-width:78vw;
+  }
   #hint{
     position:fixed; left:50%; bottom:11%; transform:translateX(-50%);
     font-size:11px; letter-spacing:.3em; color:var(--cyan-dim);
@@ -142,27 +146,31 @@
   #playbtn:focus-visible{outline:2px solid var(--purple); outline-offset:4px}
   #playbtn svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linejoin:round}
   footer{
-    position:fixed; right:30px; top:32px; z-index:5; pointer-events:none;
-    font-size:9px; letter-spacing:.26em; color:var(--muted); text-transform:uppercase; text-align:right; line-height:2;
+    position:fixed; right:30px; top:32px; z-index:5;
+    display:flex; align-items:center; gap:10px; justify-content:flex-end;
+    font-size:9px; letter-spacing:.26em; color:var(--muted); text-transform:uppercase;
+    pointer-events:none;
   }
   #themebtn{
-    position:fixed; right:30px; bottom:30px; z-index:6;
-    width:38px; height:38px; border-radius:50%;
+    pointer-events:auto;
+    width:20px; height:20px; border-radius:50%;
     border:1.5px solid var(--cyan-dim); background:transparent; cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
     transition:border-color .3s, transform .15s;
   }
   #themebtn:hover{border-color:var(--cyan)}
   #themebtn:active{transform:scale(.92)}
   #themebtn:focus-visible{outline:2px solid var(--purple); outline-offset:4px}
-  #themebtn svg{width:15px;height:15px;stroke:var(--cyan-dim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  #themebtn svg{width:11px;height:11px;stroke:var(--cyan-dim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  #themebtn.auto svg path.fillhalf{fill:var(--cyan-dim); stroke:none}
   @media (max-width:640px){
     header{left:18px; top:18px}
     #trackinfo{left:18px; bottom:18px; font-size:10px}
     #playbtn{left:18px; bottom:96px}
     footer{right:18px; top:20px}
-    #themebtn{right:18px; bottom:18px}
-    svg#scene{width:118vw; height:118vw}
+    #themebtn{width:18px; height:18px}
+    #stage{padding-top:88px}
+    svg#scene{width:104vw; height:104vw}
   }
   @media (prefers-reduced-motion:reduce){
     #hint{animation:none; opacity:.7}
@@ -186,9 +194,15 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
+  <p class="tribute">a fan tribute · inspired by ARIatHOME, NYC</p>
 </header>
 
-<footer>live from the grid<br>a fan tribute · inspired by ARIatHOME, NYC</footer>
+<footer>
+  <span>live from the grid</span>
+  <button id="themebtn" aria-label="cycle theme: auto, light, dark">
+    <svg viewBox="0 0 24 24"><g id="thicon"></g></svg>
+  </button>
+</footer>
 
 <div id="hint">tap A.R.I. to start the stream</div>
 
@@ -202,9 +216,7 @@
   <svg viewBox="0 0 24 24"><path id="pbicon" d="M8 5 L18 12 L8 19 Z"/></svg>
 </button>
 
-<button id="themebtn" aria-label="toggle light or dark mode">
-  <svg viewBox="0 0 24 24"><path id="thicon" d="M12 4 v-2 M12 22 v-2 M4 12 h-2 M22 12 h-2 M6.3 6.3 L4.9 4.9 M19.1 19.1 L17.7 17.7 M6.3 17.7 L4.9 19.1 M19.1 4.9 L17.7 6.3 M12 8 a4 4 0 1 0 0 8 a4 4 0 1 0 0 -8"/></svg>
-</button>
+
 
 <script>
 /* SAM (Software Automatic Mouth) - (c) Christian Schiffler, MIT - https://github.com/discordier/sam */
@@ -274,23 +286,48 @@ function coil(a,b,loops,r,sag,cls){
 const ZT=4.4;               // rig top height (hip level, like the real rig)
 let s='';
 
-/* ---------- backpack + speakers (behind robot) ---------- */
+/* ---------- backpack + speaker array (behind robot) ---------- */
 s+='<g class="gPack">';
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');
-s+=box(8.45,-3.15,6.8, 9.65,-2.05,8.2,'b');            // top speaker
-s+=circX(9.65,-2.6,7.5,.44,'b')+circX(9.65,-2.6,7.5,.16,'b');
-s+=box(8.55,-3.15,4.5, 9.75,-2.05,5.9,'b');            // lower speaker
-s+=circX(9.75,-2.6,5.2,.44,'b')+circX(9.75,-2.6,5.2,.16,'b');
-s+='<g id="sfxC" opacity="0">';                        // sound dashes, top speaker
-s+=seg([10.4,-2.6,7.5],[10.85,-2.6,7.5],'l');
-s+=seg([10.35,-2.6,7.95],[10.7,-2.6,8.25],'l');
-s+=seg([10.35,-2.6,7.05],[10.7,-2.6,6.75],'l');
-s+='</g><g id="sfxD" opacity="0">';                    // sound dashes, lower speaker
-s+=seg([10.5,-2.6,5.2],[10.95,-2.6,5.2],'l');
-s+=seg([10.45,-2.6,5.65],[10.8,-2.6,5.95],'l');
-s+=seg([10.45,-2.6,4.75],[10.8,-2.6,4.45],'l');
+
+// lower backpack speakers — two larger pods under the pack
+s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
+s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
+s+=box(8.35,-3.15,3.35, 9.15,-2.45,4.55,'b');          // lower right speaker
+s+=circX(9.15,-2.8,3.95,.36,'b')+circX(9.15,-2.8,3.95,.13,'b');
+
+// four small speakers on top of the backpack
+// outer two point outward, inner two point backward
+s+=box(5.25,-3.2,6.75, 5.95,-2.55,7.55,'b');           // top outer L, outward
+s+=circX(5.25,-2.88,7.15,.27,'b')+circX(5.25,-2.88,7.15,.095,'b');
+s+=box(6.05,-3.48,6.75, 6.7,-2.85,7.55,'b');           // top inner L, backward
+s+=circY(-3.48,6.38,7.15,.27,'b')+circY(-3.48,6.38,7.15,.095,'b');
+s+=box(6.9,-3.48,6.75, 7.55,-2.85,7.55,'b');           // top inner R, backward
+s+=circY(-3.48,7.23,7.15,.27,'b')+circY(-3.48,7.23,7.15,.095,'b');
+s+=box(7.65,-3.2,6.75, 8.35,-2.55,7.55,'b');           // top outer R, outward
+s+=circX(8.35,-2.88,7.15,.27,'b')+circX(8.35,-2.88,7.15,.095,'b');
+
+s+='<g id="sfxC" opacity="0">';                        // sound dashes, top speaker array
+s+=seg([4.75,-2.88,7.15],[4.35,-2.88,7.15],'l');       // outer L
+s+=seg([4.78,-2.88,7.45],[4.48,-2.88,7.7],'l');
+s+=seg([4.78,-2.88,6.85],[4.48,-2.88,6.6],'l');
+s+=seg([8.85,-2.88,7.15],[9.25,-2.88,7.15],'l');       // outer R
+s+=seg([8.82,-2.88,7.45],[9.12,-2.88,7.7],'l');
+s+=seg([8.82,-2.88,6.85],[9.12,-2.88,6.6],'l');
+s+=seg([6.38,-3.95,7.15],[6.38,-4.35,7.15],'l');       // inner pair, backward
+s+=seg([7.23,-3.95,7.15],[7.23,-4.35,7.15],'l');
+s+='</g><g id="sfxD" opacity="0">';                    // sound dashes, lower speaker pair
+s+=seg([4.6,-2.8,3.95],[4.15,-2.8,3.95],'l');
+s+=seg([4.65,-2.8,4.35],[4.3,-2.8,4.65],'l');
+s+=seg([4.65,-2.8,3.55],[4.3,-2.8,3.25],'l');
+s+=seg([9.6,-2.8,3.95],[10.05,-2.8,3.95],'l');
+s+=seg([9.55,-2.8,4.35],[9.9,-2.8,4.65],'l');
+s+=seg([9.55,-2.8,3.55],[9.9,-2.8,3.25],'l');
 s+='</g>';
-s+=bez([9.1,-2.05,6.8],[9.6,-1.5,6.2],[9.15,-2.05,5.9],'cd'); // cable
+
+s+=bez([5.85,-2.55,4.45],[5.55,-2.0,5.3],[6.1,-2.35,6.75],'cd'); // left cable
+s+=bez([8.35,-2.55,4.45],[8.75,-2.0,5.3],[8.1,-2.35,6.75],'cd'); // right cable
+s+=seg([5.95,-2.65,6.75],[8.25,-2.65,6.75],'pd');      // top speaker rail
 s+='</g>';
 
 /* ---------- robot body ---------- */
@@ -1107,19 +1144,35 @@ document.addEventListener('touchstart',()=>{
   if(ctx&&playing&&ctx.state!=='running') recoverAudio();
 },{passive:true});
 
-/* ---------- light / dark toggle ---------- */
-const SUN='M12 4 v-2 M12 22 v-2 M4 12 h-2 M22 12 h-2 M6.3 6.3 L4.9 4.9 M19.1 19.1 L17.7 17.7 M6.3 17.7 L4.9 19.1 M19.1 4.9 L17.7 6.3 M12 8 a4 4 0 1 0 0 8 a4 4 0 1 0 0 -8';
-const MOON='M20 13.5 A8 8 0 1 1 10.5 4 A6.5 6.5 0 0 0 20 13.5 Z';
+/* ---------- theme: auto / light / dark ---------- */
+const ICONS={
+  light:'<path d="M12 4 v-2 M12 22 v-2 M4 12 h-2 M22 12 h-2 M6.3 6.3 L4.9 4.9 M19.1 19.1 L17.7 17.7 M6.3 17.7 L4.9 19.1 M19.1 4.9 L17.7 6.3 M12 8 a4 4 0 1 0 0 8 a4 4 0 1 0 0 -8"/>',
+  dark:'<path d="M20 13.5 A8 8 0 1 1 10.5 4 A6.5 6.5 0 0 0 20 13.5 Z"/>',
+  auto:'<circle cx="12" cy="12" r="8"/><path class="fillhalf" d="M12 4 A8 8 0 0 1 12 20 Z"/>',
+};
 const themeBtn=document.getElementById('themebtn');
-themeBtn.addEventListener('click',e=>{
-  e.stopPropagation();
-  const light=document.body.classList.toggle('light');
-  document.getElementById('thicon').setAttribute('d',light?MOON:SUN);
-  if(!visitor){ // repaint idle (invisible) visitors in the new palette
+const thicon=document.getElementById('thicon');
+const sysLight=matchMedia('(prefers-color-scheme: light)');
+let themeMode='auto';                          // 'auto' | 'light' | 'dark'
+
+function applyTheme(){
+  const light = themeMode==='light' || (themeMode==='auto' && sysLight.matches);
+  document.body.classList.toggle('light',light);
+  thicon.innerHTML=ICONS[themeMode];
+  themeBtn.classList.toggle('auto',themeMode==='auto');
+  if(!visitor){ // repaint idle (invisible) visitors in the current palette
     vis1=buildVisitor(gVis,'on the mic',0);
     vis2=buildVisitor(gVis2,'on acoustic',-2.35);
   }
+}
+sysLight.addEventListener('change',()=>{ if(themeMode==='auto') applyTheme(); });
+themeBtn.addEventListener('click',e=>{
+  e.stopPropagation();
+  themeMode = themeMode==='auto' ? 'light' : themeMode==='light' ? 'dark' : 'auto';
+  applyTheme();
 });
+applyTheme();
+
 </script>
 </body>
 </html>
