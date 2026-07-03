@@ -194,17 +194,17 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">tiny fan-made tribute · inspired by street streams, walking music rigs and ARIatHOME</p>
+  <p class="tribute">fan-made tribute · inspired by street cyphers, walking sound systems and ARIatHOME</p>
 </header>
 
 <footer>
-  <span>tiny busker mode</span>
+  <span>live from the cypher</span>
   <button id="themebtn" aria-label="cycle theme: auto, light, dark">
     <svg viewBox="0 0 24 24"><g id="thicon"></g></svg>
   </button>
 </footer>
 
-<div id="hint">tap A.R.I. to tune the street signal</div>
+<div id="hint">tap A.R.I. to catch the street signal</div>
 
 <div id="trackinfo" style="display:none">
   <div id="trackname"></div>
@@ -829,7 +829,7 @@ const SPEAK_GENRE={'boom bap':'boom bap','trap':'trap','jerk':'jerk',
 const REQ_LINES=['can i get a X beat','yo, a X beat please','gimme some X','X please','you got X?'];
 const ARI_LINES=['say less','okay okay','i got you','bet','one second'];
 const ARI_VOICE={speed:92,pitch:60,mouth:190,throat:190};
-const vVoice=()=>({pitch:RI(52,76),speed:RI(66,88),mouth:RI(100,190),throat:RI(100,190)});
+const vVoice=(kind='neutral')=> kind==='femme' ? {pitch:RI(70,82),speed:RI(70,88),mouth:RI(130,188),throat:RI(122,186)} : kind==='masc' ? {pitch:RI(50,62),speed:RI(64,82),mouth:RI(104,178),throat:RI(98,160)} : {pitch:RI(56,72),speed:RI(66,86),mouth:RI(104,186),throat:RI(102,180)};
 function speak(text,opts,vol,when){
   try{
     if(!window.SamJs||!ctx||!playing) return 0;
@@ -873,7 +873,7 @@ function scheduleVisitor(){
     vl.style.color=vis1.color;
     vl.classList.add('on');
     /* the request is spoken out loud, A.R.I. answers */
-    const said=speak(pick(REQ_LINES).replace('X',SPEAK_GENRE[req]),vVoice(),0.55);
+    const said=speak(pick(REQ_LINES).replace('X',SPEAK_GENRE[req]),vVoice(vis1.voiceKind),0.55);
     speak(pick(ARI_LINES),ARI_VOICE,0.5,said+0.35);
     /* the request lands, then A.R.I. flips the beat */
     visitorTimer=setTimeout(()=>{
@@ -917,22 +917,52 @@ const visPalette=()=>document.body.classList.contains('light')?VIS_LIGHT:VIS_DAR
 let vis1=null, vis2=null;
 function buildVisitor(target,instr,dx){
   const col=pick(visPalette());
-  const h=R(0.88,1.12);          // body height
-  const fl=R(0.02,0.3);          // hoodie flare
-  const legT=2.7*h, bodT=5.35*h, headZ=6.1*h;
+  const archetypes=[
+    {kind:'cap',   voiceKind:'neutral', stance:0.00,  lean:0.00, shoulderRise:0.00, hemSkew:0.00},
+    {kind:'masc',  voiceKind:'masc',    stance:0.05,  lean:0.06, shoulderRise:-0.04, hemSkew:0.03},
+    {kind:'femme', voiceKind:'femme',   stance:-0.05, lean:-0.05, shoulderRise:0.05, hemSkew:-0.03}
+  ];
+  const arche=pick(archetypes);
+  const h=R(0.92,1.08);         // very light height variation
+  const fl=R(0.02,0.16);        // restrained hoodie flare
+  const sway=R(-0.03,0.03);     // tiny per-visitor jitter so clones are avoided
+  const stance=arche.stance+sway;
+  const lean=arche.lean+sway*0.6;
+  const shoulderRise=arche.shoulderRise;
+  const hemSkew=arche.hemSkew+sway*0.5;
+  const legT=2.72*h, bodT=5.34*h, headZ=6.08*h;
+  const leftHandX=0.34+dx-lean*0.18, rightHandX=1.58+dx-lean*0.12;
+  const headCX=0.95+dx+lean*0.28;
   let v='', notePos;
   /* coiled cable: plugged into the left input of the rig */
   v+=seg([1.2,1.3,4.22],[1.6,1.3,4.22],'p');                                       // jack
-  v+=coil([1.6,1.3,4.22],[0.55+dx,-0.9,4.3*h], dx<0?9:7, 6, 24,'p');
-  v+=seg([0.55+dx,-0.9,4.3*h],[0.5+dx,-0.98,4.9*h],'p');                           // tail to hand
-  v+=seg([0.55+dx,-1.0,0],[0.6+dx,-1.05,legT],'v');
-  v+=seg([1.35+dx,-1.0,0],[1.3+dx,-1.05,legT],'v');
-  v+=poly([[0.25+dx,-1.1,legT],[1.65+dx,-1.1,legT],[1.65+fl+dx,-1.1,bodT],[0.25-fl+dx,-1.1,bodT]],'v');
-  v+=circY(-1.1,0.95+dx,headZ,.58,'v');
-  const hat=RI(0,3);
-  if(hat===0) v+=seg([0.32+dx,-1.1,headZ+0.42],[1.05+dx,-0.82,headZ+0.48],'v');                          // cap
-  if(hat===1) v+=bez([0.42+dx,-1.1,headZ+0.36],[0.95+dx,-1.1,headZ+0.82],[1.48+dx,-1.1,headZ+0.36],'v'); // beanie
-  if(hat===2) v+=circY(-1.1,0.95+dx,headZ+0.56,.32,'v');                                                  // hair puff
+  v+=coil([1.6,1.3,4.22],[0.55+dx-stance*0.18,-0.9,4.3*h], dx<0?9:7, 6, 24,'p');
+  v+=seg([0.55+dx-stance*0.18,-0.9,4.3*h],[0.5+dx-stance*0.22,-0.98,4.88*h],'p');  // tail to hand
+  v+=seg([0.55+dx-stance,-1.0,0],[0.6+dx-stance*0.6,-1.05,legT],'v');
+  v+=seg([1.35+dx+stance,-1.0,0],[1.3+dx+stance*0.6,-1.05,legT],'v');
+  v+=poly([
+    [0.25+dx,-1.1,legT],
+    [1.65+dx,-1.1,legT],
+    [1.65+fl+dx+lean,-1.1,bodT+shoulderRise],
+    [0.25-fl+dx+lean*0.35+hemSkew,-1.1,bodT-shoulderRise*0.45]
+  ],'v');
+  v+=circY(-1.1,headCX,headZ+shoulderRise*0.25,.58,'v');
+
+  if(arche.kind==='cap'){
+    v+=seg([0.34+dx+lean*0.18,-1.1,headZ+0.4],[1.06+dx+lean*0.18,-0.84,headZ+0.46],'v'); // cap top
+    v+=seg([0.54+dx+lean*0.16,-0.94,headZ+0.34],[1.02+dx+lean*0.16,-0.78,headZ+0.38],'v'); // cap brim
+  }
+  if(arche.kind==='masc'){
+    v+=bez([0.44+dx+lean*0.15,-1.1,headZ+0.24],[0.95+dx+lean*0.24,-1.1,headZ+0.72],[1.46+dx+lean*0.15,-1.1,headZ+0.24],'v');
+    v+=seg([0.48+dx+lean*0.14,-1.1,headZ+0.1],[0.48+dx+lean*0.14,-1.1,headZ-0.01],'v');
+    v+=seg([1.42+dx+lean*0.14,-1.1,headZ+0.1],[1.42+dx+lean*0.14,-1.1,headZ-0.01],'v');
+  }
+  if(arche.kind==='femme'){
+    v+=bez([0.4+dx+lean*0.12,-1.1,headZ+0.18],[0.95+dx+lean*0.28,-1.1,headZ+0.86],[1.5+dx+lean*0.12,-1.1,headZ+0.18],'v');
+    v+=bez([0.4+dx+lean*0.1,-1.1,headZ+0.05],[0.14+dx+lean*0.14,-1.1,headZ-0.5],[0.46+dx+lean*0.16,-1.1,headZ-1.02],'v');
+    v+=bez([1.5+dx+lean*0.1,-1.1,headZ+0.05],[1.76+dx+lean*0.14,-1.1,headZ-0.5],[1.44+dx+lean*0.16,-1.1,headZ-1.02],'v');
+  }
+
   if(instr==='on acoustic'||instr==='on electric'){
     v+=circY(-1.0,1.25+dx,3.55*h,.45,'v');                                        // body
     if(instr==='on acoustic') v+=circY(-1.0,1.25+dx,3.55*h,.15,'v');              // sound hole
@@ -942,14 +972,14 @@ function buildVisitor(target,instr,dx){
     }
     v+=seg([1.02+dx,-1.0,3.9*h],[0.08+dx,-1.0,5.15*h],'v');                       // neck
     v+=seg([0.08+dx,-1.0,5.15*h],[-0.06+dx,-1.0,5.42*h],'v');                     // headstock
-    v+=pline([[1.6+dx,-1.1,bodT-0.2],[1.5+dx,-0.85,3.85*h]],'v');                 // strum arm
-    v+=pline([[0.3+dx,-1.1,bodT-0.3],[0.32+dx,-0.9,4.85*h]],'v');                 // fret arm
+    v+=pline([[rightHandX,-1.1,bodT-0.2],[1.5+dx,-0.85,3.85*h]],'v');             // strum arm
+    v+=pline([[leftHandX,-1.1,bodT-0.3],[0.32+dx,-0.9,4.85*h]],'v');              // fret arm
     notePos=[1.35+dx,-0.9,4.35*h];
   }else if(instr==='on flute'){
     v+=seg([0.82+dx,-0.95,5.6*h],[1.95+dx,-0.72,5.45*h],'v');                     // flute
     v+=seg([1.92+dx,-0.74,5.55*h],[1.98+dx,-0.7,5.36*h],'v');                     // end cap
-    v+=pline([[0.3+dx,-1.1,bodT-0.3],[1.15+dx,-0.85,5.45*h]],'v');                // hand near
-    v+=pline([[1.6+dx,-1.1,bodT-0.2],[1.6+dx,-0.8,5.4*h]],'v');                   // hand far
+    v+=pline([[leftHandX,-1.1,bodT-0.3],[1.15+dx,-0.85,5.45*h]],'v');             // hand near
+    v+=pline([[rightHandX,-1.1,bodT-0.2],[1.6+dx,-0.8,5.4*h]],'v');               // hand far
     notePos=[2.0+dx,-0.7,6.0*h];
   }else if(instr==='on violin'||instr==='on e-violin'){
     const open=instr==='on e-violin'
@@ -958,31 +988,31 @@ function buildVisitor(target,instr,dx){
     if(instr==='on violin'){
       v+=circY(-0.95,0.5+dx,5.45*h,.32,'v');                                      // body
     }else{
-      v+=pline([[0.82+dx,-0.95,5.25*h],[0.28+dx,-0.95,5.3*h],[0.6+dx,-0.95,5.7*h],[0.82+dx,-0.95,5.55*h]],'v'); // skeletal frame
+      v+=pline([[0.82+dx,-0.95,5.25*h],[0.28+dx,-0.95,5.3*h],[0.6+dx,-0.95,5.7*h],[0.82+dx,-0.95,5.55*h]],'v');
     }
     v+=seg([0.3+dx,-0.95,5.6*h],[-0.5+dx,-0.95,6.12*h],'v');                      // neck
     v+=seg([-0.5+dx,-0.95,6.12*h],[-0.64+dx,-0.95,6.0*h],'v');                    // scroll
     if(open) v+='</g>';
     v+=seg([1.05+dx,-0.85,4.95*h],[0.12+dx,-0.85,5.95*h],'v');                    // bow
-    v+=pline([[1.6+dx,-1.1,bodT-0.2],[0.95+dx,-0.82,5.05*h]],'v');                // bow arm
-    v+=pline([[0.3+dx,-1.1,bodT-0.3],[-0.32+dx,-0.9,5.92*h]],'v');                // neck arm
+    v+=pline([[rightHandX,-1.1,bodT-0.2],[0.95+dx,-0.82,5.05*h]],'v');            // bow arm
+    v+=pline([[leftHandX,-1.1,bodT-0.3],[-0.32+dx,-0.9,5.92*h]],'v');             // neck arm
     notePos=[0.35+dx,-0.9,6.35*h];
   }else if(instr==='on sax'){
     v+=bez([0.98+dx,-0.86,5.65*h],[1.18+dx,-0.8,4.6*h],[1.32+dx,-0.8,4.15*h],'v');// tube down
     v+=bez([1.32+dx,-0.8,4.15*h],[1.62+dx,-0.8,4.05*h],[1.68+dx,-0.8,4.5*h],'v'); // bell curve
     v+=circY(-0.8,1.68+dx,4.62*h,.2,'v');                                          // bell
-    v+=pline([[0.3+dx,-1.1,bodT-0.3],[1.05+dx,-0.85,4.95*h]],'v');                 // hand high
-    v+=pline([[1.6+dx,-1.1,bodT-0.2],[1.28+dx,-0.85,4.45*h]],'v');                 // hand low
+    v+=pline([[leftHandX,-1.1,bodT-0.3],[1.05+dx,-0.85,4.95*h]],'v');             // hand high
+    v+=pline([[rightHandX,-1.1,bodT-0.2],[1.28+dx,-0.85,4.45*h]],'v');            // hand low
     notePos=[1.7+dx,-0.75,5.15*h];
   }else{ // on the mic
-    v+=pline([[0.3+dx,-1.1,bodT-0.3],[0.9+dx,-0.55,5.7*h]],'v');                   // arm
-    v+=circTop(0.97+dx,-0.48,5.86*h,.2,'v');                                       // mic head
-    v+=seg([0.97+dx,-0.48,5.84*h],[0.9+dx,-0.55,5.5*h],'v');                       // mic body
-    notePos=[0.97+dx,-0.48,6.9*h];
+    v+=pline([[leftHandX,-1.1,bodT-0.3],[0.9+dx+lean*0.16,-0.55,5.7*h]],'v');     // arm
+    v+=circTop(0.97+dx+lean*0.18,-0.48,5.86*h,.2,'v');                             // mic head
+    v+=seg([0.97+dx+lean*0.18,-0.48,5.84*h],[0.9+dx+lean*0.16,-0.55,5.5*h],'v');  // mic body
+    notePos=[0.97+dx+lean*0.18,-0.48,6.9*h];
   }
   target.innerHTML=v;
   target.style.color=col;
-  return {instr, color:col, notePos};
+  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind};
 }
 vis1=buildVisitor(gVis,'on the mic',0);       // pre-built so the viewBox
 vis2=buildVisitor(gVis2,'on acoustic',-2.35); // reserves space for a duo
@@ -1064,7 +1094,7 @@ function start(){
   btn.style.display='flex';
   info.style.display='block';
   const vl=document.getElementById('visitorline');
-  vl.textContent='A.R.I. is tuning the street signal…';
+  vl.textContent='A.R.I. is locking onto the cypher…';
   vl.style.color='var(--cyan-dim)';
   vl.classList.add('on');
   setTimeout(()=>{ if(!visitor) vl.classList.remove('on'); },4200);
