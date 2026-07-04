@@ -304,6 +304,7 @@ function coil(a,b,loops,r,sag,cls){
 const ZT=4.4;               // rig top height (hip level, like the real rig)
 let s='';
 
+s+='<g id="gAri">';
 /* ---------- backpack + speakers (behind robot) ---------- */
 s+='<g class="gPack">';
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');
@@ -329,14 +330,9 @@ s+=seg([5.95,-2.65,6.75],[8.25,-2.65,6.75],'pd');      // top speaker rail
 s+='</g>';
 
 /* ---------- robot body ---------- */
-const hipA=iso(6.45,-1.35,3.05), hipB=iso(7.75,-1.35,3.05);
-s+=`<g class="wlegA" data-px="${hipA[0].toFixed(1)}" data-py="${hipA[1].toFixed(1)}">`;
-s+=box(6.0,-1.8,0, 6.9,-0.9,3.0,'c');                  // left leg + foot
-s+=box(5.85,-1.0,0, 6.95,0.4,0.65,'c');
-s+=`</g><g class="wlegB" data-px="${hipB[0].toFixed(1)}" data-py="${hipB[1].toFixed(1)}">`;
-s+=box(7.3,-1.8,0, 8.2,-0.9,3.0,'c');                  // right leg + foot
-s+=box(7.25,-1.0,0, 8.35,0.4,0.65,'c');
-s+='</g>';
+s+=seg([5.9,-1.35,3.05],[7.0,-1.35,3.05],'cd');        // hinge axles: legs pivot on these
+s+=seg([7.2,-1.35,3.05],[8.3,-1.35,3.05],'cd');
+s+='<g id="alegA"></g><g id="alegB"></g>';
 s+=box(5.8,-2.0,3.1, 8.4,-0.8,3.9,'c');                // hips
 s+=box(5.5,-2.2,4.0, 8.7,-0.7,6.9,'c');                // torso
 s+=box(6.7,-1.8,6.9, 7.5,-1.1,7.35,'c');               // neck
@@ -464,6 +460,7 @@ s+=pline([[10.5,0.9,5.1],[10.85,1.65,4.8]],'c');
 s+='</g>';
 
 /* ---------- the visitors (random look, built per visit) ---------- */
+s+='</g>';
 s+='<g id="gVisitor2"></g><g id="gVisitor"></g>';
 
 document.getElementById('world').innerHTML=s;
@@ -493,6 +490,38 @@ const [recX,recY]=iso(8.15,1.05,6.75);
 rv+=`<circle class="rec" cx="${recX.toFixed(1)}" cy="${recY.toFixed(1)}" r="2.6"/>`;
 rv+=`<text class="rectxt" x="${(recX+6).toFixed(1)}" y="${(recY+2.5).toFixed(1)}">REC</text>`;
 document.getElementById('gReverse').innerHTML=rv;
+
+/* ---------- A.R.I.'s legs: true 3D hinge rotation around the axles ---------- */
+function boxPolys3(x1,y1,z1,x2,y2,z2){
+  return [
+    [[x1,y1,z2],[x2,y1,z2],[x2,y2,z2],[x1,y2,z2]],
+    [[x2,y1,z2],[x2,y2,z2],[x2,y2,z1],[x2,y1,z1]],
+    [[x1,y2,z2],[x2,y2,z2],[x2,y2,z1],[x1,y2,z1]],
+  ];
+}
+function buildAriLeg(gid, legBox, footBox){
+  const g=document.getElementById(gid), polys=[];
+  [...boxPolys3(...legBox),...boxPolys3(...footBox)].forEach(pts=>{
+    const el=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    el.setAttribute('class','c');
+    el.setAttribute('points',pts.map(p=>pt(...p)).join(' '));
+    g.appendChild(el); polys.push({el,pts});
+  });
+  return {g, axY:-1.35, axZ:3.05, polys};
+}
+const legA3=buildAriLeg('alegA',[6.0,-1.8,0,6.9,-0.9,3.0],[5.85,-1.0,0,6.95,0.4,0.65]);
+const legB3=buildAriLeg('alegB',[7.3,-1.8,0,8.2,-0.9,3.0],[7.25,-1.0,0,8.35,0.4,0.65]);
+function poseLeg(leg,theta,liftPx,bobPx){
+  const c=Math.cos(theta), sn=Math.sin(theta);
+  leg.polys.forEach(pp=>{
+    const str=pp.pts.map(([x,y,z])=>{
+      const dy=y-leg.axY, dz=z-leg.axZ;
+      return pt(x, leg.axY+dy*c-dz*sn, leg.axZ+dy*sn+dz*c);
+    }).join(' ');
+    pp.el.setAttribute('points',str);
+  });
+  leg.g.setAttribute('transform',`translate(0 ${(bobPx-liftPx).toFixed(1)})`);
+}
 
 /* fit viewBox to drawing */
 const sceneEl=document.getElementById('scene');
@@ -1134,6 +1163,7 @@ const faderPos=new Array(8).fill(0.5), faderTarget=new Array(8).fill(0.5);
 const gHead=document.getElementById('gHead');
 const gWheel=document.getElementById('gWheel');
 const gArmL=document.getElementById('gArmL');
+const gAri=document.getElementById('gAri');
 const gArmLup=document.getElementById('gArmLup');
 const gArmR=document.getElementById('gArmR');
 const gVis=document.getElementById('gVisitor');
@@ -1322,14 +1352,33 @@ function frame(){
   sfxA.style.opacity=sfxB.style.opacity=Math.min(1,kickE*1.3).toFixed(2);
   sfxC.style.opacity=Math.min(1,hatE*1.1).toFixed(2);
   sfxD.style.opacity=Math.min(1,snareE*1.2).toFixed(2);
+  /* walk cycle: slow amble, big committed swing, bouncing body */
+  walkAmp+=((roaming&&playing?1:0)-walkAmp)*0.05;
+  const wp=now*Math.PI*0.55;
+  const bob=Math.abs(Math.sin(wp))*2.6*walkAmp;        // body rises mid-step
+  if(!reduceMotion && walkAmp>0.005){
+    const th=0.38*Math.sin(wp)*walkAmp;                // ±22° around the hinge axle
+    poseLeg(legA3, th, Math.max(0,Math.cos(wp))*2.2*walkAmp, bob);
+    poseLeg(legB3,-th, Math.max(0,-Math.cos(wp))*2.2*walkAmp, bob);
+    [[gVis,visitor,0.9],[gVis2,visitor2,2.1]].forEach(([g,on,ph])=>{
+      if(!on) return;
+      const eA=g.querySelector('.wlegA'), eB=g.querySelector('.wlegB');
+      if(!eA) return;
+      const bv=(Math.abs(Math.sin(wp+ph))*2.2*walkAmp).toFixed(1);
+      const a=(13*Math.sin(wp+ph)*walkAmp).toFixed(2);
+      eA.setAttribute('transform',`translate(0 ${bv}) rotate(${a} ${eA.dataset.px} ${eA.dataset.py})`);
+      eB.setAttribute('transform',`translate(0 ${bv}) rotate(${-a} ${eB.dataset.px} ${eB.dataset.py})`);
+    });
+  }
   if(!reduceMotion){
+    gAri.style.transform=`translateY(${(-bob).toFixed(1)}px)`;
     gHead.style.transform=`translateY(${(kickE*4.2).toFixed(1)}px)`;
     gWheel.style.transform=`translateY(${(kickE*1.4).toFixed(1)}px)`;
     gArmL.style.transform=`translateY(${(kickE*2).toFixed(1)}px)`;
     gArmLup.style.transform=`translateY(${(kickE*3.4).toFixed(1)}px)`;
     gArmR.style.transform=`translateY(${(snareE*2.4).toFixed(1)}px)`;
-    if(visitor) gVis.style.transform=`translateY(${(Math.sin(now*2.2)*2.4).toFixed(1)}px)`;
-    if(visitor2) gVis2.style.transform=`translateY(${(Math.sin(now*2.2+1.7)*2.4).toFixed(1)}px)`;
+    if(visitor) gVis.style.transform=`translateY(${(Math.sin(now*2.2)*2.4-Math.abs(Math.sin(wp+0.9))*2.2*walkAmp).toFixed(1)}px)`;
+    if(visitor2) gVis2.style.transform=`translateY(${(Math.sin(now*2.2+1.7)*2.4-Math.abs(Math.sin(wp+2.1))*2.2*walkAmp).toFixed(1)}px)`;
     document.querySelectorAll('.gMicHold').forEach(el=>{
       const ph=+el.dataset.ph;
       if(ph<0) return;                            // holds it properly — no animation
@@ -1345,27 +1394,6 @@ function frame(){
     const mf=WC[1]-(mb*WC[0]+md*WC[1]);
     gWheelSpin.setAttribute('transform',
       `matrix(${ma.toFixed(4)} ${mb.toFixed(4)} ${mc.toFixed(4)} ${md.toFixed(4)} ${me.toFixed(1)} ${mf.toFixed(1)})`);
-  }
-  walkAmp+=((roaming&&playing?1:0)-walkAmp)*0.05;      // ease walk in/out
-  if(!reduceMotion && track && walkAmp>0.005){
-    const wp=now*Math.PI*0.95;                         // relaxed stroll, ~1 step/sec, tempo-independent
-    // A.R.I.: use the same projected leg swing as the visitor.
-    // The legs are different shapes, but the movement should read the same in screen space.
-    const wA=world.querySelector('.wlegA'), wB=world.querySelector('.wlegB');
-    if(wA){
-      const a=(8*Math.sin(wp)*walkAmp).toFixed(2);
-      wA.setAttribute('transform',`rotate(${a} ${wA.dataset.px} ${wA.dataset.py})`);
-      wB.setAttribute('transform',`rotate(${-a} ${wB.dataset.px} ${wB.dataset.py})`);
-    }
-    // visitors: pendulum crossing (approved as-is)
-    [[gVis,visitor,0.9],[gVis2,visitor2,2.1]].forEach(([g,on,ph])=>{
-      if(!on) return;
-      const eA=g.querySelector('.wlegA'), eB=g.querySelector('.wlegB');
-      if(!eA) return;
-      const a=(8*Math.sin(wp+ph)*walkAmp).toFixed(2);
-      eA.setAttribute('transform',`rotate(${a} ${eA.dataset.px} ${eA.dataset.py})`);
-      eB.setAttribute('transform',`rotate(${-a} ${eB.dataset.px} ${eB.dataset.py})`);
-    });
   }
   for(let i=0;i<7;i++){
     eqVal[i]=Math.max(0.08,eqVal[i]*0.9);
