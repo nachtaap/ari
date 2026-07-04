@@ -42,7 +42,7 @@ inlined so everything stays a single file.
 
 ## Running it
 
-Open `ari.html` in a browser. That's it.
+Open `index.html` in a browser. That's it.
 
 For the screen wake lock to work (keeps the display on during a stream), serve it
 over `https` or `localhost` — for example:
@@ -52,6 +52,19 @@ npx serve .
 ```
 
 Tap A.R.I. to start the stream. Space toggles play/pause.
+
+## Installing as an app
+
+Served over https (GitHub Pages works), A.R.I. is an installable PWA:
+
+- **Android / Chrome**: menu → "Install app" (or the install prompt). The
+  `manifest.webmanifest`, icons and `sw.js` service worker make it installable
+  and cache the app shell for offline-ish startup.
+- **iOS / Safari**: share sheet → "Add to Home Screen". Runs standalone with the
+  dark status bar.
+
+Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
+`icon-512.png` together in the same directory.
 
 ## License
 
