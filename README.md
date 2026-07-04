@@ -70,3 +70,14 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
 
 Code: MIT. The tribute nature of the project (see disclaimer) applies to the
 concept and inspiration; everything in this repository is original work.
+
+
+## Update ari-v5
+- Adds a single rare cypher reference: `A cypher is forming`, shown only during the rare two-visitor moment.
+- Keeps the fixed copy clean; cypher is now an event, not a repeated theme word.
+
+
+## Version label update
+
+- Visible footer tribute now ends with `version 6`.
+- Service worker cache bumped to `ari-v6`.

@@ -39,6 +39,8 @@
     --blue:#a78bff;         /* speakers/details now read as purple, not extra blue */
     --faint:#111722;
     --muted:#3a4456;
+    --nyc-green:#007A3D;
+    --nyc-green-dim:#2fa66f;
     --text:#dfeef0;
     --glow1:rgba(62,232,222,.45);
     --glow2:rgba(120,90,255,.14);
@@ -59,6 +61,8 @@
     --blue:#7452e8;
     --faint:#d9dee6;
     --muted:#8b94a3;
+    --nyc-green:#007A3D;
+    --nyc-green-dim:#0a6d40;
     --text:#16202a;
     --glow1:rgba(11,156,147,.20);
     --glow2:rgba(116,82,232,.08);
@@ -101,8 +105,10 @@
   .key.on{fill:var(--key); fill-opacity:.4; transition:fill .05s}
   .rec{fill:var(--magenta); stroke:none; animation:recblink 1s steps(1) infinite}
   .sgn{stroke:var(--muted); fill:none; stroke-width:1.1; stroke-linejoin:round; stroke-linecap:round}
+  .signblade{stroke:var(--nyc-green); fill:none; stroke-width:1.35; stroke-linejoin:round; stroke-linecap:round}
+  .signmark{stroke:var(--nyc-green-dim); fill:none; stroke-width:1.05; stroke-linejoin:round; stroke-linecap:round; opacity:.75}
   .bg {stroke:var(--muted); fill:none; stroke-width:1;   stroke-linejoin:round; stroke-linecap:round}
-  .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--muted); stroke:none; letter-spacing:.12em}
+  .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--nyc-green-dim); stroke:none; letter-spacing:.12em; opacity:.9}
   #gSign{opacity:0; transition:opacity 1.6s ease}
   #gSign.here{opacity:.8}
   .rectxt{font-family:'IBM Plex Mono',monospace; font-size:5.5px; fill:var(--magenta); stroke:none; letter-spacing:.1em}
@@ -158,6 +164,11 @@
   #trackmeta{color:var(--cyan-dim)}
   #visitorline{color:var(--magenta); opacity:0; transition:opacity .9s}
   #visitorline.on{opacity:1}
+  #cypherline{
+    color:var(--lav); opacity:0; transition:opacity .9s;
+    letter-spacing:.28em; font-size:10px; text-shadow:0 0 10px var(--glow2);
+  }
+  #cypherline.on{opacity:.95}
   #liveRecording{
     position:fixed; left:50%; top:calc(env(safe-area-inset-top, 0px) + 82px);
     transform:translate(-50%,-8px); z-index:8; pointer-events:none;
@@ -239,7 +250,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 7</p>
 </header>
 
 <footer>
@@ -255,6 +266,7 @@
   <div id="trackname"></div>
   <div id="trackmeta"></div>
   <div id="visitorline"></div>
+  <div id="cypherline">A cypher is forming</div>
 </div>
 
 <div id="liveRecording" aria-hidden="true"><span class="dot"></span><span>LIVE RECORDING</span></div>
@@ -339,9 +351,9 @@ s+=seg([0.5,-4.6,-2.0],[0.5,-4.6,11.2],'sgn');                                  
 s+=circTop(0.5,-4.6,11.2,.12,'sgn');                                               // cap
 s+=seg([0.35,-4.7,8.9],[0.65,-4.5,8.9],'sgn');                                     // mounting bands
 s+=seg([0.35,-4.7,10.35],[0.65,-4.5,10.35],'sgn');
-s+=poly([[-3.7,-4.6,9.3],[0.4,-4.6,9.3],[0.4,-4.6,10.1],[-3.7,-4.6,10.1]],'sgn');  // main blade
-s+=poly([[0.6,-4.8,10.35],[0.6,-6.7,10.35],[0.6,-6.7,11.0],[0.6,-4.8,11.0]],'sgn');// cross blade
-s+=seg([0.6,-5.2,10.67],[0.6,-6.3,10.67],'sgn');                                    // its unreadable text
+s+=poly([[-3.7,-4.6,9.3],[0.4,-4.6,9.3],[0.4,-4.6,10.1],[-3.7,-4.6,10.1]],'signblade');  // main blade — NYC green outline
+s+=poly([[0.6,-4.8,10.35],[0.6,-6.7,10.35],[0.6,-6.7,11.0],[0.6,-4.8,11.0]],'signblade');// cross blade — NYC green outline
+s+=seg([0.6,-5.2,10.67],[0.6,-6.3,10.67],'signmark');                               // its unreadable text
 const [sgx,sgy]=iso(-3.45,-4.6,9.48);
 s+=`<text id="signname" class="sgntxt" transform="translate(${sgx.toFixed(1)} ${sgy.toFixed(1)}) rotate(30)"></text>`;
 s+='</g>';
@@ -1203,15 +1215,23 @@ function speak(text,opts,vol,when){
 /* ---------- visitor lifecycle ---------- */
 let visitor2=false, visitorPhase='';
 const short=i=>i.replace('on the ','').replace('on ','');
+function setCypherLine(on){
+  const el=document.getElementById('cypherline');
+  if(!el) return;
+  el.textContent='A cypher is forming';
+  el.classList.toggle('on',!!on);
+}
 function leaveVisitors(vl){
   visitor=false; visitor2=false; visitorPhase='';
   gVis.classList.remove('here');
   gVis2.classList.remove('here');
+  setCypherLine(false);
   vl.classList.remove('on');
   if(playing) scheduleVisitor();
 }
 function scheduleVisitor(){
   clearTimeout(visitorTimer);
+  setCypherLine(false);
   visitorTimer=setTimeout(()=>{
     if(!playing) return;
     if(reversing){ scheduleVisitor(); return; }  // let the reverse shot finish first
@@ -1229,6 +1249,7 @@ function scheduleVisitor(){
     vl.textContent=(visitor2?'rare tag-team request: ':'visitor requests: ')+req+' →';
     vl.style.color=vis1.color;
     vl.classList.add('on');
+    setCypherLine(visitor2);
     /* the request is spoken out loud, A.R.I. answers */
     const said=speak(pick(REQ_LINES).replace('X',SPEAK_GENRE[req]),vVoice(vis1.voiceKind),0.55);
     speak(pick(ARI_LINES),ARI_VOICE,0.5,said+0.35);
@@ -1242,6 +1263,7 @@ function scheduleVisitor(){
         vl.textContent=visitor2
           ? '+ rare duo '+performerLabel(vis1)+' × '+performerLabel(vis2)+' →'
           : '+ visitor '+performerLabel(vis1)+' →';
+        setCypherLine(visitor2);
         visitorTimer=setTimeout(()=>leaveVisitors(vl), R(22000,46000));
       },1200);
     }, R(2500,4500));
@@ -1530,6 +1552,7 @@ function start(){
   vl.textContent='A.R.I. is tuning into the street signal…';
   vl.style.color='var(--cyan-dim)';
   vl.classList.add('on');
+  setCypherLine(false);
   setTimeout(()=>{ if(!visitor) vl.classList.remove('on'); },4200);
   pbicon.setAttribute('d','M8 5 v14 M16 5 v14');
   step=0; bar=0;
