@@ -167,8 +167,9 @@
   #cypherline{
     color:var(--lav); opacity:0; transition:opacity .9s;
     letter-spacing:.28em; font-size:10px; text-shadow:0 0 10px var(--glow2);
+    height:0; overflow:hidden;
   }
-  #cypherline.on{opacity:.95}
+  #cypherline.on{opacity:.95; height:auto}
   #liveRecording{
     position:fixed; left:50%; top:calc(env(safe-area-inset-top, 0px) + 82px);
     transform:translate(-50%,-8px); z-index:8; pointer-events:none;
@@ -187,7 +188,7 @@
   }
   @keyframes liveblink{50%{opacity:.18}}
   #playbtn{
-    position:fixed; left:30px; bottom:112px; z-index:6;
+    position:fixed; left:30px; bottom:136px; z-index:6;
     width:54px; height:54px; border-radius:50%;
     border:1.5px solid var(--cyan); background:transparent; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
@@ -221,7 +222,7 @@
   @media (max-width:640px){
     header{left:18px; top:18px}
     #trackinfo{left:18px; bottom:18px; font-size:10px}
-    #playbtn{left:18px; bottom:96px}
+    #playbtn{left:18px; bottom:118px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
       #stage{padding-top:60px}
@@ -349,13 +350,7 @@ let s='';
 s+='<g id="gSign">';
 s+=seg([0.5,-4.6,-2.0],[0.5,-4.6,11.2],'sgn');                                     // pole
 s+=circTop(0.5,-4.6,11.2,.12,'sgn');                                               // cap
-s+=seg([0.35,-4.7,8.9],[0.65,-4.5,8.9],'sgn');                                     // mounting bands
-s+=seg([0.35,-4.7,10.35],[0.65,-4.5,10.35],'sgn');
-s+=poly([[-3.7,-4.6,9.3],[0.4,-4.6,9.3],[0.4,-4.6,10.1],[-3.7,-4.6,10.1]],'signblade');  // main blade — NYC green outline
-s+=poly([[0.6,-4.8,10.35],[0.6,-6.7,10.35],[0.6,-6.7,11.0],[0.6,-4.8,11.0]],'signblade');// cross blade — NYC green outline
-s+=seg([0.6,-5.2,10.67],[0.6,-6.3,10.67],'signmark');                               // its unreadable text
-const [sgx,sgy]=iso(-3.45,-4.6,9.48);
-s+=`<text id="signname" class="sgntxt" transform="translate(${sgx.toFixed(1)} ${sgy.toFixed(1)}) rotate(30)"></text>`;
+s+='<g id="gSignBlades"></g>';                                                     // blades: count + layout varied in JS per block
 s+='</g>';
 s+='<g id="gAri">';
 /* ---------- backpack + speakers (behind robot) ---------- */
@@ -921,13 +916,38 @@ const LOCS=[
   'THE HIGH LINE RAIL','WASHINGTON SQ LOOP','TRIBECA TRANSISTOR','LITTLE ITALY I/O',
 ];
 let curLoc='', signTimer=null;
+// build a fresh set of blades on the pole: sometimes 1, mostly 2–3, sometimes 4.
+// even slots are readable street-name blades (facing -x), odd slots are the
+// perpendicular cross blades (facing -y) with the usual unreadable marks.
+function buildSignBlades(primary){
+  const host=document.getElementById('gSignBlades');
+  if(!host) return;
+  const k=pick([1,2,2,2,2,3,3,3,4,4]);                             // count for this block
+  const pool=LOCS.filter(l=>l!==primary).sort(()=>Math.random()-0.5);
+  const zTop0=10.1, step=1.25;
+  let out='', used=0;
+  for(let i=0;i<k;i++){
+    const zTop=zTop0-i*step, zBot=zTop-0.8;
+    out+=seg([0.35,-4.7,zTop-0.05],[0.65,-4.5,zTop-0.05],'sgn');   // clamp band on the pole
+    if(i%2===0){                                                   // readable blade, faces -x
+      const nm = i===0 ? primary : (pool[used++]||primary);
+      out+=poly([[-3.7,-4.6,zBot],[0.4,-4.6,zBot],[0.4,-4.6,zTop],[-3.7,-4.6,zTop]],'signblade');
+      const [tx,ty]=iso(-3.45,-4.6,zBot+0.18);
+      const long=nm.length*7.2>132;
+      out+=`<text class="sgntxt" transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)}) rotate(30)"`
+          +(long?' textLength="132" lengthAdjust="spacingAndGlyphs"':'')
+          +`>${nm}</text>`;
+    } else {                                                       // cross blade, faces -y
+      out+=poly([[0.6,-4.8,zBot],[0.6,-6.7,zBot],[0.6,-6.7,zTop],[0.6,-4.8,zTop]],'signblade');
+      out+=seg([0.6,-5.2,zBot+0.32],[0.6,-6.3,zBot+0.32],'signmark');
+    }
+  }
+  host.innerHTML=out;
+}
 function setLocation(name){
   curLoc=name;
+  buildSignBlades(name);                        // vary the pole layout each new block
   const g=document.getElementById('gSign');
-  const t=document.getElementById('signname');
-  t.textContent=name;
-  if(name.length*7.2>132){ t.setAttribute('textLength','132'); t.setAttribute('lengthAdjust','spacingAndGlyphs'); }
-  else { t.removeAttribute('textLength'); t.removeAttribute('lengthAdjust'); }
   g.classList.add('here');                      // fade in as they pass the sign
   clearTimeout(signTimer);
   signTimer=setTimeout(()=>g.classList.remove('here'), 12000);
