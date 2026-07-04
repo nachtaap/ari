@@ -158,6 +158,23 @@
   #trackmeta{color:var(--cyan-dim)}
   #visitorline{color:var(--magenta); opacity:0; transition:opacity .9s}
   #visitorline.on{opacity:1}
+  #liveRecording{
+    position:fixed; left:50%; top:calc(env(safe-area-inset-top, 0px) + 82px);
+    transform:translate(-50%,-8px); z-index:8; pointer-events:none;
+    display:flex; align-items:center; gap:clamp(10px,2.4vw,20px);
+    opacity:0; transition:opacity .28s ease, transform .28s ease;
+    font-family:'Space Grotesk',sans-serif; font-weight:600;
+    font-size:clamp(28px,8.5vw,76px); line-height:1; letter-spacing:.12em;
+    color:#f4f7f7; text-shadow:0 0 12px rgba(255,42,54,.55),0 0 28px rgba(62,232,222,.18);
+    white-space:nowrap; text-transform:uppercase;
+  }
+  #liveRecording.on{opacity:1; transform:translate(-50%,0)}
+  #liveRecording .dot{
+    width:clamp(13px,3.8vw,30px); height:clamp(13px,3.8vw,30px); border-radius:50%;
+    background:#ff2638; box-shadow:0 0 14px rgba(255,38,56,.95),0 0 32px rgba(255,38,56,.45);
+    animation:liveblink .82s steps(1) infinite; flex:0 0 auto;
+  }
+  @keyframes liveblink{50%{opacity:.18}}
   #playbtn{
     position:fixed; left:30px; bottom:112px; z-index:6;
     width:54px; height:54px; border-radius:50%;
@@ -239,6 +256,8 @@
   <div id="trackmeta"></div>
   <div id="visitorline"></div>
 </div>
+
+<div id="liveRecording" aria-hidden="true"><span class="dot"></span><span>LIVE RECORDING</span></div>
 
 <button id="playbtn" style="display:none" aria-label="play or pause">
   <svg viewBox="0 0 24 24"><path id="pbicon" d="M8 5 L18 12 L8 19 Z"/></svg>
@@ -563,8 +582,8 @@ const MINOR=[0,2,3,5,7,8,10], PENT=[0,3,5,7,10];
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
 const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle'];
-const INSTRUMENTS=['on sax','on flute','on acoustic','on electric','on violin','on e-violin'];
-const pickInstr=()=>Math.random()<0.9?'on the mic':pick(INSTRUMENTS);
+const INSTRUMENTS=['on acoustic guitar','on electric guitar','on violin','on e-violin','on flute','on sax'];
+const pickInstr=()=>Math.random()<0.6?'on the mic':pick(INSTRUMENTS);
 
 /* ---------- genre profiles ---------- */
 const GENRES={
@@ -653,6 +672,8 @@ function newTrack(forced){
     swing: R(g.swing[0],g.swing[1]),
     name : pick(NAME_A)+' '+pick(NAME_B),
     keyName: KEYS[root%12]+' minor',
+    ariMicBar: Math.random()<0.14 ? RI(8, Math.min(bars-5, 26)) : -1,
+    ariMicUsed: false,
   };
   if(delayNode) delayNode.delayTime.value=(60/bpm)*0.75;
   trackNo++;
@@ -776,7 +797,7 @@ function playPad(t,midis,dur){
     });
   });
 }
-function playLead(t,midi,dur,instr,vmul){
+function playLead(t,midi,dur,instr,vmul,mode){
   const g=ctx.createGain();
   const out=ctx.createGain(); out.gain.value=vmul||1;
   g.connect(out); out.connect(master); out.connect(delayNode);
@@ -818,14 +839,20 @@ function playLead(t,midi,dur,instr,vmul){
     f.connect(g);
     const spacy=ctx.createGain(); spacy.gain.value=0.5;   // extra delay throw
     g.connect(spacy); spacy.connect(delayNode);
-  }else if(instr==='on acoustic'){
-    [0,7].forEach(dt=>{
-      const o=ctx.createOscillator(); o.type='triangle';
+  }else if(instr==='on acoustic guitar'||instr==='on guitar'){
+    [0,7,12].forEach((dt,i)=>{
+      const o=ctx.createOscillator(); o.type=i===2?'sine':'triangle';
       o.frequency.value=mtof(midi); o.detune.value=dt;
-      o.connect(g); o.start(t); o.stop(t+dur+0.2);
+      const pg=ctx.createGain(); pg.gain.value=i===2?0.08:0.2;
+      o.connect(pg); pg.connect(g); o.start(t); o.stop(t+Math.min(dur,0.55)+0.05);
     });
-    env(t,0.004,Math.min(dur,0.5),0.3,g);
-  }else if(instr==='on electric'){
+    NB=NB||noiseBuf();
+    const n=ctx.createBufferSource(); n.buffer=NB;
+    const nf=ctx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=3600;
+    const ng=ctx.createGain(); env(t,0.001,0.035,0.025,ng);
+    n.connect(nf); nf.connect(ng); ng.connect(g); n.start(t); n.stop(t+0.06);
+    env(t,0.003,Math.min(dur,0.5),0.36,g);
+  }else if(instr==='on electric guitar'){
     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
     vg.gain.value=8; vg.connect(o.detune);
     const ws=ctx.createWaveShaper();
@@ -836,15 +863,40 @@ function playLead(t,midi,dur,instr,vmul){
     env(t,0.008,dur,0.17,g);
     o.connect(ws); ws.connect(f); f.connect(g);
     o.start(t); o.stop(t+dur+0.2);
-  }else{ // on the mic — a synthetic voice
-    const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
-    const o2=ctx.createOscillator(); o2.type='square'; o2.frequency.value=mtof(midi);
-    const g2=ctx.createGain(); g2.gain.value=0.12; o2.connect(g2); g2.connect(g);
-    vg.connect(o.detune); vg.connect(o2.detune);
-    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*1.8; f.Q.value=0.9;
-    env(t,0.03,dur,0.26,g);
-    o.connect(f); o2.connect(f); f.connect(g);
-    o.start(t); o.stop(t+dur+0.2); o2.start(t); o2.stop(t+dur+0.2);
+  }else{ // on the mic — synthetic vocal gestures: rap, singing, or A.R.I.
+    mode=mode||'sing';
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*(mode==='rap'?2.4:1.75); f.Q.value=mode==='rap'?1.8:1.05;
+    const dur2=mode==='rap'?Math.min(dur,0.18):dur;
+    if(mode==='rap'){
+      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=mtof(midi+RI(-2,2));
+      const o2=ctx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=mtof(midi-12);
+      const g2=ctx.createGain(); g2.gain.value=0.08; o2.connect(g2); g2.connect(f);
+      env(t,0.002,dur2,0.22,g);
+      o.connect(f); f.connect(g);
+      o.start(t); o.stop(t+dur2+0.04); o2.start(t); o2.stop(t+dur2+0.04);
+      NB=NB||noiseBuf();
+      const n=ctx.createBufferSource(); n.buffer=NB;
+      const nf=ctx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=2600;
+      const ng=ctx.createGain(); env(t,0.001,0.045,0.035,ng);
+      n.connect(nf); nf.connect(ng); ng.connect(g); n.start(t); n.stop(t+0.07);
+    }else if(mode==='ari'){
+      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=mtof(midi);
+      const o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=mtof(midi+12);
+      vg.gain.value=14; vg.connect(o.detune); vg.connect(o2.detune);
+      env(t,0.01,Math.min(dur,0.55),0.18,g);
+      o.connect(f); o2.connect(f); f.connect(g);
+      const robot=ctx.createBiquadFilter(); robot.type='notch'; robot.frequency.value=880; robot.Q.value=8;
+      g.disconnect(); g.connect(robot); robot.connect(out); robot.connect(delayNode);
+      o.start(t); o.stop(t+dur+0.1); o2.start(t); o2.stop(t+dur+0.1);
+    }else{
+      const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
+      const o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=mtof(midi+12);
+      const g2=ctx.createGain(); g2.gain.value=0.09; o2.connect(g2); g2.connect(f);
+      vib.frequency.value=5.1; vg.gain.value=10; vg.connect(o.detune); vg.connect(o2.detune);
+      env(t,0.06,dur,0.24,g);
+      o.connect(f); f.connect(g);
+      o.start(t); o.stop(t+dur+0.2); o2.start(t); o2.stop(t+dur+0.2);
+    }
   }
 }
 
@@ -894,6 +946,10 @@ function scheduleReverse(){
     else if(playing) scheduleReverse();
   }, R(300000,900000));                       // once every 5–15 minutes, maybe
 }
+function showLiveRecording(on){
+  const el=document.getElementById('liveRecording');
+  if(el) el.classList.toggle('on',!!on);
+}
 function doReverse(){
   reversing=true;
   const gRev=document.getElementById('gReverse');
@@ -907,6 +963,7 @@ function doReverse(){
   const showRev=on=>{
     worldEl.style.visibility=on?'hidden':'visible';
     gRev.style.display=on?'':'none';
+    showLiveRecording(on);
   };
   const caption=()=>{
     vl.textContent='rare reverse shot: the cameraman';
@@ -915,6 +972,7 @@ function doReverse(){
   };
   const restore=()=>{
     vl.textContent=prevTxt; vl.style.color=prevCol;
+    showLiveRecording(false);
     vl.classList.toggle('on', prevOn && (visitor||ariSing));
     reversing=false;
     if(playing) scheduleReverse();
@@ -952,7 +1010,7 @@ function micDroop(t,ph){            // 0 = horizontal (good), 1 = vertical (ice-
 /* ---------- A.R.I. on his own mic ---------- */
 let ariSing=false, ariSingEnd=0, lastLeadIdxA=4;
 function startAriSing(tt){
-  ariSing=true; ariSingEnd=bar+RI(6,12);
+  ariSing=true; ariSingEnd=bar+RI(3,6);
   document.getElementById('gArmL').style.opacity=0;
   document.getElementById('gArmLup').style.opacity=1;
   const vl=document.getElementById('visitorline');
@@ -976,6 +1034,28 @@ function chordFor(deg){
     const idx=d+k;
     return MINOR[idx%7]+Math.floor(idx/7)*12;
   });
+}
+function wantsVisitorLead(v,sIdx){
+  if(!v) return false;
+  if(v.instr==='on the mic'){
+    return v.vocalMode==='sing'
+      ? (sIdx%4===0 && Math.random()<0.45)
+      : (Math.random()<0.22);
+  }
+  return sIdx%2===0 && Math.random()<0.32;
+}
+function visitorLeadDur(v,s16){
+  if(v.instr==='on the mic'){
+    return v.vocalMode==='sing' ? s16*pick([4,6,8,10]) : s16*pick([0.45,0.6,0.8,1.1]);
+  }
+  if(v.instr==='on acoustic guitar'||v.instr==='on electric guitar') return s16*pick([0.8,1,1.4,2]);
+  if(v.instr==='on flute'||v.instr==='on violin'||v.instr==='on e-violin') return s16*pick([3,4,6,8]);
+  return s16*pick([2,2,3,4,6]);
+}
+function performerLabel(v){
+  if(!v) return '';
+  if(v.instr==='on the mic') return v.vocalMode==='sing'?'singing on the mic':'rapping on the mic';
+  return v.instr;
 }
 function scheduleStep(sIdx,t){
   const g=track.g, spb=60/track.bpm, s16=spb/4;
@@ -1029,42 +1109,45 @@ function scheduleStep(sIdx,t){
   }
   if(sIdx===0){
     if(ariSing && (bar>=ariSingEnd || visitor)) stopAriSing();
-    else if(!ariSing && !visitor && bar>=4 && Math.random()<0.12) startAriSing(tt);
+    else if(!ariSing && !visitor && !track.ariMicUsed && bar===track.ariMicBar){
+      track.ariMicUsed=true;
+      startAriSing(tt);
+    }
   }
-  if(ariSing && !visitor && sIdx%2===1 && Math.random()<0.3){
+  if(ariSing && !visitor && sIdx%2===1 && Math.random()<0.18){
     lastLeadIdxA=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdxA+RI(-2,2)));
     const oct=Math.floor(lastLeadIdxA/PENT.length);
     const midi=track.root+12+oct*12+PENT[lastLeadIdxA%PENT.length];
-    playLead(tt,midi,s16*pick([2,2,3,4]),'on the mic',0.9);
+    playLead(tt,midi,s16*pick([1,1.5,2,3]),'on the mic',0.75,'ari');
     visQ.push({t:tt,type:'alead'});
   }
-  if(visitor && visitorPhase==='performing' && sIdx%2===0 && Math.random()<0.32){
+  if(visitor && visitorPhase==='performing' && wantsVisitorLead(vis1,sIdx)){
     lastLeadIdx=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx/PENT.length);
     const midi=track.root+12+oct*12+PENT[lastLeadIdx%PENT.length];
-    const dur=s16*pick([2,2,3,4,6]);
+    const dur=visitorLeadDur(vis1,s16);
     let vmul=1;
     if(vis1.instr==='on the mic'){
       const dp=micDroop(tt,vis1.micPh||0);
       vmul=(Math.random()<dp*0.55)?0:1-dp*0.8;   // drooped mic: notes vanish or come through faint
     }
     if(vmul>0){
-      playLead(tt,midi,dur,vis1.instr,vmul);
+      playLead(tt,midi,dur,vis1.instr,vmul,vis1.vocalMode);
       visQ.push({t:tt,type:'lead',v:1});
     }
   }
-  if(visitor2 && visitorPhase==='performing' && sIdx%4===2 && Math.random()<0.3){
+  if(visitor2 && visitorPhase==='performing' && wantsVisitorLead(vis2,sIdx)){
     lastLeadIdx2=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx2+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx2/PENT.length);
     const midi=track.root+24+oct*12+PENT[lastLeadIdx2%PENT.length];
-    const dur=s16*pick([2,3,4]);
+    const dur=visitorLeadDur(vis2,s16);
     let vmul=1;
     if(vis2.instr==='on the mic'){
       const dp=micDroop(tt,vis2.micPh||0);
       vmul=(Math.random()<dp*0.55)?0:1-dp*0.8;
     }
     if(vmul>0){
-      playLead(tt,midi,dur,vis2.instr,vmul);
+      playLead(tt,midi,dur,vis2.instr,vmul,vis2.vocalMode);
       visQ.push({t:tt,type:'lead',v:2});
     }
   }
@@ -1157,8 +1240,8 @@ function scheduleVisitor(){
         if(!playing) return;
         visitorPhase='performing';
         vl.textContent=visitor2
-          ? '+ rare duo '+short(vis1.instr)+' × '+short(vis2.instr)+' →'
-          : '+ visitor '+vis1.instr+' →';
+          ? '+ rare duo '+performerLabel(vis1)+' × '+performerLabel(vis2)+' →'
+          : '+ visitor '+performerLabel(vis1)+' →';
         visitorTimer=setTimeout(()=>leaveVisitors(vl), R(22000,46000));
       },1200);
     }, R(2500,4500));
@@ -1250,9 +1333,9 @@ function buildVisitor(target,instr,dx){
     v+=vbez([1.5+dx+lean*0.1,-1.1,headZ+0.05],[1.76+dx+lean*0.14,-1.1,headZ-0.5],[1.44+dx+lean*0.16,-1.1,headZ-1.02],'v');
   }
 
-  if(instr==='on acoustic'||instr==='on electric'){
+  if(instr==='on acoustic guitar'||instr==='on electric guitar'){
     v+=vcircY(-1.0,1.25+dx,3.55*h,.45,'v');                                        // body
-    if(instr==='on acoustic') v+=vcircY(-1.0,1.25+dx,3.55*h,.15,'v');              // sound hole
+    if(instr==='on acoustic guitar') v+=vcircY(-1.0,1.25+dx,3.55*h,.15,'v');              // sound hole
     else{
       v+=vseg([1.05+dx,-1.0,3.45*h],[1.45+dx,-1.0,3.35*h],'v');                    // pickups
       v+=vseg([1.05+dx,-1.0,3.7*h],[1.45+dx,-1.0,3.6*h],'v');
@@ -1305,10 +1388,11 @@ function buildVisitor(target,instr,dx){
   }
   target.innerHTML=v;
   target.style.color=col;
-  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh};
+  const vocalMode=instr==='on the mic' ? (Math.random()<0.42?'sing':'rap') : '';
+  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh, vocalMode};
 }
-vis1=buildVisitor(gVis,'on the mic',0);       // pre-built so the viewBox
-vis2=buildVisitor(gVis2,'on acoustic',-2.35); // reserves space for a duo
+vis1=buildVisitor(gVis,'on the mic',0);              // pre-built so the viewBox
+vis2=buildVisitor(gVis2,'on acoustic guitar',-2.35); // reserves space for a duo
 const world=document.getElementById('world');
 let kickE=0,snareE=0,hatE=0;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1534,7 +1618,7 @@ function applyTheme(){
   themeBtn.classList.toggle('auto',themeMode==='auto');
   if(!visitor){ // repaint idle (invisible) visitors in the current palette
     vis1=buildVisitor(gVis,'on the mic',0);
-    vis2=buildVisitor(gVis2,'on acoustic',-2.35);
+    vis2=buildVisitor(gVis2,'on acoustic guitar',-2.35);
   }
 }
 sysLight.addEventListener('change',()=>{ if(themeMode==='auto') applyTheme(); });
