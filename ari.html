@@ -64,11 +64,12 @@
     -webkit-user-select:none;user-select:none;
   }
   #stage{
-    position:fixed;inset:0;
+    position:fixed; top:0; left:0; right:0;
+    height:100vh; height:100svh;
     background:var(--bg);
     transition:background .4s ease;
     display:flex;align-items:center;justify-content:center;
-    padding-top:72px;
+    padding-top:48px;
     cursor:pointer;
   }
   svg#scene{
@@ -90,6 +91,10 @@
   .key{fill:transparent; transition:fill .22s}
   .key.on{fill:var(--key); fill-opacity:.4; transition:fill .05s}
   .rec{fill:var(--magenta); stroke:none; animation:recblink 1s steps(1) infinite}
+  .sgn{stroke:var(--muted); fill:none; stroke-width:1.1; stroke-linejoin:round; stroke-linecap:round}
+  .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:8px; fill:var(--muted); stroke:none; letter-spacing:.12em}
+  #gSign{opacity:0; transition:opacity 1.6s ease}
+  #gSign.here{opacity:.55}
   .rectxt{font-family:'IBM Plex Mono',monospace; font-size:5.5px; fill:var(--magenta); stroke:none; letter-spacing:.1em}
   @keyframes recblink{50%{opacity:0}}
   .l {stroke:var(--lav);    fill:none; stroke-width:1.4; stroke-linejoin:round; stroke-linecap:round}
@@ -125,13 +130,6 @@
     margin-top:10px; font-size:9px; letter-spacing:.12em; color:var(--muted);
     text-transform:none; max-width:78vw;
   }
-  #location{
-    position:fixed; left:50%; top:36px; transform:translateX(-50%);
-    z-index:5; pointer-events:none;
-    font-size:10px; letter-spacing:.3em; color:var(--muted);
-    text-transform:uppercase; white-space:nowrap;
-    border-bottom:1px dotted var(--muted); padding:0 6px 6px;
-  }
   #hint{
     position:fixed; left:50%; bottom:11%; transform:translateX(-50%);
     font-size:11px; letter-spacing:.3em; color:var(--cyan-dim);
@@ -142,7 +140,10 @@
   #trackinfo{
     position:fixed; left:30px; bottom:30px; z-index:5; pointer-events:none;
     font-size:11px; letter-spacing:.18em; line-height:1.9; text-transform:uppercase;
+    opacity:0; transform:translateY(10px);
+    transition:opacity .9s ease, transform .9s ease;
   }
+  #trackinfo.show{opacity:1; transform:none}
   #trackname{color:var(--text); font-size:13px; letter-spacing:.22em}
   #trackmeta{color:var(--cyan-dim)}
   #visitorline{color:var(--magenta); opacity:0; transition:opacity .9s}
@@ -153,10 +154,12 @@
     border:1.5px solid var(--cyan); background:transparent; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 0 14px var(--btng), inset 0 0 10px var(--btng);
-    transition:box-shadow .3s, transform .15s;
+    opacity:0; transform:translateY(10px);
+    transition:opacity .8s ease, transform .8s ease, box-shadow .3s;
   }
+  #playbtn.show{opacity:1; transform:none}
   #playbtn:hover{box-shadow:0 0 22px var(--btng), inset 0 0 12px var(--btng)}
-  #playbtn:active{transform:scale(.94)}
+  #playbtn.show:active{transform:scale(.94)}
   #playbtn:focus-visible{outline:2px solid var(--purple); outline-offset:4px}
   #playbtn svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linejoin:round}
   footer{
@@ -183,8 +186,7 @@
     #playbtn{left:18px; bottom:96px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
-    #location{top:118px; font-size:9px; max-width:92vw; overflow:hidden}
-    #stage{padding-top:88px}
+      #stage{padding-top:60px}
     svg#scene{width:104vw; height:104vw}
   }
   @media (prefers-reduced-motion:reduce){
@@ -219,8 +221,6 @@
     <svg viewBox="0 0 24 24"><g id="thicon"></g></svg>
   </button>
 </footer>
-
-<div id="location" style="display:none"></div>
 
 <div id="hint">tap A.R.I. to catch the street signal</div>
 
@@ -304,6 +304,18 @@ function coil(a,b,loops,r,sag,cls){
 const ZT=4.4;               // rig top height (hip level, like the real rig)
 let s='';
 
+/* ---------- street sign: behind the crew, fades in on a new block ---------- */
+s+='<g id="gSign">';
+s+=seg([0.5,-4.6,-2.0],[0.5,-4.6,11.2],'sgn');                                     // pole
+s+=circTop(0.5,-4.6,11.2,.12,'sgn');                                               // cap
+s+=seg([0.35,-4.7,8.9],[0.65,-4.5,8.9],'sgn');                                     // mounting bands
+s+=seg([0.35,-4.7,10.35],[0.65,-4.5,10.35],'sgn');
+s+=poly([[-3.7,-4.6,9.3],[0.4,-4.6,9.3],[0.4,-4.6,10.1],[-3.7,-4.6,10.1]],'sgn');  // main blade
+s+=poly([[0.6,-4.8,10.35],[0.6,-6.7,10.35],[0.6,-6.7,11.0],[0.6,-4.8,11.0]],'sgn');// cross blade
+s+=seg([0.6,-5.2,10.67],[0.6,-6.3,10.67],'sgn');                                    // its unreadable text
+const [sgx,sgy]=iso(-3.45,-4.6,9.48);
+s+=`<text id="signname" class="sgntxt" transform="translate(${sgx.toFixed(1)} ${sgy.toFixed(1)}) rotate(30)"></text>`;
+s+='</g>';
 s+='<g id="gAri">';
 /* ---------- backpack + speakers (behind robot) ---------- */
 s+='<g class="gPack">';
@@ -527,7 +539,7 @@ function poseLeg(leg,theta,liftPx,bobPx){
 const sceneEl=document.getElementById('scene');
 requestAnimationFrame(()=>{
   const b=sceneEl.getBBox(), pad=46;
-  sceneEl.setAttribute('viewBox',`${b.x-pad} ${b.y-pad-14} ${b.width+pad*2} ${b.height+pad*2}`);
+  sceneEl.setAttribute('viewBox',`${b.x-pad} ${b.y-pad+40} ${b.width+pad*2} ${b.height+pad*2}`);
 });
 
 /* ============================================================
@@ -834,24 +846,17 @@ const LOCS=[
   'BUSHWICK CIRCUIT','DUMBO DOCKING BAY','CHINATOWN CACHE','EAST VILLAGE VOLTAGE',
   'THE HIGH LINE RAIL','WASHINGTON SQ LOOP','TRIBECA TRANSISTOR','LITTLE ITALY I/O',
 ];
-let curLoc='';
+let curLoc='', signTimer=null;
 function setLocation(name){
   curLoc=name;
-  const el=document.getElementById('location');
-  if(reduceMotion){el.textContent=name; return;}
-  const glyphs='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·/Ø';
-  const steps=14; let k=0;
-  clearInterval(el._t);
-  el._t=setInterval(()=>{
-    k++;
-    const reveal=Math.floor(name.length*k/steps);
-    let out='';
-    for(let i=0;i<name.length;i++){
-      out+=(i<reveal||name[i]===' ')?name[i]:glyphs[RI(0,glyphs.length-1)];
-    }
-    el.textContent=out;
-    if(k>=steps){clearInterval(el._t); el.textContent=name;}
-  },45);
+  const g=document.getElementById('gSign');
+  const t=document.getElementById('signname');
+  t.textContent=name;
+  if(name.length*6.4>132){ t.setAttribute('textLength','132'); t.setAttribute('lengthAdjust','spacingAndGlyphs'); }
+  else { t.removeAttribute('textLength'); t.removeAttribute('lengthAdjust'); }
+  g.classList.add('here');                      // fade in as they pass the sign
+  clearTimeout(signTimer);
+  signTimer=setTimeout(()=>g.classList.remove('here'), 9000);
 }
 function nextLocation(){ setLocation(pick(LOCS.filter(l=>l!==curLoc))); }
 function scheduleRoam(){
@@ -1423,6 +1428,10 @@ function start(){
   hint.style.display='none';
   btn.style.display='flex';
   info.style.display='block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    btn.classList.add('show');
+    setTimeout(()=>info.classList.add('show'),220);
+  }));
   const vl=document.getElementById('visitorline');
   vl.textContent='A.R.I. is locking onto the cypher…';
   vl.style.color='var(--cyan-dim)';
@@ -1435,7 +1444,6 @@ function start(){
   scheduleVisitor();
   scheduleReverse();
   roaming=true; scheduleRoam();
-  document.getElementById('location').style.display='block';
   setLocation(pick(LOCS));
   grabWakeLock();
 }
