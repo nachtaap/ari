@@ -78,8 +78,9 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 
 ## Current version
 
-- Visible footer tribute: `version 7`.
-- Service worker cache: `ari-v16`.
+- Version 8 release: livestream logic, comfort/pitch limits, calmer intros, stronger album art variation, and cleaner visitor flow.
+- Visible footer tribute: `version 8`.
+- Service worker cache: `ari-v18`.
 - Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
 - Album art now has stronger contrast and more background variation, including occasional light covers.
 - Intros are calmer now: no high hats, risers, visitor solos or plucky high-frequency chaos before the beat has settled.
@@ -94,3 +95,8 @@ inspiration; everything in this repository is original work unless explicitly
 credited above.
 
 - Street-sign fix: the right-side blades now overlap the pole slightly so they connect cleanly.
+
+- Livestream logic pass: visitors now request, wait for the intro/drop, perform audibly, and only then leave.
+- Rare two-track visitors are explicit now: they can stay for one extra beat after they have actually performed.
+- Musical floor added so tracks should not collapse into a lonely kick-only loop.
+- Comfort pass tightened further: high flute/violin/vocal transpositions, SAM voices and cowbell/autotune edges are softened.
