@@ -4,7 +4,15 @@ A minimalist, generative web experience. An isometric neon android roams the gri
 with a wearable synth rig, making beats on the spot. Every now and then a visitor
 steps up on A.R.I.'s right side, requests a genre — and performs on it.
 
-Everything is a single HTML file. No build step, no dependencies, no samples.
+**Live demo:** https://nachtaap.github.io/A.R.I./  
+**Best experienced with sound on.**
+
+![A.R.I. preview](icon-512.png)
+
+Everything runs from a single HTML file. No build step, no JavaScript framework,
+no audio samples. The app uses the Web Audio API for synthesized sound, inline SVG
+for the scene, a tiny service worker for app-shell caching, and Google Fonts for
+typography.
 
 ## ⚠️ Disclaimer
 
@@ -20,8 +28,8 @@ If you enjoy this, go watch the real thing. It's better.
 
 **The scene** is procedural SVG line art in an isometric projection: A.R.I. with
 headphones and headset mic, a hip-mounted flightcase rig (jog wheel, pads, keys,
-faders, the corner monitor), backpack speakers, and comic sound dashes pulsing on
-the beat.
+faders, the corner monitor), backpack speakers, NYC-style street-sign outlines,
+and comic sound dashes pulsing on the beat.
 
 **The music** is fully generative. Each track (1–3 minutes) picks a genre — boom
 bap, trap, jerk, drum n bass, 2000s rnb, or house — which sets the BPM range,
@@ -33,14 +41,15 @@ per-note with the Web Audio API and scheduled with a 25 ms lookahead loop.
 outfit, headwear) and a coiled cable plugged into the rig. A visitor requests a
 genre — spoken out loud in a retro robotic voice, with A.R.I. answering back —
 then A.R.I. crossfades into a fresh track in that style, and the visitor
-performs: 9 out of 10 times on the mic, occasionally on sax, flute, acoustic or
-electric guitar, or (rarely) a violin or a spacy e-violin. Sometimes it's a duo.
+performs: usually on the mic, sometimes on sax, flute, acoustic or electric guitar,
+and rarely on violin or spacy e-violin. Very occasionally, a second visitor joins
+and a tiny cypher forms.
 
 The speech is [SAM (Software Automatic Mouth)](https://github.com/discordier/sam),
 the 1982 C64 speech synthesizer ported to JavaScript by Christian Schiffler (MIT),
-inlined so everything stays a single file.
+inlined so the experience stays self-contained.
 
-## Running it
+## Running it locally
 
 Open `index.html` in a browser. That's it.
 
@@ -63,21 +72,20 @@ Served over https (GitHub Pages works), A.R.I. is an installable PWA:
 - **iOS / Safari**: share sheet → "Add to Home Screen". Runs standalone with the
   dark status bar.
 
-Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
-`icon-512.png` together in the same directory.
+Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
+`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`,
+`favicon-32.png` and `favicon-16.png` together in the same directory.
+
+## Current version
+
+- Visible footer tribute: `version 7`.
+- Service worker cache: `ari-v12`.
+- Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
 
 ## License
 
-Code: MIT. The tribute nature of the project (see disclaimer) applies to the
-concept and inspiration; everything in this repository is original work.
+Code: MIT. See [`LICENSE`](LICENSE).
 
-
-## Update ari-v5
-- Adds a single rare cypher reference: `A cypher is forming`, shown only during the rare two-visitor moment.
-- Keeps the fixed copy clean; cypher is now an event, not a repeated theme word.
-
-
-## Version label update
-
-- Visible footer tribute now ends with `version 6`.
-- Service worker cache bumped to `ari-v6`.
+The tribute nature of the project (see disclaimer) applies to the concept and
+inspiration; everything in this repository is original work unless explicitly
+credited above.
