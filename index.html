@@ -626,9 +626,9 @@ const MINOR=[0,2,3,5,7,8,10], PENT=[0,3,5,7,10];
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
 const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle'];
-const INSTRUMENTS=['on acoustic guitar','on electric guitar','on violin','on e-violin','on flute','on sax'];
-const CALM_INSTRUMENTS=['on acoustic guitar','on electric guitar','on sax'];
-const pickInstr=()=>Math.random()<0.6?'on the mic':pick(Math.random()<0.55?CALM_INSTRUMENTS:INSTRUMENTS);
+const INSTRUMENTS=['on acoustic guitar','on electric guitar','on sax']; // no flute/violin: too easy to become shrill in browser synth
+const CALM_INSTRUMENTS=INSTRUMENTS;
+const pickInstr=()=>Math.random()<0.72?'on the mic':pick(CALM_INSTRUMENTS);
 
 /* ---------- genre profiles ---------- */
 const GENRES={
@@ -716,7 +716,7 @@ function initAudio(){
   const comp=ctx.createDynamicsCompressor();
   comp.threshold.value=-16; comp.ratio.value=4;
   const safetyLP=ctx.createBiquadFilter();             // final comfort filter: keeps harsh modem/whistle edges out
-  safetyLP.type='lowpass'; safetyLP.frequency.value=5200; safetyLP.Q.value=0.45;
+  safetyLP.type='lowpass'; safetyLP.frequency.value=3600; safetyLP.Q.value=0.35; // hard anti-modem ceiling
   master.connect(sat); sat.connect(comp); comp.connect(safetyLP);
   // route the final mix through a hidden <audio> element instead of straight to
   // ctx.destination: iOS/Android only grant a page continued background execution
@@ -738,14 +738,14 @@ function initAudio(){
   duck.connect(master);
   delayNode=ctx.createDelay(2.0);
   delayGain=ctx.createGain(); delayGain.gain.value=0.28;
-  const dFilt=ctx.createBiquadFilter(); dFilt.type='lowpass'; dFilt.frequency.value=2600;
+  const dFilt=ctx.createBiquadFilter(); dFilt.type='lowpass'; dFilt.frequency.value=2100;
   delayNode.connect(dFilt); dFilt.connect(delayGain); delayGain.connect(master);
   delayGain.connect(delayNode); // feedback
   reverb=ctx.createConvolver(); reverb.buffer=makeIR(1.9,3.2);
   revGain=ctx.createGain(); revGain.gain.value=0.5;
   reverb.connect(revGain); revGain.connect(master);
   const vin=ctx.createBufferSource(); vin.buffer=makeVinyl(); vin.loop=true;
-  const vf=ctx.createBiquadFilter(); vf.type='bandpass'; vf.frequency.value=3400; vf.Q.value=0.4;
+  const vf=ctx.createBiquadFilter(); vf.type='bandpass'; vf.frequency.value=1800; vf.Q.value=0.35;
   vinylGain=ctx.createGain(); vinylGain.gain.value=0;
   vin.connect(vf); vf.connect(vinylGain); vinylGain.connect(master); vin.start();
 }
@@ -992,8 +992,8 @@ function playKick(t,vel){
     for(let i=0;i<256;i++){const x=i/128-1;c[i]=Math.tanh(x*2.4);}
     ws.curve=c;
     o.connect(g); g.connect(ws); ws.connect(master);
-    const ck=ctx.createOscillator(); ck.type='square'; ck.frequency.value=kit==='909'?1300:900;
-    const cg=ctx.createGain(); env(t,0.0005,0.012,0.25*vel,cg);
+    const ck=ctx.createOscillator(); ck.type='triangle'; ck.frequency.value=kit==='909'?850:650;
+    const cg=ctx.createGain(); env(t,0.0005,0.010,0.13*vel,cg);
     ck.connect(cg); cg.connect(master); ck.start(t); ck.stop(t+0.03);
   }else{
     o.connect(g); g.connect(master);
@@ -1012,8 +1012,8 @@ function playSnare(t,vel){
   const kit=track.g.kit;
   const n=ctx.createBufferSource(); n.buffer=NB;
   const f=ctx.createBiquadFilter(); f.type='bandpass';
-  f.frequency.value=kit==='tight'?2400:kit==='dusty'?1600:1900;
-  f.Q.value=0.8;
+  f.frequency.value=kit==='tight'?1700:kit==='dusty'?1400:1550;
+  f.Q.value=0.65;
   const g=ctx.createGain(); env(t,0.001,kit==='dusty'?0.19:0.16,0.5*vel,g);
   n.connect(f); f.connect(g); g.connect(master);
   if(reverb&&vel>0.6){const rs=ctx.createGain(); rs.gain.value=0.35; g.connect(rs); rs.connect(reverb);}
@@ -1032,33 +1032,22 @@ function playSnare(t,vel){
 }
 function playHat(t,open,vel){
   vel=vel==null?1:vel;
-  const kit=track.g.kit;
-  if(kit==='808'){                              // six squares at the classic ratios → metallic
-    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=6200; bp.Q.value=0.8;
-    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=5200;
-    const g=ctx.createGain(); env(t,0.001,open?0.3:0.05,0.16*vel,g);
-    bp.connect(hp); hp.connect(g); g.connect(master);
-    [2,3,4.16,5.43,6.79,8.21].forEach(r=>{
-      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=40*r*10;
-      o.connect(bp); o.start(t); o.stop(t+(open?0.35:0.08));
-    });
-    return;
-  }
+  // Anti-modem hat: no metallic square clusters, no pure highpass hiss.
   NB=NB||noiseBuf();
   const n=ctx.createBufferSource(); n.buffer=NB;
-  const f=ctx.createBiquadFilter(); f.type='highpass';
-  f.frequency.value=kit==='909'?6200:5400;
-  const g=ctx.createGain(); env(t,0.001,open?0.22:0.045,0.18*vel,g);
-  n.connect(f); f.connect(g); g.connect(master);
-  n.start(t); n.stop(t+(open?0.25:0.07));
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=open?2600:2300; bp.Q.value=0.55;
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=3300; lp.Q.value=0.3;
+  const g=ctx.createGain(); env(t,0.001,open?0.18:0.04,0.10*vel,g);
+  n.connect(bp); bp.connect(lp); lp.connect(g); g.connect(master);
+  n.start(t); n.stop(t+(open?0.22:0.055));
 }
-function playCowbell(t){                        // 540+800 Hz squares — unmistakably 808
-  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1450; bp.Q.value=0.75;
-  const g=ctx.createGain(); env(t,0.001,0.06,0.055,g);
+function playCowbell(t){                        // softened wooden click, not metallic 808 whistle
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1050; bp.Q.value=0.55;
+  const g=ctx.createGain(); env(t,0.001,0.05,0.035,g);
   bp.connect(g); g.connect(master);
-  [540,800].forEach(fr=>{
-    const o=ctx.createOscillator(); o.type='square'; o.frequency.value=fr;
-    o.connect(bp); o.start(t); o.stop(t+0.12);
+  [420,620].forEach(fr=>{
+    const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=fr;
+    o.connect(bp); o.start(t); o.stop(t+0.09);
   });
 }
 function playTom(t,fr,vel){
@@ -1072,12 +1061,12 @@ function playTom(t,fr,vel){
 function playRiser(t,dur){                      // filtered noise sweep into the hook
   NB=NB||noiseBuf();
   const n=ctx.createBufferSource(); n.buffer=NB; n.loop=true;
-  const f=ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value=2.5;
-  f.frequency.setValueAtTime(300,t);
-  f.frequency.exponentialRampToValueAtTime(3200,t+dur);
+  const f=ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value=0.9;
+  f.frequency.setValueAtTime(220,t);
+  f.frequency.exponentialRampToValueAtTime(1700,t+dur);
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
-  g.gain.linearRampToValueAtTime(0.09,t+dur*0.9);
+  g.gain.linearRampToValueAtTime(0.045,t+dur*0.9);
   g.gain.linearRampToValueAtTime(0.0001,t+dur);
   n.connect(f); f.connect(g); g.connect(master);
   if(reverb){const rs=ctx.createGain(); rs.gain.value=0.6; g.connect(rs); rs.connect(reverb);}
@@ -1135,7 +1124,7 @@ function playRound(t,midi,dur){
 }
 function playKeys(t,midis,dur){
   midis=midis.map(m=>limitMidi(m,45,70));
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2200;
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1500;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.09,t+0.03);
@@ -1149,25 +1138,26 @@ function playKeys(t,midis,dur){
   });});
 }
 function playPiano(t,midis,dur,vol){            // additive piano: partials with inharmonicity
-  midis=midis.map(m=>limitMidi(m,45,70));
+  midis=midis.map(m=>limitMidi(m,45,66));
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1650;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(vol||0.16,t+0.004);
   g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  g.connect(duck);
-  if(reverb){const rs=ctx.createGain(); rs.gain.value=0.35; g.connect(rs); rs.connect(reverb);}
+  f.connect(g); g.connect(duck);
+  if(reverb){const rs=ctx.createGain(); rs.gain.value=0.25; g.connect(rs); rs.connect(reverb);}
   midis.forEach(m=>{
     const f0=mtof(m);
-    [[1,0.5],[2.003,0.24],[3.01,0.12],[4.02,0.05]].forEach(([r,a])=>{
+    [[1,0.5],[2.003,0.20],[3.01,0.06]].forEach(([r,a])=>{
       const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=f0*r;
       const pg=ctx.createGain();
       pg.gain.setValueAtTime(a,t);
       pg.gain.exponentialRampToValueAtTime(a*0.15,t+Math.min(dur,1.1));   // partials fade quicker
-      o.connect(pg); pg.connect(g); o.start(t); o.stop(t+dur+0.1);
+      o.connect(pg); pg.connect(f); o.start(t); o.stop(t+dur+0.1);
     });
-    const th=ctx.createOscillator(); th.type='triangle'; th.frequency.value=f0*5;  // hammer thunk
-    const tg=ctx.createGain(); env(t,0.0005,0.02,0.08,tg);
-    th.connect(tg); tg.connect(g); th.start(t); th.stop(t+0.04);
+    const th=ctx.createOscillator(); th.type='triangle'; th.frequency.value=f0*2.2;  // soft hammer thunk
+    const tg=ctx.createGain(); env(t,0.0005,0.018,0.035,tg);
+    th.connect(tg); tg.connect(f); th.start(t); th.stop(t+0.035);
   });
 }
 function playEPiano(t,midis,dur){               // Rhodes-ish FM: sine body + bright tine transient
@@ -1184,10 +1174,10 @@ function playEPiano(t,midis,dur){               // Rhodes-ish FM: sine body + br
   midis.forEach(m=>{
     const f0=mtof(m);
     const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=f0;
-    const mod=ctx.createOscillator(); mod.frequency.value=f0*14;   // tine FM
+    const mod=ctx.createOscillator(); mod.frequency.value=f0*2;    // mellow tine, no modem-like FM
     const mg=ctx.createGain();
-    mg.gain.setValueAtTime(f0*1.6,t);
-    mg.gain.exponentialRampToValueAtTime(0.5,t+0.09);              // bright attack, mellow body
+    mg.gain.setValueAtTime(f0*0.18,t);
+    mg.gain.exponentialRampToValueAtTime(0.2,t+0.08);              // soft attack, mellow body
     mod.connect(mg); mg.connect(o.frequency);
     const og=ctx.createGain(); og.gain.value=0.5;
     o.connect(og); og.connect(g);
@@ -1201,10 +1191,10 @@ function playPluck(t,midi,dur){                 // Karplus-Strong: noise burst i
   const n=ctx.createBufferSource(); n.buffer=NB;
   const burst=ctx.createGain(); env(t,0.0005,0.008,1,burst);
   const dl=ctx.createDelay(0.05); dl.delayTime.value=1/f0;
-  const fb=ctx.createGain(); fb.gain.value=0.93;
-  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=Math.min(f0*8,6500);
+  const fb=ctx.createGain(); fb.gain.value=0.78;
+  const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=Math.min(f0*3.5,2100);
   const out=ctx.createGain();
-  out.gain.setValueAtTime(0.28,t);
+  out.gain.setValueAtTime(0.16,t);
   out.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   n.connect(burst); burst.connect(dl);
   dl.connect(lp); lp.connect(fb); fb.connect(dl);
@@ -1214,13 +1204,13 @@ function playPluck(t,midi,dur){                 // Karplus-Strong: noise burst i
              (t-ctx.currentTime+dur+0.3)*1000);
 }
 function playStab(t,midis){
-  midis=midis.map(m=>limitMidi(m,43,66));
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1700;
+  midis=midis.map(m=>limitMidi(m,43,62));
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1200;
   const g=ctx.createGain(); env(t,0.004,0.22,0.14,g);
   f.connect(g); g.connect(duck);
   if(reverb){const rs=ctx.createGain(); rs.gain.value=0.4; g.connect(rs); rs.connect(reverb);}
   midis.forEach(m=>{
-    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(limitMidi(m+12,45,74));
+    const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=mtof(limitMidi(m+7,45,64));
     o.connect(f); o.start(t); o.stop(t+0.35);
   });
 }
@@ -1236,9 +1226,9 @@ function playClap(t){
 }
 function playPad(t,midis,dur){
   midis=midis.map(m=>limitMidi(m,42,67));
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1050;
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=850;
   const lfo=ctx.createOscillator(), lg=ctx.createGain();       // slow filter sweep = living pad
-  lfo.frequency.value=R(0.08,0.2); lg.gain.value=420;
+  lfo.frequency.value=R(0.05,0.12); lg.gain.value=180;
   lfo.connect(lg); lg.connect(f.frequency); lfo.start(t); lfo.stop(t+dur);
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
@@ -1293,19 +1283,22 @@ function playVisitorGuarantee(t,v,which,s16){     // forced phrase: audible, mus
   visQ.push({t:t,type:'lead',v:which});
 }
 function playLead(t,midi,dur,instr,vmul,mode){
-  const leadMax=(instr==='on flute'||instr==='on violin'||instr==='on e-violin')?62:(instr==='on the mic'?68:70);
+  if(instr==='on flute'||instr==='on violin'||instr==='on e-violin') instr='on sax'; // disabled: too easily becomes shrill
+  if(mode==='autotune') mode='sing';                                     // no hard-tuned modem voices in production
+  const leadMax=(instr==='on the mic'?64:62);
   midi=limitMidi(midi,45,leadMax);
-  const hi=m=>limitMidi(m,45,72);
+  const hi=m=>limitMidi(m,45,65);
   const g=ctx.createGain();
   const out=ctx.createGain(); out.gain.value=vmul||1;
-  g.connect(out); out.connect(master); out.connect(delayNode);
+  const leadLP=ctx.createBiquadFilter(); leadLP.type='lowpass'; leadLP.frequency.value=2300; leadLP.Q.value=0.35;
+  g.connect(out); out.connect(leadLP); leadLP.connect(master); if(delayNode) leadLP.connect(delayNode);
   const vib=ctx.createOscillator(), vg=ctx.createGain();
   vib.frequency.value=5.4; vg.gain.value=6; vib.connect(vg); vib.start(t); vib.stop(t+dur+0.2);
   if(instr==='on sax'){
     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
     vg.connect(o.detune);
-    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*2.2; f.Q.value=1.4;
-    env(t,0.05,dur,0.24,g);
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=Math.min(1500,mtof(midi)*1.6); f.Q.value=0.8;
+    env(t,0.05,dur,0.16,g);
     o.connect(f); f.connect(g); o.start(t); o.stop(t+dur+0.2);
   }else if(instr==='on flute'){
     const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(hi(midi+7));
@@ -1314,14 +1307,14 @@ function playLead(t,midi,dur,instr,vmul,mode){
     o.connect(g); o.start(t); o.stop(t+dur+0.2);
     NB=NB||noiseBuf();                                     // breath
     const n=ctx.createBufferSource(); n.buffer=NB;
-    const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=Math.min(2600,mtof(hi(midi+7))*1.6); nf.Q.value=1.3;
+    const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=Math.min(1500,mtof(hi(midi+5))*1.2); nf.Q.value=0.55;
     const ng=ctx.createGain(); env(t,0.07,dur*0.7,0.012,ng);
     n.connect(nf); nf.connect(ng); ng.connect(g);
     n.start(t); n.stop(t+dur);
   }else if(instr==='on violin'){
     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(hi(midi+7));
     vib.frequency.value=5.6; vg.gain.value=11; vg.connect(o.detune);
-    const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2200;
+    const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1500;
     env(t,0.09,dur,0.18,g);
     o.connect(f); f.connect(g); o.start(t); o.stop(t+dur+0.2);
   }else if(instr==='on e-violin'){
@@ -1346,13 +1339,13 @@ function playLead(t,midi,dur,instr,vmul,mode){
     });
     NB=NB||noiseBuf();
     const n=ctx.createBufferSource(); n.buffer=NB;
-    const nf=ctx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=2400;
+    const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=1450; nf.Q.value=0.5;
     const ng=ctx.createGain(); env(t,0.001,0.025,0.012,ng);
     n.connect(nf); nf.connect(ng); ng.connect(g); n.start(t); n.stop(t+0.06);
     env(t,0.003,Math.min(dur,0.5),0.36,g);
   }else if(instr==='on electric guitar'){
     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
-    vg.gain.value=8; vg.connect(o.detune);
+    vg.gain.value=4; vg.connect(o.detune);
     const ws=ctx.createWaveShaper();
     const curve=new Float32Array(256);
     for(let i=0;i<256;i++){const x=i/128-1; curve[i]=Math.tanh(x*3);}
@@ -1363,7 +1356,7 @@ function playLead(t,midi,dur,instr,vmul,mode){
     o.start(t); o.stop(t+dur+0.2);
   }else{ // on the mic — synthetic vocal gestures: rap, singing, autotune, or A.R.I.
     mode=mode||'sing';
-    if(mode==='autotune'){
+    if(false && mode==='autotune'){
       // stepped pitch snaps between scale notes + formant filters + doubled voice
       const steps=RI(2,4), stepDur=dur/steps;
       const degs=[0]; for(let i=1;i<steps;i++) degs.push(pick([-2,-1,1,2]));
@@ -1390,34 +1383,34 @@ function playLead(t,midi,dur,instr,vmul,mode){
       if(reverb){const rs=ctx.createGain(); rs.gain.value=0.5; g.connect(rs); rs.connect(reverb);}
       return;
     }
-    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*(mode==='rap'?2.4:1.75); f.Q.value=mode==='rap'?1.8:1.05;
+    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=Math.min(1550,mtof(midi)*(mode==='rap'?1.35:1.25)); f.Q.value=mode==='rap'?0.8:0.65;
     const dur2=mode==='rap'?Math.min(dur,0.18):dur;
     if(mode==='rap'){
-      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=mtof(midi+RI(-2,2));
-      const o2=ctx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=mtof(midi-12);
-      const g2=ctx.createGain(); g2.gain.value=0.08; o2.connect(g2); g2.connect(f);
+      const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=mtof(midi+RI(-1,1));
+      const o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=mtof(midi-12);
+      const g2=ctx.createGain(); g2.gain.value=0.05; o2.connect(g2); g2.connect(f);
       env(t,0.002,dur2,0.22,g);
       o.connect(f); f.connect(g);
       o.start(t); o.stop(t+dur2+0.04); o2.start(t); o2.stop(t+dur2+0.04);
       NB=NB||noiseBuf();
       const n=ctx.createBufferSource(); n.buffer=NB;
-      const nf=ctx.createBiquadFilter(); nf.type='highpass'; nf.frequency.value=2600;
+      const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=1500; nf.Q.value=0.55;
       const ng=ctx.createGain(); env(t,0.001,0.045,0.035,ng);
       n.connect(nf); nf.connect(ng); ng.connect(g); n.start(t); n.stop(t+0.07);
     }else if(mode==='ari'){
-      const o=ctx.createOscillator(); o.type='square'; o.frequency.value=mtof(midi);
-      const o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=mtof(hi(midi+7));
-      vg.gain.value=8; vg.connect(o.detune); vg.connect(o2.detune);
+      const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=mtof(midi);
+      const o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=mtof(hi(midi+5));
+      vg.gain.value=4; vg.connect(o.detune); vg.connect(o2.detune);
       env(t,0.01,Math.min(dur,0.55),0.18,g);
       o.connect(f); o2.connect(f); f.connect(g);
-      const robot=ctx.createBiquadFilter(); robot.type='notch'; robot.frequency.value=880; robot.Q.value=8;
+      const robot=ctx.createBiquadFilter(); robot.type='notch'; robot.frequency.value=880; robot.Q.value=2.5;
       g.disconnect(); g.connect(robot); robot.connect(out); robot.connect(delayNode);
       o.start(t); o.stop(t+dur+0.1); o2.start(t); o2.stop(t+dur+0.1);
     }else{
       const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
-      const o2=ctx.createOscillator(); o2.type='triangle'; o2.frequency.value=mtof(hi(midi+7));
+      const o2=ctx.createOscillator(); o2.type='sine'; o2.frequency.value=mtof(hi(midi+5));
       const g2=ctx.createGain(); g2.gain.value=0.05; o2.connect(g2); g2.connect(f);
-      vib.frequency.value=5.1; vg.gain.value=10; vg.connect(o.detune); vg.connect(o2.detune);
+      vib.frequency.value=5.1; vg.gain.value=4; vg.connect(o.detune); vg.connect(o2.detune);
       env(t,0.06,dur,0.24,g);
       o.connect(f); f.connect(g);
       o.start(t); o.stop(t+dur+0.2); o2.start(t); o2.stop(t+dur+0.2);
@@ -1592,7 +1585,6 @@ function wantsVisitorLead(v,sIdx){
   if(!v) return false;
   if(v.instr==='on the mic'){
     if(v.vocalMode==='sing') return sIdx%4===0 && Math.random()<0.45;
-    if(v.vocalMode==='autotune') return sIdx%4===2 && Math.random()<0.5;
     return Math.random()<0.22;
   }
   return sIdx%2===0 && Math.random()<0.32;
@@ -1600,7 +1592,6 @@ function wantsVisitorLead(v,sIdx){
 function visitorLeadDur(v,s16){
   if(v.instr==='on the mic'){
     if(v.vocalMode==='sing') return s16*pick([4,6,8,10]);
-    if(v.vocalMode==='autotune') return s16*pick([6,8,10,12]);   // long melismas — that's the point
     return s16*pick([0.45,0.6,0.8,1.1]);
   }
   if(v.instr==='on acoustic guitar'||v.instr==='on electric guitar') return s16*pick([0.8,1,1.4,2]);
@@ -1609,7 +1600,7 @@ function visitorLeadDur(v,s16){
 }
 function performerLabel(v){
   if(!v) return '';
-  if(v.instr==='on the mic') return v.vocalMode==='sing'?'singing on the mic':v.vocalMode==='autotune'?'on the mic · autotune':'rapping on the mic';
+  if(v.instr==='on the mic') return v.vocalMode==='sing'?'singing on the mic':'rapping on the mic';
   return v.instr;
 }
 function scheduleStep(sIdx,t){
@@ -1737,9 +1728,9 @@ function scheduleStep(sIdx,t){
     for(let i=0;i<8;i++) faderTarget[i]=R(0,1);
   }
   /* arpeggiator — peak/drop energy layer */
-  if(track.arpOn && hookS && sIdx%2===0 && Math.random()<0.85){
+  if(track.arpOn && hookS && sIdx%4===0 && Math.random()<0.45){
     const ns=chordFor(deg);
-    const m=track.root+24+ns[(Math.floor(sIdx/2))%ns.length];
+    const m=track.root+12+ns[(Math.floor(sIdx/4))%ns.length];
     if(track.pad==='pluck'||g.kit==='808') playPluck(tt,m,s16*1.8);
     else playPiano(tt,[m],s16*1.6,0.07);
   }
@@ -1843,8 +1834,9 @@ function speak(text,opts,vol,when){
     const ab=ctx.createBuffer(1,buf.length,22050);
     ab.getChannelData(0).set(buf);
     const src=ctx.createBufferSource(); src.buffer=ab;
-    const g=ctx.createGain(); g.gain.value=vol||0.5;
-    src.connect(g); g.connect(master);
+    const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2200; f.Q.value=0.35;
+    const g=ctx.createGain(); g.gain.value=(vol||0.5)*0.85;
+    src.connect(f); f.connect(g); g.connect(master);
     src.start(ctx.currentTime+(when||0));
     return ab.duration;
   }catch(e){return 0;}
@@ -2086,7 +2078,7 @@ function buildVisitor(target,instr,dx){
   target.innerHTML=v;
   target.style.color=col;
   const r=Math.random();
-  const vocalMode=instr==='on the mic' ? (r<0.35?'sing':r<0.72?'rap':'autotune') : '';
+  const vocalMode=instr==='on the mic' ? (r<0.42?'sing':'rap') : '';
   return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh, vocalMode};
 }
 vis1=buildVisitor(gVis,'on the mic',0);              // pre-built so the viewBox
