@@ -79,10 +79,11 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 ## Current version
 
 - Visible footer tribute: `version 7`.
-- Service worker cache: `ari-v14`.
+- Service worker cache: `ari-v16`.
 - Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
 - Album art now has stronger contrast and more background variation, including occasional light covers.
 - Intros are calmer now: no high hats, risers, visitor solos or plucky high-frequency chaos before the beat has settled.
+- Comfort limit added: lead/chord pitches are clamped, harsh hats/risers are softened, and sparse tracks get a subtle safety bed.
 
 ## License
 
@@ -91,3 +92,5 @@ Code: MIT. See [`LICENSE`](LICENSE).
 The tribute nature of the project (see disclaimer) applies to the concept and
 inspiration; everything in this repository is original work unless explicitly
 credited above.
+
+- Street-sign fix: the right-side blades now overlap the pole slightly so they connect cleanly.

@@ -616,6 +616,12 @@ const R=(a,b)=>a+Math.random()*(b-a);
 const RI=(a,b)=>Math.floor(R(a,b+1));
 const pick=a=>a[RI(0,a.length-1)];
 const mtof=m=>440*Math.pow(2,(m-69)/12);
+const limitMidi=(m,min=32,max=76)=>{                 // comfort guard: avoid piercing/modem-like fundamentals
+  while(m>max) m-=12;
+  while(m<min) m+=12;
+  return Math.max(min,Math.min(max,m));
+};
+const calmChord=ns=>ns.map(m=>limitMidi(m,42,67));   // audible on phones, but never shrill
 const MINOR=[0,2,3,5,7,8,10], PENT=[0,3,5,7,10];
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
@@ -708,14 +714,16 @@ function initAudio(){
   sat.curve=curve; sat.oversample='2x';
   const comp=ctx.createDynamicsCompressor();
   comp.threshold.value=-16; comp.ratio.value=4;
-  master.connect(sat); sat.connect(comp);
+  const safetyLP=ctx.createBiquadFilter();             // final comfort filter: keeps harsh modem/whistle edges out
+  safetyLP.type='lowpass'; safetyLP.frequency.value=6200; safetyLP.Q.value=0.55;
+  master.connect(sat); sat.connect(comp); comp.connect(safetyLP);
   // route the final mix through a hidden <audio> element instead of straight to
   // ctx.destination: iOS/Android only grant a page continued background execution
   // when a real HTMLMediaElement is audibly playing (a "now playing" session).
   // a bare AudioContext gets suspended the moment the app is backgrounded.
   if(ctx.createMediaStreamDestination){
     streamDest=ctx.createMediaStreamDestination();
-    comp.connect(streamDest);
+    safetyLP.connect(streamDest);
     bgAudioEl=document.createElement('audio');
     bgAudioEl.srcObject=streamDest.stream;
     bgAudioEl.autoplay=true;
@@ -723,7 +731,7 @@ function initAudio(){
     bgAudioEl.style.display='none';
     document.body.appendChild(bgAudioEl);
   }else{
-    comp.connect(ctx.destination);                // very old browser: no background trick possible
+    safetyLP.connect(ctx.destination);            // very old browser: no background trick possible
   }
   duck=ctx.createGain(); duck.gain.value=1;       // sidechain bus: bass/harmony pump on the kick
   duck.connect(master);
@@ -948,7 +956,7 @@ function playKick(t,vel){
     for(let i=0;i<256;i++){const x=i/128-1;c[i]=Math.tanh(x*2.4);}
     ws.curve=c;
     o.connect(g); g.connect(ws); ws.connect(master);
-    const ck=ctx.createOscillator(); ck.type='square'; ck.frequency.value=kit==='909'?1800:1100;
+    const ck=ctx.createOscillator(); ck.type='square'; ck.frequency.value=kit==='909'?1300:900;
     const cg=ctx.createGain(); env(t,0.0005,0.012,0.25*vel,cg);
     ck.connect(cg); cg.connect(master); ck.start(t); ck.stop(t+0.03);
   }else{
@@ -990,8 +998,8 @@ function playHat(t,open,vel){
   vel=vel==null?1:vel;
   const kit=track.g.kit;
   if(kit==='808'){                              // six squares at the classic ratios → metallic
-    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=10000; bp.Q.value=1;
-    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=8000;
+    const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=6200; bp.Q.value=0.8;
+    const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=5200;
     const g=ctx.createGain(); env(t,0.001,open?0.3:0.05,0.16*vel,g);
     bp.connect(hp); hp.connect(g); g.connect(master);
     [2,3,4.16,5.43,6.79,8.21].forEach(r=>{
@@ -1003,7 +1011,7 @@ function playHat(t,open,vel){
   NB=NB||noiseBuf();
   const n=ctx.createBufferSource(); n.buffer=NB;
   const f=ctx.createBiquadFilter(); f.type='highpass';
-  f.frequency.value=kit==='909'?8600:7200;
+  f.frequency.value=kit==='909'?6200:5400;
   const g=ctx.createGain(); env(t,0.001,open?0.22:0.045,0.18*vel,g);
   n.connect(f); f.connect(g); g.connect(master);
   n.start(t); n.stop(t+(open?0.25:0.07));
@@ -1030,7 +1038,7 @@ function playRiser(t,dur){                      // filtered noise sweep into the
   const n=ctx.createBufferSource(); n.buffer=NB; n.loop=true;
   const f=ctx.createBiquadFilter(); f.type='bandpass'; f.Q.value=2.5;
   f.frequency.setValueAtTime(300,t);
-  f.frequency.exponentialRampToValueAtTime(5200,t+dur);
+  f.frequency.exponentialRampToValueAtTime(3200,t+dur);
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.09,t+dur*0.9);
@@ -1048,6 +1056,7 @@ function playImpact(t){                         // reverbed boom on the hook dow
   o.start(t); o.stop(t+0.8);
 }
 function playBass(t,midi,dur){
+  midi=limitMidi(midi,32,57);
   const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
   const f=ctx.createBiquadFilter(); f.type='lowpass';
   f.frequency.setValueAtTime(700,t); f.frequency.exponentialRampToValueAtTime(180,t+dur);
@@ -1056,6 +1065,7 @@ function playBass(t,midi,dur){
   o.start(t); o.stop(t+dur+0.1);
 }
 function play808(t,midi,dur){
+  midi=limitMidi(midi,30,55);
   const o=ctx.createOscillator(); o.type='sine';
   const fr=mtof(midi);
   const prev=track.lastBassMidi;
@@ -1075,18 +1085,21 @@ function play808(t,midi,dur){
   o.connect(g); g.connect(ws); ws.connect(duck); o.start(t); o.stop(t+dur+0.15);
 }
 function playSub(t,midi,dur){
+  midi=limitMidi(midi,30,55);
   const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
   const g=ctx.createGain(); env(t,0.01,dur,0.5,g);
   o.connect(g); g.connect(duck); o.start(t); o.stop(t+dur+0.1);
 }
 function playRound(t,midi,dur){
+  midi=limitMidi(midi,34,60);
   const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=mtof(midi);
   const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=520;
   const g=ctx.createGain(); env(t,0.015,dur,0.42,g);
   o.connect(f); f.connect(g); g.connect(duck); o.start(t); o.stop(t+dur+0.1);
 }
 function playKeys(t,midis,dur){
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2400;
+  midis=midis.map(m=>limitMidi(m,45,70));
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2200;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.09,t+0.03);
@@ -1100,6 +1113,7 @@ function playKeys(t,midis,dur){
   });});
 }
 function playPiano(t,midis,dur,vol){            // additive piano: partials with inharmonicity
+  midis=midis.map(m=>limitMidi(m,45,70));
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(vol||0.16,t+0.004);
@@ -1121,6 +1135,7 @@ function playPiano(t,midis,dur,vol){            // additive piano: partials with
   });
 }
 function playEPiano(t,midis,dur){               // Rhodes-ish FM: sine body + bright tine transient
+  midis=midis.map(m=>limitMidi(m,45,69));
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.14,t+0.006);
@@ -1144,6 +1159,7 @@ function playEPiano(t,midis,dur){               // Rhodes-ish FM: sine body + br
   });
 }
 function playPluck(t,midi,dur){                 // Karplus-Strong: noise burst in a tuned feedback loop
+  midi=limitMidi(midi,43,68);
   NB=NB||noiseBuf();
   const f0=mtof(midi);
   const n=ctx.createBufferSource(); n.buffer=NB;
@@ -1162,12 +1178,13 @@ function playPluck(t,midi,dur){                 // Karplus-Strong: noise burst i
              (t-ctx.currentTime+dur+0.3)*1000);
 }
 function playStab(t,midis){
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1900;
+  midis=midis.map(m=>limitMidi(m,43,66));
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1700;
   const g=ctx.createGain(); env(t,0.004,0.22,0.14,g);
   f.connect(g); g.connect(duck);
   if(reverb){const rs=ctx.createGain(); rs.gain.value=0.4; g.connect(rs); rs.connect(reverb);}
   midis.forEach(m=>{
-    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(m+12);
+    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(limitMidi(m+12,45,74));
     o.connect(f); o.start(t); o.stop(t+0.35);
   });
 }
@@ -1182,7 +1199,8 @@ function playClap(t){
   });
 }
 function playPad(t,midis,dur){
-  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1150;
+  midis=midis.map(m=>limitMidi(m,42,67));
+  const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1050;
   const lfo=ctx.createOscillator(), lg=ctx.createGain();       // slow filter sweep = living pad
   lfo.frequency.value=R(0.08,0.2); lg.gain.value=420;
   lfo.connect(lg); lg.connect(f.frequency); lfo.start(t); lfo.stop(t+dur);
@@ -1201,6 +1219,8 @@ function playPad(t,midis,dur){
   });
 }
 function playLead(t,midi,dur,instr,vmul,mode){
+  const leadMax=(instr==='on flute'||instr==='on violin'||instr==='on e-violin')?67:(instr==='on the mic'?70:72);
+  midi=limitMidi(midi,45,leadMax);
   const g=ctx.createGain();
   const out=ctx.createGain(); out.gain.value=vmul||1;
   g.connect(out); out.connect(master); out.connect(delayNode);
@@ -1272,9 +1292,9 @@ function playLead(t,midi,dur,instr,vmul,mode){
       // stepped pitch snaps between scale notes + formant filters + doubled voice
       const steps=RI(2,4), stepDur=dur/steps;
       const degs=[0]; for(let i=1;i<steps;i++) degs.push(pick([-2,-1,1,2]));
-      const formants=[700,1200,2600].map((fr,i)=>{
+      const formants=[520,980,1850].map((fr,i)=>{
         const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=fr;
-        bp.Q.value=4; const fg=ctx.createGain(); fg.gain.value=[1,0.6,0.28][i];
+        bp.Q.value=3.1; const fg=ctx.createGain(); fg.gain.value=[0.85,0.45,0.16][i];
         bp.connect(fg); fg.connect(g); return bp;
       });
       [0,9].forEach(cents=>{                                  // doubled, slightly detuned
@@ -1283,8 +1303,8 @@ function playLead(t,midi,dur,instr,vmul,mode){
         o.frequency.setValueAtTime(mtof(mi),tt2);
         for(let i=1;i<steps;i++){
           tt2+=stepDur;
-          mi=track.root+12+PENT[(((lastLeadIdx+degs[i])%PENT.length)+PENT.length)%PENT.length]+12;
-          o.frequency.setValueAtTime(mtof(mi),tt2);           // instant snap = the T-Pain glitch
+          mi=limitMidi(track.root+12+PENT[(((lastLeadIdx+degs[i])%PENT.length)+PENT.length)%PENT.length]+12,45,70);
+          o.frequency.setValueAtTime(mtof(mi),tt2);           // instant snap, but clamped for comfort
         }
         formants.forEach(bp=>o.connect(bp));
         o.start(t); o.stop(t+dur+0.1);
@@ -1361,8 +1381,9 @@ function buildSignBlades(primary, force){
           +(long?' textLength="132" lengthAdjust="spacingAndGlyphs"':'')
           +`>${nm}</text>`;
     } else {                                                       // cross blade, faces -y
-      out+=poly([[0.6,-4.8,zBot],[0.6,-6.7,zBot],[0.6,-6.7,zTop],[0.6,-4.8,zTop]],'signblade');
-      out+=seg([0.6,-5.2,zBot+0.32],[0.6,-6.3,zBot+0.32],'signmark');
+      // overlap the pole slightly so the right-side blades visually connect cleanly
+      out+=poly([[0.48,-4.64,zBot],[0.48,-6.7,zBot],[0.48,-6.7,zTop],[0.48,-4.64,zTop]],'signblade');
+      out+=seg([0.48,-5.08,zBot+0.32],[0.48,-6.18,zBot+0.32],'signmark');
     }
   }
   host.innerHTML=out;
@@ -1590,6 +1611,9 @@ function scheduleStep(sIdx,t){
   /* harmony per genre — pads carry the intro/outro */
   const notes=()=>chordFor(deg).map(iv=>track.root+iv);
   if(track.pad==='stab'){
+    if(!intro && sIdx===0 && bar%4===0){                         // safety bed: prevents empty kick-only stretches
+      playPad(tt,calmChord(notes()),spb*8*0.55);
+    }
     if(drumsOn && sIdx%4===2 && Math.random()<0.85){
       playStab(tt,notes());
       visQ.push({t:tt,type:'stab'});
@@ -1614,10 +1638,10 @@ function scheduleStep(sIdx,t){
     if(track.pad==='keys')       playKeys(tt,ns,spb*8*0.95);
     else if(track.pad==='epiano')playEPiano(tt,ns,spb*8*0.95);
     else if(track.pad==='pluck'){
-      if(intro) playPad(tt,ns.map(m=>m-12),spb*8*0.95);          // no high pluck-pinging in intros
+      if(intro) playPad(tt,calmChord(ns),spb*8*0.95);            // no high pluck-pinging in intros
       else ns.forEach((m,i)=>playPluck(tt+i*s16*0.5,m+12,spb*3));
     }
-    else                         playPad(tt,intro?ns.map(m=>m-12):ns,spb*8*0.95);
+    else                         playPad(tt,intro?calmChord(ns):ns,spb*8*0.95);
     visQ.push({t:tt,type:'chord'});
     for(let i=0;i<8;i++) faderTarget[i]=R(0,1);
   }
@@ -1638,14 +1662,14 @@ function scheduleStep(sIdx,t){
   if(ariSing && !visitor && sIdx%2===1 && Math.random()<0.18){
     lastLeadIdxA=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdxA+RI(-2,2)));
     const oct=Math.floor(lastLeadIdxA/PENT.length);
-    const midi=track.root+12+oct*12+PENT[lastLeadIdxA%PENT.length];
+    const midi=limitMidi(track.root+12+oct*12+PENT[lastLeadIdxA%PENT.length],45,70);
     playLead(tt,midi,s16*pick([1,1.5,2,3]),'on the mic',0.75,'ari');
     visQ.push({t:tt,type:'alead'});
   }
   if(!intro && visitor && visitorPhase==='performing' && wantsVisitorLead(vis1,sIdx)){
     lastLeadIdx=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx/PENT.length);
-    const midi=track.root+12+oct*12+PENT[lastLeadIdx%PENT.length];
+    const midi=limitMidi(track.root+12+oct*12+PENT[lastLeadIdx%PENT.length],45,70);
     const dur=visitorLeadDur(vis1,s16);
     let vmul=1;
     if(vis1.instr==='on the mic'){
@@ -1660,7 +1684,7 @@ function scheduleStep(sIdx,t){
   if(!intro && visitor2 && visitorPhase==='performing' && wantsVisitorLead(vis2,sIdx)){
     lastLeadIdx2=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx2+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx2/PENT.length);
-    const midi=track.root+24+oct*12+PENT[lastLeadIdx2%PENT.length];
+    const midi=limitMidi(track.root+24+oct*12+PENT[lastLeadIdx2%PENT.length],45,70);
     const dur=visitorLeadDur(vis2,s16);
     let vmul=1;
     if(vis2.instr==='on the mic'){
