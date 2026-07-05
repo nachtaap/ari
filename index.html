@@ -175,9 +175,7 @@
   #trackinfo.show{opacity:1; transform:none}
   #tiRow{display:flex; align-items:center; gap:12px; pointer-events:none}
   #albumArt{
-    width:56px; height:56px; flex-shrink:0; border-radius:3px;
-    background:#030409; border:1px solid var(--cyan-dim);
-    box-shadow:0 0 16px var(--glow2); object-fit:cover;
+    display:none; /* generated artwork stays available for Media Session / lockscreen, but not in the on-page UI */
   }
   #tiText{display:flex; flex-direction:column; min-width:0; max-width:100%}
   #trackname,#trackmeta,#visitorline,#cypherline{max-width:100%}
@@ -243,7 +241,6 @@
   @media (max-width:640px){
     header{left:18px; top:18px}
     #trackinfo{left:18px; right:18px; bottom:18px; font-size:10px}
-    #albumArt{width:44px; height:44px}
     #playbtn{left:18px; bottom:118px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
