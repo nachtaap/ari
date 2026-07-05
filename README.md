@@ -80,7 +80,7 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 
 - Version 8 release: livestream logic, comfort/pitch limits, calmer intros, stronger album art variation, and cleaner visitor flow.
 - Visible footer tribute: `version 8`.
-- Service worker cache: `ari-v18`.
+- Service worker cache: `ari-v21`.
 - Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
 - Album art now has stronger contrast and more background variation, including occasional light covers.
 - Intros are calmer now: no high hats, risers, visitor solos or plucky high-frequency chaos before the beat has settled.
@@ -100,3 +100,8 @@ credited above.
 - Rare two-track visitors are explicit now: they can stay for one extra beat after they have actually performed.
 - Musical floor added so tracks should not collapse into a lonely kick-only loop.
 - Comfort pass tightened further: high flute/violin/vocal transpositions, SAM voices and cowbell/autotune edges are softened.
+- Layout fix: track info now uses symmetrical left/right margins so the text no longer runs too close to the right edge on mobile.
+
+- Production guard: every non-intro bar now has an audible musical floor, and visitors cannot silently appear/disappear without clearly performing.
+
+- Genre-aware sections: rap/R&B use verse/hook, house uses groove/peak/breakdown, and drum n bass uses rollout/drop/breakdown/second drop.
