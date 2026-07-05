@@ -79,8 +79,9 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 ## Current version
 
 - Visible footer tribute: `version 7`.
-- Service worker cache: `ari-v12`.
+- Service worker cache: `ari-v13`.
 - Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
+- Album art now has stronger contrast and more background variation, including occasional light covers.
 
 ## License
 
