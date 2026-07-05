@@ -79,8 +79,8 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 ## Current version
 
 - Version 8 release: livestream logic, comfort/pitch limits, calmer intros, stronger album art variation, and cleaner visitor flow.
-- Visible footer tribute: `version 8`.
-- Service worker cache: `ari-v24`.
+- Visible footer tribute: `version 9`.
+- Service worker cache: `ari-v25`.
 - Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
 - Album art now has stronger contrast and more background variation, including occasional light covers.
 - Intros are calmer now: no high hats, risers, visitor solos or plucky high-frequency chaos before the beat has settled.
@@ -111,3 +111,5 @@ credited above.
 - Layout fix: the start hint now uses the same safe left/right margins as the track info.
 
 - Anti-modem audio pass: removed autotune mode, disabled flute/violin random visitors, softened hats/noise/FM/plucks, and added a hard low-pass ceiling to prevent high-pitched non-musical tones.
+
+- Version 9 release: visible version bump for deployment verification, including the anti-modem audio pass and all version 8 production/UI fixes.
