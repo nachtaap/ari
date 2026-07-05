@@ -160,10 +160,11 @@
     text-transform:none; max-width:78vw;
   }
   #hint{
-    position:fixed; left:50%; bottom:11%; transform:translateX(-50%);
+    position:fixed; left:30px; right:30px; bottom:11%; transform:none;
     font-size:11px; letter-spacing:.3em; color:var(--cyan-dim);
     animation:pulse 2.6s ease-in-out infinite; z-index:5; pointer-events:none;
-    text-transform:uppercase; white-space:nowrap;
+    text-transform:uppercase; white-space:normal; text-align:center;
+    overflow-wrap:break-word;
   }
   @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
   #trackinfo{
@@ -241,6 +242,7 @@
   @media (max-width:640px){
     header{left:18px; top:18px}
     #trackinfo{left:18px; right:18px; bottom:18px; font-size:10px}
+    #hint{left:18px; right:18px; font-size:10px; letter-spacing:.22em}
     #playbtn{left:18px; bottom:118px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
