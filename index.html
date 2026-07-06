@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 29</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 30</p>
 </header>
 
 <footer>
@@ -1654,9 +1654,13 @@ function buildVisitor(target,instr,dx){
     v+=vpline([[leftHandX,-1.1,bodT-0.3],[1.05+dx,-0.85,4.95*h]],'v');             // hand high
     v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.28+dx,-0.85,4.45*h]],'v');            // hand low
     notePos=T([1.7+dx,-0.75,5.15*h]);
-  }else{ // on the mic — held properly horizontal… until it droops
-    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.9+dx+lean*0.16,-0.55,5.55*h]],'v');    // arm
-    const hp=iso(...T([0.9+dx+lean*0.16,-0.55,5.55*h]));                            // hand pivot (screen px)
+  }else{ // on the mic — keep it very simple: two clean arm lines, one clearly holding the mic
+    const micHand=[0.92+dx+lean*0.16,-0.56,5.58*h];
+    const supportHand=[1.08+dx+lean*0.14,-0.7,5.9*h];
+    v+=vseg([leftHandX,-1.1,bodT-0.3],micHand,'v');                                 // main arm to the mic hand
+    v+=vseg([rightHandX,-1.1,bodT-0.22],supportHand,'v');                           // simple other arm, supporting near the mic
+    const hp=iso(...T(micHand));                                                    // main hand pivot (screen px)
+    const sp=iso(...T(supportHand));                                                // support hand point (screen px)
     micPh=Math.random()<0.22 ? Math.random() : -1;                                  // -1 = holds it properly
     const mL=18*VS, mA=-38*Math.PI/180;                                             // horizontal-ish, aimed at the mouth
     const mtx=hp[0]+Math.cos(mA)*mL, mty=hp[1]+Math.sin(mA)*mL;
@@ -1664,6 +1668,7 @@ function buildVisitor(target,instr,dx){
       +'<line class="v" x1="'+hp[0].toFixed(1)+'" y1="'+hp[1].toFixed(1)+'" x2="'+mtx.toFixed(1)+'" y2="'+mty.toFixed(1)+'"/>'
       +'<circle class="v" cx="'+mtx.toFixed(1)+'" cy="'+mty.toFixed(1)+'" r="'+(4.4*VS).toFixed(1)+'"/>'
       +'</g>';
+    v+='<line class="v" x1="'+sp[0].toFixed(1)+'" y1="'+sp[1].toFixed(1)+'" x2="'+(hp[0]+(mtx-hp[0])*0.36).toFixed(1)+'" y2="'+(hp[1]+(mty-hp[1])*0.36).toFixed(1)+'"/>';
     notePos=T([0.97+dx+lean*0.18,-0.48,6.9*h]);
   }
   target.innerHTML=v;
