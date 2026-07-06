@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 19</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 20</p>
 </header>
 
 <footer>
@@ -420,8 +420,8 @@ s+='<g class="gPack">';
 // simplified backpack speakers — drawn before the pack/body so solid surfaces can hide them naturally
 s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
 s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
-s+=box(8.35,-3.15,3.55, 9.15,-2.45,4.75,'b');          // lower right rear speaker sits a touch higher
-s+=circX(9.15,-2.8,4.15,.36,'b')+circX(9.15,-2.8,4.15,.13,'b');
+s+=box(8.35,-3.15,3.6, 9.15,-2.45,4.8,'b');           // lower right rear speaker: bottom aligned with backpack, still a touch higher overall
+s+=circX(9.15,-2.8,4.2,.36,'b')+circX(9.15,-2.8,4.2,.13,'b');
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');              // pack drawn after speakers = pack occludes back lines
 
 s+='<g id="sfxC" opacity="0"></g><g id="sfxD" opacity="0">'; // keep only lower speaker pulses
@@ -462,15 +462,7 @@ s+=bez([8.32,-1.05,8.15],[8.15,-0.5,7.85],[7.62,-0.58,7.98],'p');   // headset m
 s+=circY(-0.56,7.55,7.98,.1,'p');                                    // mic tip
 s+='</g>';
 
-/* ---------- straps ---------- */
-s+=seg([6.3,-2.2,6.85],[6.15,-0.85,4.4],'cd');
-s+=seg([7.9,-2.2,6.85],[8.05,-0.85,4.4],'cd');
-
-/* ---------- wearable rig: mounted to the harness ---------- */
-s+=seg([5.75,-0.7,5.3],[5.75,-0.02,4.38],'od');        // harness rods
-s+=seg([8.45,-0.7,5.3],[8.45,-0.02,4.38],'od');
-s+=box(5.6,-0.72,5.15, 5.9,-0.55,5.45,'od');           // mounting brackets
-s+=box(8.3,-0.72,5.15, 8.6,-0.55,5.45,'od');
+/* ---------- wearable rig ---------- */
 s+=boxFrontRight(3.1,1.6,3.05, 4.1,2.4,4.05,'b');      // under-rig speaker L: draw first so the rig can occlude it cleanly
 s+=circY(2.4,3.6,3.55,.3,'b');
 s+=boxFrontRight(9.5,1.6,3.05, 10.5,2.4,4.05,'b');     // under-rig speaker R: draw first so the rig outline stays uninterrupted
