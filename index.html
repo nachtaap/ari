@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 17</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 18</p>
 </header>
 
 <footer>
@@ -375,6 +375,19 @@ function box(x1,y1,z1,x2,y2,z2,cls){
   out+='</g>';
   return out;
 }
+function boxFrontRight(x1,y1,z1,x2,y2,z2,cls){
+  const sideX = [[x2,y1,z2],[x2,y2,z2],[x2,y2,z1],[x2,y1,z1]];
+  const sideY = [[x1,y2,z2],[x2,y2,z2],[x2,y2,z1],[x1,y2,z1]];
+  const edges = [
+    [[x2,y1,z2],[x2,y1,z1]], [[x2,y2,z2],[x2,y2,z1]], [[x1,y2,z2],[x1,y2,z1]],
+    [[x2,y1,z1],[x2,y2,z1]], [[x2,y2,z1],[x1,y2,z1]],
+  ];
+  let out='<g class="isoBox isoBoxNoTop">';
+  out+=poly(sideX,'occface')+poly(sideY,'occface');
+  edges.forEach(([a,b])=>{ out+=seg(a,b,cls); });
+  out+='</g>';
+  return out;
+}
 const bez=(a,c,b,cls)=>`<path class="${cls}" d="M ${pt(...a)} Q ${pt(...c)} ${pt(...b)}"/>`;
 // coiled cable between two 3D points, drawn in screen space with sag
 function coil(a,b,loops,r,sag,cls){
@@ -442,9 +455,9 @@ s+=bez([6.42,-0.56,8.42],[6.68,-0.56,8.78],[6.94,-0.56,8.42],'g');  // happy eye
 s+=bez([7.26,-0.56,8.42],[7.52,-0.56,8.78],[7.78,-0.56,8.42],'g');  // happy eye R
 // headphones — only the user-facing right cup is visible; the far-side cup stays hidden behind the head
 s+=circX(8.35,-1.45,8.5,.72,'p')+circX(8.35,-1.45,8.5,.4,'pd');
-// the headband rides over the crown and disappears exactly at the far silhouette edge instead of revealing the hidden left side
-s+=bez([6.08,-1.62,9.02],[7.08,-1.45,10.48],[8.35,-1.45,9.05],'p');
-s+=bez([6.22,-1.58,9.05],[7.1,-1.45,10.22],[8.18,-1.45,9.07],'pd');
+// the headband rides over the crown and reaches the visible left rim, then stops at the silhouette instead of showing a hidden far-side earcup
+s+=bez([5.9,-1.92,9.08],[7.0,-1.6,10.58],[8.35,-1.45,9.05],'p');
+s+=bez([5.98,-1.78,9.1],[7.02,-1.56,10.3],[8.18,-1.45,9.07],'pd');
 s+=bez([8.32,-1.05,8.15],[8.15,-0.5,7.85],[7.62,-0.58,7.98],'p');   // headset mic boom
 s+=circY(-0.56,7.55,7.98,.1,'p');                                    // mic tip
 s+='</g>';
@@ -459,9 +472,9 @@ s+=seg([8.45,-0.7,5.3],[8.45,-0.02,4.38],'od');
 s+=box(5.6,-0.72,5.15, 5.9,-0.55,5.45,'od');           // mounting brackets
 s+=box(8.3,-0.72,5.15, 8.6,-0.55,5.45,'od');
 s+=box(1.2,0,4.05, 12.8,2.4,ZT,'o');                    // rig top
-s+=box(3.1,1.6,3.05, 4.1,2.4,4.05,'b');           // under-rig speaker L (top flush to rig)
+s+=boxFrontRight(3.1,1.6,3.05, 4.1,2.4,4.05,'b');      // under-rig speaker L: only front + right face visible, no exposed top
 s+=circY(2.4,3.6,3.55,.3,'b');
-s+=box(9.5,1.6,3.05, 10.5,2.4,4.05,'b');          // under-rig speaker R (top flush to rig)
+s+=boxFrontRight(9.5,1.6,3.05, 10.5,2.4,4.05,'b');     // under-rig speaker R: only front + right face visible, no exposed top
 s+=circY(2.4,10.0,3.55,.3,'b');
 s+='<g id="sfxA" opacity="0">';                        // sound dashes L
 s+=seg([3.6,3.1,3.55],[3.6,3.55,3.55],'l');
