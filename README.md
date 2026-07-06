@@ -9,10 +9,7 @@ steps up on A.R.I.'s right side, requests a genre — and performs on it.
 
 ![A.R.I. preview](icon-512.png)
 
-Everything runs from a single HTML file. No build step, no JavaScript framework,
-no audio samples. The app uses the Web Audio API for synthesized sound, inline SVG
-for the scene, a tiny service worker for app-shell caching, and Google Fonts for
-typography.
+Everything is a single HTML file. No build step, no dependencies, no samples.
 
 ## ⚠️ Disclaimer
 
@@ -28,8 +25,8 @@ If you enjoy this, go watch the real thing. It's better.
 
 **The scene** is procedural SVG line art in an isometric projection: A.R.I. with
 headphones and headset mic, a hip-mounted flightcase rig (jog wheel, pads, keys,
-faders, the corner monitor), backpack speakers, NYC-style street-sign outlines,
-and comic sound dashes pulsing on the beat.
+faders, the corner monitor), backpack speakers, and comic sound dashes pulsing on
+the beat.
 
 **The music** is fully generative. Each track (1–3 minutes) picks a genre — boom
 bap, trap, jerk, drum n bass, 2000s rnb, or house — which sets the BPM range,
@@ -41,15 +38,14 @@ per-note with the Web Audio API and scheduled with a 25 ms lookahead loop.
 outfit, headwear) and a coiled cable plugged into the rig. A visitor requests a
 genre — spoken out loud in a retro robotic voice, with A.R.I. answering back —
 then A.R.I. crossfades into a fresh track in that style, and the visitor
-performs: usually on the mic, sometimes on sax, flute, acoustic or electric guitar,
-and rarely on violin or spacy e-violin. Very occasionally, a second visitor joins
-and a tiny cypher forms.
+performs: 9 out of 10 times on the mic, occasionally on sax, flute, acoustic or
+electric guitar, or (rarely) a violin or a spacy e-violin. Sometimes it's a duo.
 
 The speech is [SAM (Software Automatic Mouth)](https://github.com/discordier/sam),
 the 1982 C64 speech synthesizer ported to JavaScript by Christian Schiffler (MIT),
-inlined so the experience stays self-contained.
+inlined so everything stays a single file.
 
-## Running it locally
+## Running it
 
 Open `index.html` in a browser. That's it.
 
@@ -72,44 +68,35 @@ Served over https (GitHub Pages works), A.R.I. is an installable PWA:
 - **iOS / Safari**: share sheet → "Add to Home Screen". Runs standalone with the
   dark status bar.
 
-Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
-`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`,
-`favicon-32.png` and `favicon-16.png` together in the same directory.
+Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
+`icon-512.png` together in the same directory.
 
 ## Current version
 
-- Version 8 release: livestream logic, comfort/pitch limits, calmer intros, stronger album art variation, and cleaner visitor flow.
-- Visible footer tribute: `version 9`.
-- Service worker cache: `ari-v25`.
-- Rare cypher copy: `A cypher is forming`, shown only during the rare two-visitor moment.
-- Album art now has stronger contrast and more background variation, including occasional light covers.
-- Intros are calmer now: no high hats, risers, visitor solos or plucky high-frequency chaos before the beat has settled.
-- Comfort limit added: lead/chord pitches are clamped, harsh hats/risers are softened, and sparse tracks get a subtle safety bed.
+- **Version 12** — the breakdown now keeps the core kick+snare groove (stripped
+  of hats, bass and extras) instead of dropping to near-silence, so the flow
+  carries through and the main sections land harder when everything returns.
+- **Version 11** — headphone-comfort audio pass:
+  - Track roots sit lower, and all leads dropped an octave (the second visitor
+    was two octaves too high); flute/violin/e-violin no longer secretly play an
+    octave up.
+  - A hard lead ceiling plus a gentle master high-shelf keep melodies out of the
+    piercing register — the low end comes through far more often now.
+- **Version 10** — reworked generative music engine for consistent depth:
+  - **Arrangement**: every track now has a real structure (intro → main →
+    breakdown → main → outro) with elements entering and leaving on bar
+    boundaries, plus small fills on section transitions.
+  - **Voice-leading**: chords now move smoothly (each voice stays near the
+    previous one) and the bass follows the chord root instead of wandering.
+  - **Section-aware interaction**: drums, hats, leads and A.R.I.'s own vocals
+    respect the arrangement — sparse in the intro, open in the breakdown, full
+    in the main sections.
+  - No shrill/"modem" tones: nothing was added that can become harsh; depth
+    comes from existing sounds playing at the right moments.
+- Visible footer tribute: `version 10`.
+- Service worker cache: `ari-v26`.
 
 ## License
 
-Code: MIT. See [`LICENSE`](LICENSE).
-
-The tribute nature of the project (see disclaimer) applies to the concept and
-inspiration; everything in this repository is original work unless explicitly
-credited above.
-
-- Street-sign fix: the right-side blades now overlap the pole slightly so they connect cleanly.
-
-- Livestream logic pass: visitors now request, wait for the intro/drop, perform audibly, and only then leave.
-- Rare two-track visitors are explicit now: they can stay for one extra beat after they have actually performed.
-- Musical floor added so tracks should not collapse into a lonely kick-only loop.
-- Comfort pass tightened further: high flute/violin/vocal transpositions, SAM voices and cowbell/autotune edges are softened.
-- Layout fix: track info now uses symmetrical left/right margins so the text no longer runs too close to the right edge on mobile.
-
-- Production guard: every non-intro bar now has an audible musical floor, and visitors cannot silently appear/disappear without clearly performing.
-
-- Genre-aware sections: rap/R&B use verse/hook, house uses groove/peak/breakdown, and drum n bass uses rollout/drop/breakdown/second drop.
-
-- UI polish: album art is hidden from the on-page track info, but remains available for the phone/player lockscreen via Media Session artwork.
-
-- Layout fix: the start hint now uses the same safe left/right margins as the track info.
-
-- Anti-modem audio pass: removed autotune mode, disabled flute/violin random visitors, softened hats/noise/FM/plucks, and added a hard low-pass ceiling to prevent high-pitched non-musical tones.
-
-- Version 9 release: visible version bump for deployment verification, including the anti-modem audio pass and all version 8 production/UI fixes.
+Code: MIT. The tribute nature of the project (see disclaimer) applies to the
+concept and inspiration; everything in this repository is original work.
