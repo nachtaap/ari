@@ -1,5 +1,5 @@
 /* A.R.I. service worker — app shell, cache-first, scoped to /A.R.I./ */
-const CACHE = 'ari-v31';
+const CACHE = 'ari-v59';
 const BASE = '/A.R.I./';
 const SHELL = [
   BASE,

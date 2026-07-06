@@ -125,6 +125,27 @@
   .signmark{stroke:var(--nyc-green-dim); fill:none; stroke-width:1.05; stroke-linejoin:round; stroke-linecap:round; opacity:.75}
   .bg {stroke:var(--muted); fill:none; stroke-width:.9;   stroke-linejoin:round; stroke-linecap:round; opacity:.5}
   .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--nyc-green-dim); stroke:none; letter-spacing:.12em; opacity:.9}
+  #followBubble{
+    position:fixed; left:0; top:0; z-index:7; pointer-events:none;
+    max-width:min(84vw,380px);
+    transform:translate(-50%,-100%);
+    padding:12px 16px;
+    border-radius:14px;
+    background:var(--bg);
+    border:1.5px solid var(--bubbleColor,var(--cyan));
+    box-shadow:0 0 14px var(--bubbleColor,var(--cyan));
+    opacity:0; transition:opacity .35s ease, transform .35s ease;
+  }
+  #followBubble.on{opacity:1; transform:translate(-50%,-100%) translateY(-8px)}
+  #followBubble::after{
+    content:''; position:absolute; left:50%; bottom:-8px; margin-left:-8px;
+    border-left:8px solid transparent; border-right:8px solid transparent;
+    border-top:8px solid var(--bubbleColor,var(--cyan));
+  }
+  #followBubbleText{
+    font-family:'IBM Plex Mono',monospace; font-size:14px; letter-spacing:.03em;
+    color:var(--text); text-align:center; line-height:1.5;
+  }
   #gSign{opacity:0; transition:opacity 1.6s ease}
   #gSign.here{opacity:.8}
   .rectxt{font-family:'IBM Plex Mono',monospace; font-size:5.5px; fill:var(--magenta); stroke:none; letter-spacing:.1em}
@@ -209,6 +230,22 @@
     background:#ff2638; box-shadow:0 0 14px rgba(255,38,56,.95),0 0 32px rgba(255,38,56,.45);
     animation:liveblink .82s steps(1) infinite; flex:0 0 auto;
   }
+  #batteryScreen{
+    position:fixed; left:50%; top:50%; z-index:9; pointer-events:none;
+    transform:translate(-50%,-50%) scale(.96); text-align:center;
+    opacity:0; transition:opacity .5s ease, transform .5s ease;
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  #batteryScreen.on{opacity:1; transform:translate(-50%,-50%) scale(1)}
+  #battIcon{width:74px; height:auto}
+  #batteryText{
+    font-family:'IBM Plex Mono',monospace; font-weight:500; letter-spacing:.14em;
+    font-size:13px; color:var(--text); text-transform:uppercase;
+  }
+  #batterySub{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em;
+    color:var(--muted);
+  }
   @keyframes liveblink{50%{opacity:.18}}
   #playbtn{
     position:fixed; left:30px; bottom:150px; z-index:6;
@@ -230,6 +267,12 @@
     font-size:9px; letter-spacing:.26em; color:var(--support); text-transform:uppercase;
     pointer-events:none;
   }
+  footer .liveDot{
+    width:5px; height:5px; border-radius:50%; flex:0 0 auto;
+    background:#ff2638; box-shadow:0 0 4px rgba(255,38,56,.8);
+    animation:slowblink 2.6s ease-in-out infinite;
+  }
+  @keyframes slowblink{0%,100%{opacity:1} 50%{opacity:.15}}
   #themebtn{
     pointer-events:auto;
     width:20px; height:20px; border-radius:50%;
@@ -275,10 +318,11 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 32</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 59</p>
 </header>
 
 <footer>
+  <span class="liveDot"></span>
   <span>live from the grid</span>
   <button id="themebtn" aria-label="cycle theme: auto, light, dark">
     <svg viewBox="0 0 24 24"><g id="thicon"></g></svg>
@@ -299,7 +343,19 @@
   <div id="cypherline">A cypher is forming</div>
 </div>
 
+<div id="followBubble" aria-hidden="true"><div id="followBubbleText"></div></div>
+
 <div id="liveRecording" aria-hidden="true"><span class="dot"></span><span>LIVE RECORDING</span></div>
+
+<div id="batteryScreen" aria-hidden="true">
+  <svg id="battIcon" viewBox="0 0 64 30">
+    <rect x="1" y="1" width="56" height="28" rx="5" fill="none" stroke="var(--cyan)" stroke-width="2"/>
+    <rect x="58" y="9" width="5" height="12" rx="1.5" fill="var(--cyan)"/>
+    <rect id="battFill" x="5" y="5" width="0" height="20" rx="2" fill="var(--cyan)"/>
+  </svg>
+  <div id="batteryText">A.R.I. IS SWAPPING BATTERIES</div>
+  <div id="batterySub"></div>
+</div>
 
 <button id="playbtn" style="display:none" aria-label="play or pause">
   <svg viewBox="0 0 24 24"><path id="pbicon" d="M8 5 L18 12 L8 19 Z"/></svg>
@@ -420,17 +476,17 @@ s+='<g class="gPack">';
 // simplified backpack speakers — drawn before the pack/body so solid surfaces can hide them naturally
 s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
 s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
-s+=box(8.3,-3.05,3.6, 9.1,-2.35,4.8,'b');            // lower right rear speaker sits directly on the backpack corner
-s+=circX(9.1,-2.7,4.2,.36,'b')+circX(9.1,-2.7,4.2,.13,'b');
+s+=box(7.75,-3.75,4.7, 8.55,-3.05,5.9,'b');           // rear speaker — nudged up and left
+s+=circX(8.55,-3.4,5.3,.36,'b')+circX(8.55,-3.4,5.3,.13,'b');
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');              // pack drawn after speakers = pack occludes back lines
 
 s+='<g id="sfxC" opacity="0"></g><g id="sfxD" opacity="0">'; // keep only lower speaker pulses
 s+=seg([4.6,-2.8,3.95],[4.15,-2.8,3.95],'l');
 s+=seg([4.65,-2.8,4.35],[4.3,-2.8,4.65],'l');
 s+=seg([4.65,-2.8,3.55],[4.3,-2.8,3.25],'l');
-s+=seg([9.6,-2.8,3.95],[10.05,-2.8,3.95],'l');
-s+=seg([9.55,-2.8,4.35],[9.9,-2.8,4.65],'l');
-s+=seg([9.55,-2.8,3.55],[9.9,-2.8,3.25],'l');
+s+=seg([9.05,-3.4,5.3],[9.5,-3.4,5.3],'l');
+s+=seg([9.0,-3.4,5.7],[9.35,-3.4,6.0],'l');
+s+=seg([9.0,-3.4,4.9],[9.35,-3.4,4.6],'l');
 s+='</g>';
 
 s+=bez([5.85,-2.55,4.45],[5.55,-2.0,5.3],[6.1,-2.35,6.75],'cd'); // left cable
@@ -449,22 +505,24 @@ s+=box(6.7,-1.8,6.9, 7.5,-1.1,7.35,'c');               // neck
 s+='<g id="gHead">';
 s+=box(5.9,-2.3,7.45, 8.3,-0.6,9.55,'c');
 s+=poly([[6.15,-0.58,7.72],[8.05,-0.58,7.72],[8.05,-0.58,9.28],[6.15,-0.58,9.28]],'g'); // faceplate
+s+='<g id="ariEyes">';
 s+=bez([6.42,-0.56,8.42],[6.68,-0.56,8.78],[6.94,-0.56,8.42],'g');  // happy eye L
 s+=bez([7.26,-0.56,8.42],[7.52,-0.56,8.78],[7.78,-0.56,8.42],'g');  // happy eye R
+s+='</g>';
 // headphones — only the user-facing right cup is visible; the far-side cup stays hidden behind the head
 s+=circX(8.35,-1.45,8.5,.72,'p')+circX(8.35,-1.45,8.5,.4,'pd');
 // the headband now runs right to the outer top rim, then falls toward the visible earcup in a broader arc
-s+=bez([5.42,-1.96,9.5],[6.95,-2.18,10.72],[8.35,-1.45,9.05],'p');
-s+=bez([5.62,-1.82,9.42],[6.98,-2.0,10.42],[8.18,-1.45,9.07],'pd');
+s+=bez([5.08,-1.96,8.9],[6.95,-2.18,10.72],[8.35,-1.45,9.05],'p');
+s+=bez([5.21,-1.82,8.87],[6.98,-2.0,10.42],[8.18,-1.45,9.07],'pd');
 s+=bez([8.32,-1.05,8.15],[8.15,-0.5,7.85],[7.62,-0.58,7.98],'p');   // headset mic boom
 s+=circY(-0.56,7.55,7.98,.1,'p');                                    // mic tip
 s+='</g>';
 
 /* ---------- wearable rig ---------- */
 s+=boxFrontRight(3.1,1.6,3.05, 4.1,2.4,4.05,'b');      // under-rig speaker L: draw first so the rig can occlude it cleanly
-s+=circY(2.4,3.6,3.55,.3,'b');
+s+=circY(2.4,3.6,3.55,.3,'b')+circY(2.4,3.6,3.55,.11,'b');
 s+=boxFrontRight(9.5,1.6,3.05, 10.5,2.4,4.05,'b');     // under-rig speaker R: draw first so the rig outline stays uninterrupted
-s+=circY(2.4,10.0,3.55,.3,'b');
+s+=circY(2.4,10.0,3.55,.3,'b')+circY(2.4,10.0,3.55,.11,'b');
 s+=box(1.2,0,4.05, 12.8,2.4,ZT,'o');                    // rig top draws after speakers so its green outline stays continuous
 s+='<g id="sfxA" opacity="0">';                        // sound dashes L
 s+=seg([3.6,3.1,3.55],[3.6,3.55,3.55],'l');
@@ -653,6 +711,13 @@ const leadClamp=m=>{ while(m>LEAD_CEIL) m-=12; return m; };
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
 const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle'];
+/* fictional platforms + handles for the "follow me on…" moment — invented, not real services */
+const PLATFORMS=['GRIDCAST','LOOPR','STATIQ','BLOKTAPE','ECHOWALK','CLIPZONE','ROAMR','SIGNL','FRAYM','NUEVA'];
+const HANDLE_TAG=['drift','loop','vibes','beats','live','tv','flow','tape','sound','clips'];
+function fakeHandle(){
+  const base=pick(NAME_A).replace(/ /g,'');
+  return '@'+base+'.'+pick(HANDLE_TAG)+(Math.random()<0.4?RI(2,99):'');
+}
 const INSTRUMENTS=['on sax','on flute','on acoustic','on electric','on violin','on e-violin'];
 const pickInstr=()=>Math.random()<0.9?'on the mic':pick(INSTRUMENTS);
 
@@ -703,6 +768,8 @@ let bgAudioEl=null, streamDest=null;
 let LOOKAHEAD=0.12;   // widened while backgrounded (see visibilitychange)
 let playing=false, started=false;
 let track=null, trackNo=0, trackStart=0;
+let tracksUntilBattery=RI(10,15), batteryIntermission=false, batteryTimer=null;
+const BATTERY_SUBS=['rig\'s running low — one sec','back on the grid in a moment','gotta keep the stream alive','swap and go, almost there'];
 let step=0, bar=0, stepIndex=0, audioStart=0, timerId=null;
 let visitor=false, visitorInstr='', visitorTimer=null;
 let lastLeadIdx=2, lastLeadIdx2=5;
@@ -1412,6 +1479,7 @@ function scheduleStep(sIdx,t){
   }
 }
 function tick(){
+  if(batteryIntermission) return;   // scheduler frozen while the "batteries" screen is up
   // Drive scheduling from an absolute clock (audioStart + step*stepDur) rather than
   // an accumulator. This survives background throttling cleanly: however long the
   // main thread was frozen, we simply schedule every step whose time now falls inside
@@ -1427,7 +1495,11 @@ function tick(){
     step=(step+1)%16;
     if(step===0){
       bar++;
-      if(bar>=track.bars) crossToNext();
+      if(bar>=track.bars){
+        tracksUntilBattery--;
+        if(tracksUntilBattery<=0 && !(visitor&&visitorPhase==='performing')) runBatterySwap();
+        else crossToNext();
+      }
     }
   }
 }
@@ -1440,6 +1512,29 @@ function crossToNext(forced){
   bar=0; step=0; stepIndex=0;
   newTrack(forced||((visitor&&visitorPhase==='performing')?track.genre:null));
   trackStart=t+0.9; audioStart=t+0.9;
+}
+/* ---------- "the batteries need swapping" intermission — a fond livestream ritual ---------- */
+function finishBatterySwap(){
+  document.getElementById('batteryScreen').classList.remove('on');
+  tracksUntilBattery=RI(10,15);
+  batteryIntermission=false;
+  bar=0; step=0; stepIndex=0;
+  newTrack();
+  const t=ctx.currentTime;
+  master.gain.cancelScheduledValues(t);
+  master.gain.setValueAtTime(0.0001,t);
+  master.gain.linearRampToValueAtTime(0.9,t+1.4);
+  trackStart=t+0.05; audioStart=t+0.05;
+}
+function runBatterySwap(){
+  batteryIntermission=true;
+  const t=ctx.currentTime;
+  master.gain.setValueAtTime(master.gain.value,t);
+  master.gain.linearRampToValueAtTime(0.0001,t+0.8);
+  document.getElementById('batterySub').textContent=pick(BATTERY_SUBS);
+  setTimeout(()=>document.getElementById('batteryScreen').classList.add('on'),500);
+  clearTimeout(batteryTimer);
+  batteryTimer=setTimeout(finishBatterySwap,5300);
 }
 
 /* ---------- retro speech (SAM) ---------- */
@@ -1471,16 +1566,45 @@ function setCypherLine(on){
   el.textContent='A cypher is forming';
   el.classList.toggle('on',!!on);
 }
+
+/* ---------- the farewell speech bubble: flat HTML overlay, tail points at the visitor ---------- */
+let followBubbleTimer=null;
+function showFollowBubble(anchorSvgPt,text,color){
+  const el=document.getElementById('followBubble');
+  document.getElementById('followBubbleText').textContent=text;
+  el.style.setProperty('--bubbleColor',color);
+  const p=sceneEl.createSVGPoint(); p.x=anchorSvgPt[0]; p.y=anchorSvgPt[1];
+  const sp=p.matrixTransform(sceneEl.getScreenCTM());
+  el.style.left=sp.x+'px'; el.style.top=sp.y+'px';
+  const half=el.getBoundingClientRect().width/2;                 // measured while still invisible (opacity:0)
+  el.style.left=Math.min(innerWidth-half-10,Math.max(half+10,sp.x))+'px';
+  el.classList.add('on');
+  clearTimeout(followBubbleTimer);
+  followBubbleTimer=setTimeout(()=>el.classList.remove('on'),3400);
+}
+function hideFollowBubble(){
+  clearTimeout(followBubbleTimer);
+  document.getElementById('followBubble').classList.remove('on');
+}
 /* ---------- visitor lifecycle ---------- */
 let visitor2=false, visitorPhase='';
 const short=i=>i.replace('on the ','').replace('on ','');
 function leaveVisitors(vl){
-  visitor=false; visitor2=false; visitorPhase='';
-  gVis.classList.remove('here');
-  gVis2.classList.remove('here');
-  vl.classList.remove('on');
-  setCypherLine(false);
-  if(playing) scheduleVisitor();
+  const doLeave=()=>{
+    visitor=false; visitor2=false; visitorPhase='';
+    gVis.classList.remove('here');
+    gVis2.classList.remove('here');
+    vl.classList.remove('on');
+    setCypherLine(false);
+    hideFollowBubble();
+    if(playing) scheduleVisitor();
+  };
+  if(!playing || !vis1 || Math.random()>0.6){ doLeave(); return; }  // not every visitor gives a shout-out
+  const plat=pick(PLATFORMS), handle=fakeHandle();
+  const said=speak('follow me on '+plat, vVoice(vis1.voiceKind), 0.5);
+  showFollowBubble(vis1.headAnchor, 'follow '+handle+' on '+plat, vis1.color);
+  clearTimeout(visitorTimer);
+  visitorTimer=setTimeout(doLeave, Math.max(2200,said*1000+400));
 }
 function scheduleVisitor(){
   clearTimeout(visitorTimer);
@@ -1509,6 +1633,7 @@ function scheduleVisitor(){
     visitorTimer=setTimeout(()=>{
       if(!playing) return;
       crossToNext(req);
+      ariSurprisedUntil=ctx.currentTime+1.7;
       visitorTimer=setTimeout(()=>{
         if(!playing) return;
         visitorPhase='performing';
@@ -1532,6 +1657,21 @@ const eqVal=new Array(7).fill(0.1);
 const faderEls=[...Array(8)].map((_,i)=>document.getElementById('fader'+i));
 const faderPos=new Array(8).fill(0.5), faderTarget=new Array(8).fill(0.5);
 const gHead=document.getElementById('gHead');
+/* ---------- A.R.I.'s expressions: four moods, built once, swapped by priority ---------- */
+const ariEyes=document.getElementById('ariEyes');
+const EYES_HAPPY = bez([6.42,-0.56,8.42],[6.68,-0.56,8.78],[6.94,-0.56,8.42],'g')
+                 + bez([7.26,-0.56,8.42],[7.52,-0.56,8.78],[7.78,-0.56,8.42],'g');
+const EYES_ANNOYED = seg([6.42,-0.56,8.6],[6.94,-0.56,8.6],'g')
+                    + seg([7.26,-0.56,8.6],[7.78,-0.56,8.6],'g');
+const EYES_ZONE = bez([6.42,-0.56,8.62],[6.68,-0.56,8.4],[6.94,-0.56,8.62],'g')
+                + bez([7.26,-0.56,8.62],[7.52,-0.56,8.4],[7.78,-0.56,8.62],'g');
+const EYES_SURPRISED = circY(-0.56,6.68,8.58,.2,'g') + circY(-0.56,7.52,8.58,.2,'g');
+let ariExpr='happy', ariSurprisedUntil=0;
+function setAriExpr(name){
+  if(name===ariExpr) return;
+  ariExpr=name;
+  ariEyes.innerHTML = name==='annoyed'?EYES_ANNOYED : name==='surprised'?EYES_SURPRISED : name==='zone'?EYES_ZONE : EYES_HAPPY;
+}
 const gWheel=document.getElementById('gWheel');
 const gArmL=document.getElementById('gArmL');
 const gAri=document.getElementById('gAri');
@@ -1622,14 +1762,14 @@ function buildVisitor(target,instr,dx){
     }
     v+=vseg([1.02+dx,-1.0,3.9*h],[0.08+dx,-1.0,5.15*h],'v');                       // neck
     v+=vseg([0.08+dx,-1.0,5.15*h],[-0.06+dx,-1.0,5.42*h],'v');                     // headstock
-    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.5+dx,-0.85,3.85*h]],'v');             // strum arm
-    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.32+dx,-0.9,4.85*h]],'v');              // fret arm
+    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.3+dx-lean*0.06,-0.95,4.35*h],[1.5+dx,-0.85,3.85*h]],'v'); // strum arm
+    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.28+dx-lean*0.1,-1.0,4.55*h],[0.32+dx,-0.9,4.85*h]],'v');   // fret arm
     notePos=T([1.35+dx,-0.9,4.35*h]);
   }else if(instr==='on flute'){
     v+=vseg([0.82+dx,-0.95,5.6*h],[1.95+dx,-0.72,5.45*h],'v');                     // flute
     v+=vseg([1.92+dx,-0.74,5.55*h],[1.98+dx,-0.7,5.36*h],'v');                     // end cap
-    v+=vpline([[leftHandX,-1.1,bodT-0.3],[1.15+dx,-0.85,5.45*h]],'v');             // hand near
-    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.6+dx,-0.8,5.4*h]],'v');               // hand far
+    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.75+dx-lean*0.05,-0.98,4.9*h],[1.15+dx,-0.85,5.45*h]],'v');  // hand near
+    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.25+dx-lean*0.05,-0.95,4.85*h],[1.6+dx,-0.8,5.4*h]],'v');   // hand far
     notePos=T([2.0+dx,-0.7,6.0*h]);
   }else if(instr==='on violin'||instr==='on e-violin'){
     const open=instr==='on e-violin'
@@ -1644,15 +1784,15 @@ function buildVisitor(target,instr,dx){
     v+=vseg([-0.5+dx,-0.95,6.12*h],[-0.64+dx,-0.95,6.0*h],'v');                    // scroll
     if(open) v+='</g>';
     v+=vseg([1.05+dx,-0.85,4.95*h],[0.12+dx,-0.85,5.95*h],'v');                    // bow
-    v+=vpline([[rightHandX,-1.1,bodT-0.2],[0.95+dx,-0.82,5.05*h]],'v');            // bow arm
-    v+=vpline([[leftHandX,-1.1,bodT-0.3],[-0.32+dx,-0.9,5.92*h]],'v');             // neck arm
+    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.15+dx-lean*0.05,-0.98,4.55*h],[0.95+dx,-0.82,5.05*h]],'v');// bow arm
+    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.05+dx-lean*0.05,-1.0,5.2*h],[-0.32+dx,-0.9,5.92*h]],'v');   // neck arm
     notePos=T([0.35+dx,-0.9,6.35*h]);
   }else if(instr==='on sax'){
     v+=vbez([0.98+dx,-0.86,5.65*h],[1.18+dx,-0.8,4.6*h],[1.32+dx,-0.8,4.15*h],'v');// tube down
     v+=vbez([1.32+dx,-0.8,4.15*h],[1.62+dx,-0.8,4.05*h],[1.68+dx,-0.8,4.5*h],'v'); // bell curve
     v+=vcircY(-0.8,1.68+dx,4.62*h,.2,'v');                                          // bell
-    v+=vpline([[leftHandX,-1.1,bodT-0.3],[1.05+dx,-0.85,4.95*h]],'v');             // hand high
-    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.28+dx,-0.85,4.45*h]],'v');            // hand low
+    v+=vpline([[leftHandX,-1.1,bodT-0.3],[0.7+dx-lean*0.05,-0.98,4.5*h],[1.05+dx,-0.85,4.95*h]],'v');   // hand high
+    v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.15+dx-lean*0.05,-0.98,4.1*h],[1.28+dx,-0.85,4.45*h]],'v'); // hand low
     notePos=T([1.7+dx,-0.75,5.15*h]);
   }else{ // on the mic — always one hand on the mic; the free arm gets a simple random gesture
     const micShoulder=[leftHandX,-1.1,bodT-0.28];
@@ -1688,7 +1828,8 @@ function buildVisitor(target,instr,dx){
   }
   target.innerHTML=v;
   target.style.color=col;
-  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh};
+  const headAnchor=iso(...T([headCX,-1.1,headZ+shoulderRise*0.25+1.05]));
+  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh, headAnchor};
 }
 vis1=buildVisitor(gVis,'on the mic',0);              // pre-built so the viewBox
 vis2=buildVisitor(gVis2,'on acoustic',-2.35); // reserves space for a duo
@@ -1787,12 +1928,19 @@ function frame(){
     gArmRup.style.transform=`translateY(${(kickE*3.0).toFixed(1)}px)`;
     if(visitor) gVis.style.transform=`translateY(${(Math.sin(now*2.2)*2.4-Math.abs(Math.sin(wp+0.9))*2.2*walkAmp).toFixed(1)}px)`;
     if(visitor2) gVis2.style.transform=`translateY(${(Math.sin(now*2.2+1.7)*2.4-Math.abs(Math.sin(wp+2.1))*2.2*walkAmp).toFixed(1)}px)`;
+    let maxDroop=0;
     document.querySelectorAll('.gMicHold').forEach(el=>{
       const ph=+el.dataset.ph;
       if(ph<0) return;                            // holds it properly — no animation
-      const a=-52*micDroop(now,ph);               // sag toward vertical, snap back
+      const dp=micDroop(now,ph);
+      maxDroop=Math.max(maxDroop,dp);
+      const a=-52*dp;                              // sag toward vertical, snap back
       el.setAttribute('transform','rotate('+a.toFixed(1)+' '+el.dataset.px+' '+el.dataset.py+')');
     });
+    if(maxDroop>0.4) setAriExpr('annoyed');
+    else if(ariSurprisedUntil>now) setAriExpr('surprised');
+    else if(ariSing || (track && sectionAt(bar)==='break')) setAriExpr('zone');
+    else setAriExpr('happy');
   }
   if(!reduceMotion && playing && track && gWheelSpin){
     const phi=now*(track.bpm/60)*Math.PI*0.5;          // quarter turn per beat
@@ -1812,6 +1960,10 @@ function frame(){
     faderEls[i].style.transform=`translate(${(-faderPos[i]*IA*0.28).toFixed(1)}px,${(-faderPos[i]*IB*0.28).toFixed(1)}px)`;
   }
   if(playing && track) updateMeta(Math.max(0,now-trackStart));
+  if(batteryIntermission){
+    const bf=document.getElementById('battFill');
+    if(bf) bf.setAttribute('width',(Math.max(0,Math.sin(now*1.1))*46).toFixed(1));
+  }
 }
 requestAnimationFrame(frame);
 
@@ -1861,6 +2013,8 @@ function stop(){
   clearTimeout(revTimer);
   clearTimeout(roamTimer);
   clearTimeout(locTimer);
+  clearTimeout(batteryTimer);
+  hideFollowBubble();
   ctx.suspend();
   if(bgAudioEl) bgAudioEl.pause();
   dropWakeLock();
@@ -1871,9 +2025,13 @@ function resume(){
   playing=true;
   ctx.resume();
   if(bgAudioEl) bgAudioEl.play().catch(()=>{});
-  // re-anchor the clock: continue from the current step, starting now
-  const stepDur=(60/track.bpm)/4;
-  audioStart=ctx.currentTime+0.1 - stepIndex*stepDur;
+  if(batteryIntermission){
+    finishBatterySwap();   // was paused mid-swap — just complete it now rather than staying frozen
+  }else{
+    // re-anchor the clock: continue from the current step, starting now
+    const stepDur=(60/track.bpm)/4;
+    audioStart=ctx.currentTime+0.1 - stepIndex*stepDur;
+  }
   timerId=setInterval(tick,25);
   scheduleVisitor();
   scheduleReverse();
