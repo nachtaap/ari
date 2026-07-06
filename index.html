@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 18</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 19</p>
 </header>
 
 <footer>
@@ -420,8 +420,8 @@ s+='<g class="gPack">';
 // simplified backpack speakers — drawn before the pack/body so solid surfaces can hide them naturally
 s+=box(5.05,-3.15,3.35, 5.85,-2.45,4.55,'b');          // lower left speaker
 s+=circX(5.05,-2.8,3.95,.36,'b')+circX(5.05,-2.8,3.95,.13,'b');
-s+=box(8.35,-3.15,3.35, 9.15,-2.45,4.55,'b');          // lower right speaker (behind figure)
-s+=circX(9.15,-2.8,3.95,.36,'b')+circX(9.15,-2.8,3.95,.13,'b');
+s+=box(8.35,-3.15,3.55, 9.15,-2.45,4.75,'b');          // lower right rear speaker sits a touch higher
+s+=circX(9.15,-2.8,4.15,.36,'b')+circX(9.15,-2.8,4.15,.13,'b');
 s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');              // pack drawn after speakers = pack occludes back lines
 
 s+='<g id="sfxC" opacity="0"></g><g id="sfxD" opacity="0">'; // keep only lower speaker pulses
@@ -455,9 +455,9 @@ s+=bez([6.42,-0.56,8.42],[6.68,-0.56,8.78],[6.94,-0.56,8.42],'g');  // happy eye
 s+=bez([7.26,-0.56,8.42],[7.52,-0.56,8.78],[7.78,-0.56,8.42],'g');  // happy eye R
 // headphones — only the user-facing right cup is visible; the far-side cup stays hidden behind the head
 s+=circX(8.35,-1.45,8.5,.72,'p')+circX(8.35,-1.45,8.5,.4,'pd');
-// the headband rides over the crown and reaches the visible left rim, then stops at the silhouette instead of showing a hidden far-side earcup
-s+=bez([5.9,-1.92,9.08],[7.0,-1.6,10.58],[8.35,-1.45,9.05],'p');
-s+=bez([5.98,-1.78,9.1],[7.02,-1.56,10.3],[8.18,-1.45,9.07],'pd');
+// the headband now starts right at the visible left crown rim, then arcs to the user-facing earcup without exposing any hidden far-side cup
+s+=bez([5.9,-2.22,9.36],[7.0,-1.92,10.64],[8.35,-1.45,9.05],'p');
+s+=bez([6.05,-2.06,9.28],[7.02,-1.78,10.34],[8.18,-1.45,9.07],'pd');
 s+=bez([8.32,-1.05,8.15],[8.15,-0.5,7.85],[7.62,-0.58,7.98],'p');   // headset mic boom
 s+=circY(-0.56,7.55,7.98,.1,'p');                                    // mic tip
 s+='</g>';
@@ -471,11 +471,11 @@ s+=seg([5.75,-0.7,5.3],[5.75,-0.02,4.38],'od');        // harness rods
 s+=seg([8.45,-0.7,5.3],[8.45,-0.02,4.38],'od');
 s+=box(5.6,-0.72,5.15, 5.9,-0.55,5.45,'od');           // mounting brackets
 s+=box(8.3,-0.72,5.15, 8.6,-0.55,5.45,'od');
-s+=box(1.2,0,4.05, 12.8,2.4,ZT,'o');                    // rig top
-s+=boxFrontRight(3.1,1.6,3.05, 4.1,2.4,4.05,'b');      // under-rig speaker L: only front + right face visible, no exposed top
+s+=boxFrontRight(3.1,1.6,3.05, 4.1,2.4,4.05,'b');      // under-rig speaker L: draw first so the rig can occlude it cleanly
 s+=circY(2.4,3.6,3.55,.3,'b');
-s+=boxFrontRight(9.5,1.6,3.05, 10.5,2.4,4.05,'b');     // under-rig speaker R: only front + right face visible, no exposed top
+s+=boxFrontRight(9.5,1.6,3.05, 10.5,2.4,4.05,'b');     // under-rig speaker R: draw first so the rig outline stays uninterrupted
 s+=circY(2.4,10.0,3.55,.3,'b');
+s+=box(1.2,0,4.05, 12.8,2.4,ZT,'o');                    // rig top draws after speakers so its green outline stays continuous
 s+='<g id="sfxA" opacity="0">';                        // sound dashes L
 s+=seg([3.6,3.1,3.55],[3.6,3.55,3.55],'l');
 s+=seg([3.6,3.05,3.95],[3.6,3.35,4.25],'l');
