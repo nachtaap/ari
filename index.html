@@ -22,16 +22,16 @@
 <meta name="apple-mobile-web-app-title" content="A.R.I.">
 <title>A.R.I. — Audiological Roaming Intelligence</title>
 <meta name="description" content="A minimalist generative street-music tribute: an isometric neon android roams the grid making synthesized beats, joined by visitors from the block.">
-<link rel="canonical" href="https://nachtaap.github.io/ari/">
+<link rel="canonical" href="https://nachtaap.github.io/A.R.I./">
 <meta property="og:type" content="website">
 <meta property="og:title" content="A.R.I. — Audiological Roaming Intelligence">
 <meta property="og:description" content="A minimalist generative street-music tribute: an isometric neon android roams the grid making synthesized beats.">
-<meta property="og:url" content="https://nachtaap.github.io/ari/">
-<meta property="og:image" content="https://nachtaap.github.io/ari/icon-512.png">
+<meta property="og:url" content="https://nachtaap.github.io/A.R.I./">
+<meta property="og:image" content="https://nachtaap.github.io/A.R.I./icon-512.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="A.R.I. — Audiological Roaming Intelligence">
 <meta name="twitter:description" content="A minimalist generative street-music tribute with live synthesized audio and procedural SVG line art.">
-<meta name="twitter:image" content="https://nachtaap.github.io/ari/icon-512.png">
+<meta name="twitter:image" content="https://nachtaap.github.io/A.R.I./icon-512.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -272,7 +272,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 14</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 15</p>
 </header>
 
 <footer>
@@ -672,7 +672,7 @@ let bgAudioEl=null, streamDest=null;
 let LOOKAHEAD=0.12;   // widened while backgrounded (see visibilitychange)
 let playing=false, started=false;
 let track=null, trackNo=0, trackStart=0;
-let step=0, bar=0, nextT=0, timerId=null;
+let step=0, bar=0, stepIndex=0, audioStart=0, timerId=null;
 let visitor=false, visitorInstr='', visitorTimer=null;
 let lastLeadIdx=2, lastLeadIdx2=5;
 const visQ=[]; // scheduled visual events {t,type,i}
@@ -1381,13 +1381,18 @@ function scheduleStep(sIdx,t){
   }
 }
 function tick(){
-  if(ctx.currentTime-nextT>0.5){        // woke up after sleep/throttle: resync
-    nextT=ctx.currentTime+0.06;
-    visQ.length=0;
-  }
-  while(nextT<ctx.currentTime+LOOKAHEAD){
-    scheduleStep(step,nextT);
-    nextT+=(60/track.bpm)/4;
+  // Drive scheduling from an absolute clock (audioStart + step*stepDur) rather than
+  // an accumulator. This survives background throttling cleanly: however long the
+  // main thread was frozen, we simply schedule every step whose time now falls inside
+  // the lookahead window. No resync hacks, no double-scheduling, no drift.
+  const stepDur=(60/track.bpm)/4;
+  const horizon=ctx.currentTime+LOOKAHEAD;
+  while(audioStart + stepIndex*stepDur < horizon){
+    const t=audioStart + stepIndex*stepDur;
+    if(t >= ctx.currentTime-0.02){        // skip only steps already well in the past
+      scheduleStep(step,t);
+    }
+    stepIndex++;
     step=(step+1)%16;
     if(step===0){
       bar++;
@@ -1401,9 +1406,9 @@ function crossToNext(forced){
   master.gain.linearRampToValueAtTime(0.0001,t+0.7);
   master.gain.setValueAtTime(0.0001,t+0.9);
   master.gain.linearRampToValueAtTime(0.9,t+1.6);
-  bar=0; step=0;
+  bar=0; step=0; stepIndex=0;
   newTrack(forced||((visitor&&visitorPhase==='performing')?track.genre:null));
-  trackStart=t+0.9; nextT=t+0.9;
+  trackStart=t+0.9; audioStart=t+0.9;
 }
 
 /* ---------- retro speech (SAM) ---------- */
@@ -1670,6 +1675,7 @@ function frame(){
   const now=ctx.currentTime;
   while(visQ.length && visQ[0].t<=now){
     const e=visQ.shift();
+    if(now-e.t>0.4) continue;   // stale (we were backgrounded) — skip without firing
     if(e.type==='kick'){kickE=1; eqVal[0]=1; eqVal[1]=0.85;
       if(Math.random()<0.16) spawnNote(pick(SPK),'sp');}
     if(e.type==='snare'){snareE=1; eqVal[2]=0.9; eqVal[3]=1; eqVal[4]=0.8; flashPad();}
@@ -1771,8 +1777,8 @@ function start(){
   setCypherLine(false);
   setTimeout(()=>{ if(!visitor) vl.classList.remove('on'); },4200);
   pbicon.setAttribute('d','M8 5 v14 M16 5 v14');
-  step=0; bar=0;
-  nextT=ctx.currentTime+0.08; trackStart=nextT;
+  step=0; bar=0; stepIndex=0;
+  audioStart=ctx.currentTime+0.1; trackStart=audioStart;
   timerId=setInterval(tick,25);
   scheduleVisitor();
   scheduleReverse();
@@ -1799,7 +1805,9 @@ function resume(){
   playing=true;
   ctx.resume();
   if(bgAudioEl) bgAudioEl.play().catch(()=>{});
-  nextT=Math.max(nextT,ctx.currentTime+0.08);
+  // re-anchor the clock: continue from the current step, starting now
+  const stepDur=(60/track.bpm)/4;
+  audioStart=ctx.currentTime+0.1 - stepIndex*stepDur;
   timerId=setInterval(tick,25);
   scheduleVisitor();
   scheduleReverse();
@@ -1818,44 +1826,47 @@ document.addEventListener('keydown',e=>{
   if(e.code==='Space'){e.preventDefault(); started?(playing?stop():resume()):start();}
 });
 
-/* ---------- keep the screen awake & recover audio ---------- */
+/* ---------- keeping audio alive across backgrounding ----------
+   The problem: when the page is hidden, the browser throttles setInterval to
+   roughly once per second (or stops it entirely). A 120 ms scheduling window
+   can't survive that — the audio thread runs dry and you hear stutter or silence.
+
+   The fix, done properly: Web Audio events are sample-accurate and play on the
+   audio thread no matter what the main thread does. So while hidden we simply
+   pre-schedule a much larger window. Because tick() now drives off an absolute
+   clock (audioStart + stepIndex·stepDur), we can widen the window with zero risk
+   of drift or double-scheduling — each step has one fixed time and is scheduled
+   exactly once. When we come back, we narrow the window again for tight visuals.
+   No magic 8-second gamble, no yanking the clock around. */
 let wakeLock=null;
 async function grabWakeLock(){
-  try{
-    if('wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen');
-  }catch(e){/* not available or denied — fine, no screen while backgrounded anyway */}
+  try{ if('wakeLock' in navigator) wakeLock=await navigator.wakeLock.request('screen'); }
+  catch(e){/* unavailable/denied — irrelevant while backgrounded */}
 }
-function dropWakeLock(){
-  if(wakeLock){wakeLock.release().catch(()=>{}); wakeLock=null;}
-}
-async function recoverAudio(){
-  if(!ctx||!started||!playing) return;
-  try{await ctx.resume();}catch(e){}
+function dropWakeLock(){ if(wakeLock){ wakeLock.release().catch(()=>{}); wakeLock=null; } }
+
+function reviveContext(){
+  // iOS can leave the context 'suspended'/'interrupted' after backgrounding or a
+  // phone call. Nudge it and the hidden <audio> back to life. Safe to call often.
+  if(!ctx || !playing) return;
+  if(ctx.state!=='running') ctx.resume().catch(()=>{});
   if(bgAudioEl && bgAudioEl.paused) bgAudioEl.play().catch(()=>{});
-  // no forced nextT rewrite here: if the background lookahead kept nextT correctly
-  // ahead of real time, yanking it back to "now" would desync it from bar/step and
-  // double-schedule notes. tick()'s own staleness check (see resyncGap) already
-  // handles the case where we genuinely fell silent for too long.
 }
+
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
-    // iOS/Android throttle background JS timers hard. A 25ms lookahead can't survive
-    // that — the scheduler starves and you hear exactly the stutter you're describing.
-    // Widen the window to several seconds of pre-scheduled Web Audio events (their
-    // start/stop times are sample-accurate and run on the audio thread regardless of
-    // what the main thread is doing) and fill it right now, before throttling kicks in.
-    if(playing){ LOOKAHEAD=8; tick(); }
+    if(playing){
+      LOOKAHEAD=6;        // seconds pre-scheduled onto the audio thread before throttling bites
+      tick();             // fill the window right now, while we still have a live main thread
+    }
   }else{
-    LOOKAHEAD=0.12;                       // back to tight, responsive scheduling + visual sync
-    visQ.length=0;                        // drop the stale backlog — nobody was watching anyway
-    if(playing){ grabWakeLock(); recoverAudio(); }
+    LOOKAHEAD=0.12;       // tight, responsive scheduling for in-sync visuals
+    reviveContext();
+    if(playing){ grabWakeLock(); tick(); }
   }
 });
-window.addEventListener('focus',()=>{if(playing)recoverAudio();});
-// iOS can leave the context 'interrupted'; a touch anywhere revives it
-document.addEventListener('touchstart',()=>{
-  if(ctx&&playing&&ctx.state!=='running') recoverAudio();
-},{passive:true});
+// A single extra safety net for iOS's 'interrupted' state after phone calls etc.
+window.addEventListener('pageshow',reviveContext);
 
 /* ---------- Media Session: lock-screen controls + the background-audio "permit" ----------
    Registering a session and keeping a real <audio> element audibly playing (see initAudio)

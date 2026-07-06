@@ -1,6 +1,6 @@
-/* A.R.I. service worker — app shell, cache-first, scoped to /ari/ */
-const CACHE = 'ari-v30';
-const BASE = '/ari/';
+/* A.R.I. service worker — app shell, cache-first, scoped to /A.R.I./ */
+const CACHE = 'ari-v31';
+const BASE = '/A.R.I./';
 const SHELL = [
   BASE,
   BASE + 'index.html',
