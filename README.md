@@ -73,6 +73,9 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
 
 ## Current version
 
+- **Version 12** — the breakdown now keeps the core kick+snare groove (stripped
+  of hats, bass and extras) instead of dropping to near-silence, so the flow
+  carries through and the main sections land harder when everything returns.
 - **Version 11** — headphone-comfort audio pass:
   - Track roots sit lower, and all leads dropped an octave (the second visitor
     was two octaves too high); flute/violin/e-violin no longer secretly play an

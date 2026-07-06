@@ -1,5 +1,5 @@
 /* A.R.I. service worker — app shell, cache-first */
-const CACHE = 'ari-v27';
+const CACHE = 'ari-v28';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './favicon-32.png', './favicon-16.png'];
 
 self.addEventListener('install', e => {
