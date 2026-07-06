@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 24</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 25</p>
 </header>
 
 <footer>
@@ -1554,7 +1554,7 @@ function buildVisitor(target,instr,dx){
   const lean=arche.lean+sway*0.6;
   const shoulderRise=arche.shoulderRise;
   const hemSkew=arche.hemSkew+sway*0.5;
-  const legT=2.72*h, bodT=5.34*h, headZ=6.08*h;
+  const legT=3.08*h, bodT=5.34*h, headZ=6.08*h;
   const leftHandX=0.34+dx-lean*0.18, rightHandX=1.58+dx-lean*0.12;
   const headCX=0.95+dx+lean*0.28;
   let v='', notePos, micPh=0;
@@ -1573,8 +1573,16 @@ function buildVisitor(target,instr,dx){
   v+=seg([1.2,1.3,4.22],[1.6,1.3,4.22],'p');                                       // jack
   v+=coil([1.6,1.3,4.22],T(cableHand), dx<0?9:7, 6, 24,'p');
   const lpA=iso(...T([0.6+dx-stance*0.6,-1.05,legT])), lpB=iso(...T([1.3+dx+stance*0.6,-1.05,legT]));
-  v+=`<g class="wlegA" data-px="${lpA[0].toFixed(1)}" data-py="${lpA[1].toFixed(1)}">`+vseg([0.55+dx-stance,-1.0,0],[0.6+dx-stance*0.6,-1.05,legT],'v')+'</g>';
-  v+=`<g class="wlegB" data-px="${lpB[0].toFixed(1)}" data-py="${lpB[1].toFixed(1)}">`+vseg([1.35+dx+stance,-1.0,0],[1.3+dx+stance*0.6,-1.05,legT],'v')+'</g>';
+  v+=`<g class="wlegA" data-px="${lpA[0].toFixed(1)}" data-py="${lpA[1].toFixed(1)}">`
+    +vseg([0.55+dx-stance,-1.0,0],[0.6+dx-stance*0.6,-1.05,legT],'v')
+    +vseg([0.48+dx-stance*1.02,-0.98,0],[0.66+dx-stance*0.96,-0.88,0],'v')
+    +vseg([0.48+dx-stance*1.02,-0.98,0],[0.56+dx-stance*1.04,-1.08,0],'v')
+    +'</g>';
+  v+=`<g class="wlegB" data-px="${lpB[0].toFixed(1)}" data-py="${lpB[1].toFixed(1)}">`
+    +vseg([1.28+dx+stance*1.02,-0.98,0],[1.46+dx+stance*0.96,-0.88,0],'v')
+    +vseg([1.28+dx+stance*1.02,-0.98,0],[1.36+dx+stance*1.04,-1.08,0],'v')
+    +vseg([1.35+dx+stance,-1.0,0],[1.3+dx+stance*0.6,-1.05,legT],'v')
+    +'</g>';
   v+=vpoly([
     [0.25+dx,-1.1,legT],
     [1.65+dx,-1.1,legT],
