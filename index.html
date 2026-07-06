@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 31</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 32</p>
 </header>
 
 <footer>
@@ -1655,17 +1655,26 @@ function buildVisitor(target,instr,dx){
     v+=vpline([[rightHandX,-1.1,bodT-0.2],[1.28+dx,-0.85,4.45*h]],'v');            // hand low
     notePos=T([1.7+dx,-0.75,5.15*h]);
   }else{ // on the mic — always one hand on the mic; the free arm gets a simple random gesture
+    const micShoulder=[leftHandX,-1.1,bodT-0.28];
+    const micElbow=[0.34+dx+lean*0.08,-1.02,4.42*h];
     const micHand=[0.92+dx+lean*0.16,-0.56,5.58*h];
     const freeArmMode=pick(['wave','side','walk']);
-    let freeHand;
-    if(freeArmMode==='wave') freeHand=[1.38+dx+lean*0.18,-0.86,5.92*h];
-    else if(freeArmMode==='side') freeHand=[1.62+dx+lean*0.1,-1.08,3.95*h];
-    else freeHand=[1.5+dx+lean*0.12,-1.02,4.55*h];
     const freeShoulder=[rightHandX,-1.1,bodT-0.22];
-    v+=vseg([leftHandX,-1.1,bodT-0.3],micHand,'v');                                 // one hand truly holds the mic
+    let freeElbow, freeHand;
+    if(freeArmMode==='wave'){
+      freeElbow=[1.72+dx+lean*0.16,-1.0,4.58*h];
+      freeHand=[1.42+dx+lean*0.18,-0.82,5.98*h];
+    }else if(freeArmMode==='side'){
+      freeElbow=[1.74+dx+lean*0.14,-1.06,4.38*h];
+      freeHand=[1.86+dx+lean*0.08,-1.12,3.55*h];
+    }else{
+      freeElbow=[1.76+dx+lean*0.16,-1.02,4.5*h];
+      freeHand=[1.64+dx+lean*0.12,-0.98,4.18*h];
+    }
+    v+=vpline([micShoulder,micElbow,micHand],'v');                                  // longer, simple bent arm that really reaches the mic
     const fp=iso(...T(freeShoulder));
     v+='<g class="vFreeArm" data-mode="'+freeArmMode+'" data-px="'+fp[0].toFixed(1)+'" data-py="'+fp[1].toFixed(1)+'">'
-      +vseg(freeShoulder,freeHand,'v')
+      +vpline([freeShoulder,freeElbow,freeHand],'v')
       +'</g>';
     const hp=iso(...T(micHand));                                                    // main hand pivot (screen px)
     micPh=Math.random()<0.22 ? Math.random() : -1;                                  // -1 = holds it properly
