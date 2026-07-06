@@ -1,6 +1,18 @@
-/* A.R.I. service worker — app shell, cache-first */
-const CACHE = 'ari-v25';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './favicon-32.png', './favicon-16.png'];
+/* A.R.I. service worker — app shell, cache-first, scoped to /ari/ */
+const CACHE = 'ari-v30';
+const BASE = '/ari/';
+const SHELL = [
+  BASE,
+  BASE + 'index.html',
+  BASE + 'manifest.webmanifest',
+  BASE + 'apple-touch-icon.png',
+  BASE + 'icon-192.png',
+  BASE + 'icon-512.png',
+  BASE + 'icon-maskable-192.png',
+  BASE + 'icon-maskable-512.png',
+  BASE + 'favicon-32.png',
+  BASE + 'favicon-16.png'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {}));
@@ -17,6 +29,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  if (!e.request.url.includes(BASE)) return;
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       const copy = res.clone();
