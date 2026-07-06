@@ -272,7 +272,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 10</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 11</p>
 </header>
 
 <footer>
@@ -617,6 +617,8 @@ const RI=(a,b)=>Math.floor(R(a,b+1));
 const pick=a=>a[RI(0,a.length-1)];
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 const MINOR=[0,2,3,5,7,8,10], PENT=[0,3,5,7,10];
+const LEAD_CEIL=64;                       // ~E4: keep leads out of the piercing register
+const leadClamp=m=>{ while(m>LEAD_CEIL) m-=12; return m; };
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
 const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle'];
@@ -678,9 +680,11 @@ const visQ=[]; // scheduled visual events {t,type,i}
 function initAudio(){
   ctx=new (window.AudioContext||window.webkitAudioContext)();
   master=ctx.createGain(); master.gain.value=0.9;
+  const shelf=ctx.createBiquadFilter();          // gentle tamer for harsh highs (headphone comfort)
+  shelf.type='highshelf'; shelf.frequency.value=3200; shelf.gain.value=-6;
   const comp=ctx.createDynamicsCompressor();
   comp.threshold.value=-16; comp.ratio.value=4;
-  master.connect(comp);
+  master.connect(shelf); shelf.connect(comp);
   /* background playback: route the mix through a hidden <audio> element so
      iOS/Android keep the stream alive when the app is minimized */
   if(ctx.createMediaStreamDestination){
@@ -865,7 +869,7 @@ function newTrack(forced){
   const genre=forced||pick(Object.keys(GENRES));
   const g=GENRES[genre];
   const bpm=RI(g.bpm[0],g.bpm[1]);
-  const root=RI(43,55);
+  const root=RI(38,48);
   const secs=R(72,168);
   const bars=Math.max(28,Math.round(secs*bpm/240));
   const prog=pick(g.progs||[[0,5],[0,3],[0,5,6,4],[0,2,5,4],[0,3,5,4],[0,6]]);
@@ -1024,18 +1028,18 @@ function playLead(t,midi,dur,instr,vmul){
     env(t,0.05,dur,0.24,g);
     o.connect(f); f.connect(g); o.start(t); o.stop(t+dur+0.2);
   }else if(instr==='on flute'){
-    const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi+12);
+    const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
     vib.frequency.value=4.6; vg.gain.value=9; vg.connect(o.detune);
     env(t,0.07,dur,0.22,g);
     o.connect(g); o.start(t); o.stop(t+dur+0.2);
     NB=NB||noiseBuf();                                     // breath
     const n=ctx.createBufferSource(); n.buffer=NB;
-    const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=mtof(midi+12)*2; nf.Q.value=2;
+    const nf=ctx.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=mtof(midi)*2; nf.Q.value=2;
     const ng=ctx.createGain(); env(t,0.07,dur*0.7,0.025,ng);
     n.connect(nf); nf.connect(ng); ng.connect(g);
     n.start(t); n.stop(t+dur);
   }else if(instr==='on violin'){
-    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi+12);
+    const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
     vib.frequency.value=5.6; vg.gain.value=11; vg.connect(o.detune);
     const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2800;
     env(t,0.09,dur,0.18,g);
@@ -1044,7 +1048,7 @@ function playLead(t,midi,dur,instr,vmul){
     const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=3600;
     [-6,6].forEach(dt=>{
       const o=ctx.createOscillator(); o.type='sawtooth';
-      o.frequency.value=mtof(midi+12); o.detune.value=dt;
+      o.frequency.value=mtof(midi); o.detune.value=dt;
       vg.connect(o.detune);
       o.connect(f); o.start(t); o.stop(t+dur+0.2);
     });
@@ -1340,7 +1344,7 @@ function scheduleStep(sIdx,t){
   if(ariSing && !visitor && D.lead>0 && sIdx%2===1 && Math.random()<0.3){
     lastLeadIdxA=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdxA+RI(-2,2)));
     const oct=Math.floor(lastLeadIdxA/PENT.length);
-    const midi=track.root+12+oct*12+PENT[lastLeadIdxA%PENT.length];
+    const midi=leadClamp(track.root+oct*12+PENT[lastLeadIdxA%PENT.length]);
     playLead(tt,midi,s16*pick([2,2,3,4]),'on the mic',0.9);
     visQ.push({t:tt,type:'alead'});
   }
@@ -1348,7 +1352,7 @@ function scheduleStep(sIdx,t){
   if(visitor && visitorPhase==='performing' && D.lead>0 && sIdx%2===0 && Math.random()<0.32*D.lead){
     lastLeadIdx=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx/PENT.length);
-    const midi=track.root+12+oct*12+PENT[lastLeadIdx%PENT.length];
+    const midi=leadClamp(track.root+oct*12+PENT[lastLeadIdx%PENT.length]);
     const dur=s16*pick([2,2,3,4,6]);
     let vmul=1;
     if(vis1.instr==='on the mic'){
@@ -1363,7 +1367,7 @@ function scheduleStep(sIdx,t){
   if(visitor2 && visitorPhase==='performing' && D.lead>0 && sIdx%4===2 && Math.random()<0.3*D.lead){
     lastLeadIdx2=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx2+RI(-2,2)));
     const oct=Math.floor(lastLeadIdx2/PENT.length);
-    const midi=track.root+24+oct*12+PENT[lastLeadIdx2%PENT.length];
+    const midi=leadClamp(track.root+oct*12+PENT[lastLeadIdx2%PENT.length]);
     const dur=s16*pick([2,3,4]);
     let vmul=1;
     if(vis2.instr==='on the mic'){

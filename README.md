@@ -4,6 +4,11 @@ A minimalist, generative web experience. An isometric neon android roams the gri
 with a wearable synth rig, making beats on the spot. Every now and then a visitor
 steps up on A.R.I.'s right side, requests a genre — and performs on it.
 
+**Live demo:** https://nachtaap.github.io/A.R.I./  
+**Best experienced with sound on.**
+
+![A.R.I. preview](icon-512.png)
+
 Everything is a single HTML file. No build step, no dependencies, no samples.
 
 ## ⚠️ Disclaimer
@@ -68,6 +73,12 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` and
 
 ## Current version
 
+- **Version 11** — headphone-comfort audio pass:
+  - Track roots sit lower, and all leads dropped an octave (the second visitor
+    was two octaves too high); flute/violin/e-violin no longer secretly play an
+    octave up.
+  - A hard lead ceiling plus a gentle master high-shelf keep melodies out of the
+    piercing register — the low end comes through far more often now.
 - **Version 10** — reworked generative music engine for consistent depth:
   - **Arrangement**: every track now has a real structure (intro → main →
     breakdown → main → outro) with elements entering and leaving on bar
