@@ -275,7 +275,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 16</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 17</p>
 </header>
 
 <footer>
@@ -440,11 +440,11 @@ s+=box(5.9,-2.3,7.45, 8.3,-0.6,9.55,'c');
 s+=poly([[6.15,-0.58,7.72],[8.05,-0.58,7.72],[8.05,-0.58,9.28],[6.15,-0.58,9.28]],'g'); // faceplate
 s+=bez([6.42,-0.56,8.42],[6.68,-0.56,8.78],[6.94,-0.56,8.42],'g');  // happy eye L
 s+=bez([7.26,-0.56,8.42],[7.52,-0.56,8.78],[7.78,-0.56,8.42],'g');  // happy eye R
-// headphones — cups seated flat on the head's left/right side faces
-s+=circX(5.85,-1.45,8.5,.72,'p')+circX(5.85,-1.45,8.5,.4,'pd');
+// headphones — only the user-facing right cup is visible; the far-side cup stays hidden behind the head
 s+=circX(8.35,-1.45,8.5,.72,'p')+circX(8.35,-1.45,8.5,.4,'pd');
-s+=bez([5.85,-1.45,9.05],[7.1,-1.45,10.55],[8.35,-1.45,9.05],'p');
-s+=bez([6.0,-1.45,9.08],[7.1,-1.45,10.3],[8.2,-1.45,9.08],'pd');
+// the headband rides over the crown and disappears exactly at the far silhouette edge instead of revealing the hidden left side
+s+=bez([6.08,-1.62,9.02],[7.08,-1.45,10.48],[8.35,-1.45,9.05],'p');
+s+=bez([6.22,-1.58,9.05],[7.1,-1.45,10.22],[8.18,-1.45,9.07],'pd');
 s+=bez([8.32,-1.05,8.15],[8.15,-0.5,7.85],[7.62,-0.58,7.98],'p');   // headset mic boom
 s+=circY(-0.56,7.55,7.98,.1,'p');                                    // mic tip
 s+='</g>';
