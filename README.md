@@ -28,7 +28,7 @@ headphones and headset mic, a hip-mounted flightcase rig (jog wheel, pads, keys,
 faders, the corner monitor), backpack speakers, and comic sound dashes pulsing on
 the beat. A.R.I.'s expression shifts with the moment — happy by default, briefly
 surprised when a request lands, quietly "in the zone" during a solo or breakdown,
-and unmistakably annoyed if a guest lets the mic droop.
+and comically deflated if a guest lets the mic droop.
 
 **The music** is fully generative. Each track (1–3 minutes) picks a genre — boom
 bap, trap, jerk, drum n bass, 2000s rnb, or house — and a scale (mostly minor, but
@@ -121,7 +121,7 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 - **Version 36–41** — the rear speaker was fixed to the backpack; a
   battery-swap intermission now runs every 10–15 tracks; a slow-blinking
   status LED sits by "live from the grid"; A.R.I. gained real facial
-  expressions (happy / surprised / in-the-zone / annoyed-at-a-drooping-mic).
+  expressions (happy / surprised / in-the-zone / comically-deflated-at-a-drooping-mic).
 - **Version 18–33** — adopted a cleaner hidden-line rendering technique
   (painter's-algorithm occluders) for a calmer, more solid-reading wireframe;
   gave guests feet and a second arm; rebuilt the background-audio lifecycle
