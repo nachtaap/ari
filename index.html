@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#04050a">
-<link rel="manifest" href="manifest.webmanifest">
+<link rel="manifest" href="/A.R.I./manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
@@ -176,6 +176,10 @@
     font-size:clamp(26px,3.4vw,40px); letter-spacing:.14em; color:var(--text);
     text-shadow:0 0 14px var(--glow1);
   }
+  header h1 a{
+    color:inherit; text-decoration:none; pointer-events:auto; cursor:pointer;
+  }
+  header h1 a:hover{opacity:.8}
   header p{
     margin-top:4px; font-size:10px; letter-spacing:.32em; color:var(--cyan-dim);
   }
@@ -327,9 +331,9 @@
 </div>
 
 <header>
-  <h1>A.R.I.</h1>
+  <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 77</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 79</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -2305,7 +2309,7 @@ setInterval(renderWxLine, 4000);
 
 /* ---------- PWA: service worker registration ---------- */
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+  addEventListener('load',()=>navigator.serviceWorker.register('/A.R.I./sw.js',{scope:'/A.R.I./'}).catch(()=>{}));
 }
 </script>
 </body>
