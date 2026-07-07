@@ -333,7 +333,7 @@
 <header>
   <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 79</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 80</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -841,6 +841,13 @@ function nextLeadIdx(cur,maxIdx,run){
   let delta=RI(-2,2);
   const dir=Math.sign(delta);
   if(dir!==0 && dir===run.dir && run.len>=2) delta=-dir*RI(0,2);
+  // separately: even without a fast run, a symmetric walk can slowly drift up to
+  // the ceiling and linger there over many notes ("keeps climbing until almost
+  // painful"). Pull gently back toward the middle of the register once we're
+  // more than a couple of steps off-center, so it can't camp out at either end.
+  const mid=maxIdx/2;
+  if(cur>mid+1 && delta>0 && Math.random()<0.78) delta=-Math.abs(delta);
+  else if(cur<mid-1 && delta<0 && Math.random()<0.78) delta=Math.abs(delta);
   const next=Math.max(0,Math.min(maxIdx,cur+delta));
   const newDir=Math.sign(next-cur);
   if(newDir===0) run.len=Math.max(0,run.len-1);
