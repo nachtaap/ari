@@ -210,7 +210,10 @@
     display:none; /* generated artwork stays available for Media Session / lockscreen, but not in the on-page UI */
   }
   #tiText{display:flex; flex-direction:column; min-width:0; max-width:100%}
-  #trackname,#trackmeta,#visitorline,#cypherline{max-width:100%}
+  #trackNumTime,#trackname,#trackmeta,#visitorline,#cypherline{max-width:100%}
+  #trackNumTime{letter-spacing:.18em; white-space:nowrap}
+  #trackNumTime .tnNum{color:var(--support); font-size:13px}
+  #trackNumTime .tnTime{color:var(--cyan-dim); font-size:13px}
   #trackname{color:var(--text); font-size:13px; letter-spacing:.22em}
   #trackmeta{color:var(--cyan-dim)}
   #visitorline{color:var(--magenta); opacity:0; transition:opacity .9s}
@@ -326,7 +329,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 72</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 76</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -345,6 +348,7 @@
   <div id="tiRow">
     <img id="albumArt" alt="" width="56" height="56">
     <div id="tiText">
+      <div id="trackNumTime"></div>
       <div id="trackname"></div>
       <div id="trackmeta"></div>
     </div>
@@ -731,8 +735,25 @@ const leadClamp=m=>{
   return m;
 };
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave'];
-const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle'];
+const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave','chinatown','tribeca','flatbush','astoria','loisaida','gowanus','vernon blvd','the bowery','red hook','sunset park','bed-stuy','the heights','riverside','myrtle ave','the grid','the platform','corner deli','fire escape'];
+const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle','signal','current','sprawl','static drift','flicker','pulse','runoff','sway','tape','haze','crawl','bloom','ricochet','undertow','afterglow','wander','holdup','runaround'];
+function makeTrackName(){
+  const shape=RI(0,3);
+  let n;
+  if(shape===0) n=pick(NAME_A)+' '+pick(NAME_B);
+  else if(shape===1) n=pick(NAME_B)+' on '+pick(NAME_A);
+  else if(shape===2) n=pick(NAME_A);
+  else n=pick(NAME_A)+"'s "+pick(NAME_B);
+  return n;
+}
+let recentNames=[];
+function nextTrackName(){
+  let n;
+  for(let i=0;i<8;i++){ n=makeTrackName(); if(!recentNames.includes(n)) break; }
+  recentNames.push(n);
+  if(recentNames.length>10) recentNames.shift();
+  return n;
+}
 /* fictional platforms + handles for the "follow me on…" moment — invented, not real services */
 const PLATFORMS=['GRIDCAST','LOOPR','STATIQ','BLOKTAPE','ECHOWALK','CLIPZONE','ROAMR','SIGNL','FRAYM','NUEVA'];
 const FIRST=['phill','nelly','marcus','deja','theo','rico','luna','sami','jax','omar','kiki','dre','vince','mia','nico','tati','benny','zaza','cole','remy','ivy','koda','sol','mo'];
@@ -1039,7 +1060,7 @@ function newTrack(forced){
     hatP : R(g.hatP[0],g.hatP[1]),
     bassP: genPattern(g.bassPat.b,g.bassPat.c,g.bassPat.p),
     swing: R(g.swing[0],g.swing[1]),
-    name : pick(NAME_A)+' '+pick(NAME_B),
+    name : nextTrackName(),
     keyName: KEYS[root%12]+' '+scaleName,
     voiceLead: null,          // remembered chord voicing (layer 2)
     lastBass: null,
@@ -1051,14 +1072,15 @@ function newTrack(forced){
     const artEl=document.getElementById('albumArt');
     if(artEl) artEl.src=track.artURL;
   }catch(e){}
-  document.getElementById('trackname').textContent='track '+String(trackNo).padStart(3,'0')+' — “'+track.name+'”';
+  document.getElementById('trackname').textContent='“'+track.name+'”';
   updateMeta(0);
   if(typeof updateMediaSession==='function') try{updateMediaSession();}catch(e){}
 }
 function updateMeta(sec){
   const m=Math.floor(sec/60), ss=String(Math.floor(sec%60)).padStart(2,'0');
   const sc=(playing&&track.sections)?' · '+sectionAt(bar):'';
-  document.getElementById('trackmeta').textContent=`${track.genre} · ${track.keyName} · ${track.bpm} bpm${sc} · ${m}:${ss}`;
+  document.getElementById('trackNumTime').innerHTML=`<span class="tnNum">track ${String(trackNo).padStart(3,'0')}</span> · <span class="tnTime">${m}:${ss}</span>`;
+  document.getElementById('trackmeta').textContent=`${track.genre} · ${track.keyName} · ${track.bpm} bpm${sc}`;
 }
 
 /* ---------- instruments ---------- */
@@ -1226,9 +1248,10 @@ function playLead(t,midi,dur,instr,vmul){
     const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
     vg.gain.value=8; vg.connect(o.detune);
     const ws=ctx.createWaveShaper();
-    const curve=new Float32Array(256);
-    for(let i=0;i<256;i++){const x=i/128-1; curve[i]=Math.tanh(x*3);}
+    const curve=new Float32Array(1024);
+    for(let i=0;i<1024;i++){const x=i/512-1; curve[i]=Math.tanh(x*3);}
     ws.curve=curve;
+    ws.oversample='4x';                 // without this, distortion aliases into a harsh crackle on low notes
     const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=2300;
     env(t,0.008,dur,0.17,g);
     o.connect(ws); ws.connect(f); f.connect(g);
@@ -1897,7 +1920,7 @@ function buildVisitor(target,instr,dx){
     micPh=Math.random()<0.22 ? Math.random() : -1;                                  // -1 = holds it properly
     const mL=18*VS, mA=-38*Math.PI/180;                                             // horizontal-ish, aimed at the mouth
     const mtx=hp[0]+Math.cos(mA)*mL, mty=hp[1]+Math.sin(mA)*mL;
-    v+='<g class="gMicHold" data-px="'+hp[0].toFixed(1)+'" data-py="'+hp[1].toFixed(1)+'" data-ph="'+micPh.toFixed(3)+'">'
+    v+='<g class="gMicHold" style="color:var(--cyan)" data-px="'+hp[0].toFixed(1)+'" data-py="'+hp[1].toFixed(1)+'" data-ph="'+micPh.toFixed(3)+'">'
       +'<line class="v" x1="'+hp[0].toFixed(1)+'" y1="'+hp[1].toFixed(1)+'" x2="'+mtx.toFixed(1)+'" y2="'+mty.toFixed(1)+'"/>'
       +'<circle class="v" cx="'+mtx.toFixed(1)+'" cy="'+mty.toFixed(1)+'" r="'+(4.4*VS).toFixed(1)+'"/>'
       +'</g>';
@@ -2269,7 +2292,7 @@ async function loadWeather(){
     const c=Math.round(cur.temperature_2m);
     const f=Math.round(c*9/5+32);
     const color=WX_COLOR[label]||'inherit';
-    wxWeatherHTML=`${f}°f / ${c}°c · <span style="color:${color}">${label}</span>`;
+    wxWeatherHTML=`nyc ${f}°f / ${c}°c · <span style="color:${color}">${label}</span>`;
     renderWxLine();
   }catch(e){ /* offline, blocked, or unavailable — weather part just stays empty */ }
 }
