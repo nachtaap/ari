@@ -52,7 +52,8 @@ leaves with a flat-out fake "follow me on [invented platform]" shout-out and a
 speech bubble to match — occasionally with a wave goodbye.
 
 **Other details worth noticing:** a street sign fades in as the crew roams to a
-new block; a rare reverse-shot camera flip reveals the cameraman, Dillz; roughly
+new block; a rare reverse-shot camera flip reveals the cameraman — Dill-2000
+(model Z); roughly
 every 10–15 tracks the rig "runs out of battery" for a short, charming
 intermission; and a small status line quietly shows NYC's current weather
 (fetched live, fails silently if offline) alongside the rig's battery level,
@@ -91,6 +92,8 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
 
 ## Current version
 
+- **Version 77** — the cameraman now has his own fictional name on-screen too,
+  Dill-2000 (model Z), matching the disclaimer's no-real-names policy.
 - **Version 76** — track info now sits in fixed, predictable rows (track
   number + time, title, genre/tempo, guest info) instead of a couple of long
   strings that wrapped differently depending on content length.
@@ -147,8 +150,8 @@ Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
     in the main sections.
   - No shrill/"modem" tones: nothing was added that can become harsh; depth
     comes from existing sounds playing at the right moments.
-- Visible footer tribute: `version 76`.
-- Service worker cache: `ari-v76`.
+- Visible footer tribute: `version 77`.
+- Service worker cache: `ari-v77`.
 
 ## License
 
