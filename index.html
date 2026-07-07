@@ -326,7 +326,7 @@
 <header>
   <h1>A.R.I.</h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 71</p>
+  <p class="tribute">fan-made tribute · inspired by street performances, walking sound systems and ARIatHOME · version 72</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -808,6 +808,21 @@ const BATTERY_SUBS=['rig\'s running low — one sec','back on the grid in a mome
 let step=0, bar=0, stepIndex=0, audioStart=0, timerId=null;
 let visitor=false, visitorInstr='', visitorTimer=null;
 let lastLeadIdx=2, lastLeadIdx2=5;
+const leadRun={dir:0,len:0}, leadRun2={dir:0,len:0}, leadRunA={dir:0,len:0};
+function nextLeadIdx(cur,maxIdx,run){
+  // a plain symmetric random walk occasionally rolls several same-direction
+  // steps in a row, which sounds like a rapid ascending "drill" — rare but jarring.
+  // Once we've moved the same way twice, force the next step to hold or reverse.
+  let delta=RI(-2,2);
+  const dir=Math.sign(delta);
+  if(dir!==0 && dir===run.dir && run.len>=2) delta=-dir*RI(0,2);
+  const next=Math.max(0,Math.min(maxIdx,cur+delta));
+  const newDir=Math.sign(next-cur);
+  if(newDir===0) run.len=Math.max(0,run.len-1);
+  else if(newDir===run.dir) run.len++;
+  else { run.dir=newDir; run.len=1; }
+  return next;
+}
 const visQ=[]; // scheduled visual events {t,type,i}
 
 function initAudio(){
@@ -1486,7 +1501,7 @@ function scheduleStep(sIdx,t){
     else if(!ariSing && !visitor && canSing && Math.random()<0.12) startAriSing(tt);
   }
   if(ariSing && !visitor && D.lead>0 && sIdx%2===1 && Math.random()<0.3){
-    lastLeadIdxA=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdxA+RI(-2,2)));
+    lastLeadIdxA=nextLeadIdx(lastLeadIdxA, PENT.length*2-1, leadRunA);
     const oct=Math.floor(lastLeadIdxA/PENT.length);
     const midi=leadClamp(track.root+oct*12+leadPent()[lastLeadIdxA%leadPent().length]);
     playLead(tt,midi,s16*pick([2,2,3,4]),'on the mic',0.9);
@@ -1494,7 +1509,7 @@ function scheduleStep(sIdx,t){
   }
   /* visitor leads — respect section density (quieter in break/outro) */
   if(visitor && visitorPhase==='performing' && D.lead>0 && sIdx%2===0 && Math.random()<0.32*D.lead){
-    lastLeadIdx=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx+RI(-2,2)));
+    lastLeadIdx=nextLeadIdx(lastLeadIdx, PENT.length*2-1, leadRun);
     const oct=Math.floor(lastLeadIdx/PENT.length);
     const midi=leadClamp(track.root+oct*12+leadPent()[lastLeadIdx%leadPent().length]);
     const dur=s16*pick([2,2,3,4,6]);
@@ -1509,7 +1524,7 @@ function scheduleStep(sIdx,t){
     }
   }
   if(visitor2 && visitorPhase==='performing' && D.lead>0 && sIdx%4===2 && Math.random()<0.3*D.lead){
-    lastLeadIdx2=Math.max(0,Math.min(PENT.length*2-1, lastLeadIdx2+RI(-2,2)));
+    lastLeadIdx2=nextLeadIdx(lastLeadIdx2, PENT.length*2-1, leadRun2);
     const oct=Math.floor(lastLeadIdx2/PENT.length);
     const midi=leadClamp(track.root+oct*12+leadPent()[lastLeadIdx2%leadPent().length]);
     const dur=s16*pick([2,3,4]);
