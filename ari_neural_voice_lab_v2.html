@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05070b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>A.R.I. Neural Voice Lab</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#05070b;--panel:#0b0f16;--panel2:#101722;--line:#273244;
+  --text:#e8eef7;--muted:#8290a4;--accent:#77d7ff;--accent2:#79f0b1;
+  --warn:#ffcc76;--bad:#ff7d85;--r:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding:max(18px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:
+ radial-gradient(circle at 50% -20%,rgba(119,215,255,.11),transparent 38%),var(--bg)}
+button,input,select,textarea{font:inherit}
+button{touch-action:manipulation}
+.wrap{width:min(920px,100%);margin:auto}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin:8px 2px 22px}
+.brand h1{font-size:clamp(24px,6vw,42px);letter-spacing:.03em;margin:0 0 5px;font-weight:750}
+.brand p{margin:0;color:var(--muted);font-size:13px;letter-spacing:.13em;text-transform:uppercase}
+.version{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);border:1px solid rgba(119,215,255,.35);padding:6px 8px;border-radius:999px;white-space:nowrap}
+.notice{border:1px solid rgba(255,204,118,.28);background:rgba(255,204,118,.06);padding:12px 14px;border-radius:13px;color:#d7c8a5;font-size:13px;line-height:1.45;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+.card{grid-column:span 12;background:linear-gradient(180deg,rgba(16,23,34,.94),rgba(9,13,20,.94));border:1px solid var(--line);border-radius:var(--r);padding:17px;box-shadow:0 18px 50px rgba(0,0,0,.18)}
+@media(min-width:760px){.span6{grid-column:span 6}.span7{grid-column:span 7}.span5{grid-column:span 5}}
+.card h2{font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 14px;color:#c6d3e5}
+.small{font-size:12px;color:var(--muted);line-height:1.5}
+.status-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:14px}
+.stat{background:rgba(4,7,11,.56);border:1px solid #1e2938;border-radius:12px;padding:10px 11px}
+.stat b{display:block;font:700 11px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.stat span{font-size:14px;overflow-wrap:anywhere}
+.good{color:var(--accent2)!important}.warn{color:var(--warn)!important}.bad{color:var(--bad)!important}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:7px;flex:1;min-width:145px}
+label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+select,input[type=text],textarea{width:100%;background:#070a10;border:1px solid #273348;color:var(--text);border-radius:11px;padding:11px 12px;outline:none}
+textarea{min-height:76px;resize:vertical;line-height:1.4}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.btn{border:1px solid #34445c;background:#111a27;color:var(--text);border-radius:12px;padding:11px 14px;font-weight:700;cursor:pointer;transition:.15s transform,.15s border-color,.15s background}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:linear-gradient(180deg,#163246,#0d2535);border-color:#3d88a8;color:#dff7ff}
+.btn.green{background:linear-gradient(180deg,#143426,#0c251b);border-color:#397b5d;color:#ddffed}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:#6a3540;color:#ffc1c6;background:#29151a}
+.btn:disabled{opacity:.43;cursor:not-allowed}
+.progress{height:8px;border-radius:999px;overflow:hidden;background:#070a0f;border:1px solid #202a39;margin:12px 0 8px}
+.progress>i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s ease}
+.progress.indeterminate>i{width:35%;animation:slide 1.05s infinite ease-in-out}
+@keyframes slide{0%{transform:translateX(-110%)}100%{transform:translateX(330%)}}
+.voice-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(min-width:520px){.voice-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.voice{padding:10px 8px;border:1px solid #273348;border-radius:11px;background:#080c12;color:#b9c5d6;cursor:pointer;text-align:left}
+.voice b{display:block;font-size:13px;color:inherit}.voice small{font-size:10px;color:var(--muted)}
+.voice.active{border-color:var(--accent);background:rgba(119,215,255,.08);color:#e9faff}
+.pills{display:flex;gap:7px;flex-wrap:wrap}
+.pill{border:1px solid #29364a;background:#090d14;color:#bac7d8;border-radius:999px;padding:8px 11px;font-size:12px;cursor:pointer}
+.pill.active{border-color:var(--accent2);color:#e6fff2;background:rgba(121,240,177,.08)}
+.wave{height:96px;width:100%;border:1px solid #1f2b3b;background:#06090e;border-radius:12px;margin-top:13px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:11px}
+.metric{background:#080c12;border:1px solid #1d2837;border-radius:10px;padding:9px}
+.metric b{display:block;font:700 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.metric span{font-size:14px}
+.kit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+@media(min-width:560px){.kit-grid{grid-template-columns:repeat(8,minmax(0,1fr))}}
+.kit{min-height:48px;border:1px dashed #304059;background:#080c12;color:#7f8ba0;border-radius:10px;padding:8px 4px;font-weight:800;cursor:pointer}
+.kit.ready{border-style:solid;border-color:#397b5d;color:#dfffee;background:rgba(121,240,177,.06)}
+.kit.loading{border-style:solid;border-color:#806b3d;color:#ffe1a4}
+.log{background:#05080d;border:1px solid #1e2938;border-radius:12px;padding:11px;height:150px;overflow:auto;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fb0c5;white-space:pre-wrap}
+.report{font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;min-height:150px}
+.footer{color:#647286;font-size:11px;line-height:1.55;margin:18px 4px 0}
+hr{border:0;border-top:1px solid #202b3b;margin:15px 0}
+.switch{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}.switch input{accent-color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="brand"><h1>A.R.I. Neural Voice Lab</h1><p>browser-local voice + beat stress test</p></div>
+  <div class="version">LAB 02</div>
+</header>
+<div class="notice"><b>First load:</b> Kokoro downloads a sizeable AI model. Use Wi‑Fi and host this file over HTTPS (for example GitHub Pages). The model may then be reused from browser cache. This lab does not alter the main A.R.I. app.</div>
+
+<div class="grid">
+<section class="card span5">
+  <h2>1 · Device check</h2>
+  <div class="status-row">
+    <div class="stat"><b>WebGPU</b><span id="gpuStat">checking…</span></div>
+    <div class="stat"><b>Memory hint</b><span id="memoryStat">unknown</span></div>
+    <div class="stat"><b>Browser</b><span id="browserStat">—</span></div>
+    <div class="stat"><b>Audio</b><span id="audioStat">not started</span></div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="backend">Inference backend</label>
+      <select id="backend"><option value="auto">Auto</option><option value="webgpu">WebGPU</option><option value="wasm">WASM</option></select>
+    </div>
+    <div class="field">
+      <label for="dtype">Model precision</label>
+      <select id="dtype"><option value="q8">q8 · smaller</option><option value="q4">q4 · smallest</option><option value="fp32">fp32 · largest</option></select>
+    </div>
+  </div>
+  <div class="progress" id="modelProgress"><i></i></div>
+  <div class="small" id="modelStatus">Model not loaded.</div>
+  <div class="row" style="margin-top:12px">
+    <button class="btn primary" id="loadBtn">Load Kokoro</button>
+    <button class="btn ghost" id="clearBtn">Clear samples</button>
+  </div>
+</section>
+
+<section class="card span7">
+  <h2>2 · Voice identity</h2>
+  <div class="voice-grid" id="voiceGrid"></div>
+  <div class="row" style="margin-top:13px">
+    <div class="field">
+      <label for="speed">Voice speed <span id="speedOut">1.25×</span></label>
+      <input id="speed" type="range" min="0.75" max="1.75" value="1.25" step="0.05">
+    </div>
+    <label class="switch"><input type="checkbox" id="trimToggle" checked> trim silence</label>
+    <label class="switch"><input type="checkbox" id="normalizeToggle" checked> normalize</label>
+  </div>
+  <div class="pills" id="phrasePills" style="margin-top:12px"></div>
+  <div class="field" style="margin-top:12px">
+    <label for="textInput">Test phrase</label>
+    <textarea id="textInput">Hey. Signal locked.</textarea>
+  </div>
+  <div class="row" style="margin-top:11px">
+    <button class="btn green" id="generateBtn" disabled>Generate & cache</button>
+    <button class="btn" id="playBtn" disabled>Play latest</button>
+  </div>
+  <canvas class="wave" id="wave" width="1000" height="180"></canvas>
+  <div class="metrics">
+    <div class="metric"><b>Synthesis</b><span id="synthMetric">—</span></div>
+    <div class="metric"><b>Audio length</b><span id="durationMetric">—</span></div>
+    <div class="metric"><b>Realtime factor</b><span id="rtfMetric">—</span></div>
+    <div class="metric"><b>Trimmed</b><span id="trimMetric">—</span></div>
+  </div>
+</section>
+
+<section class="card span6">
+  <h2>3 · A.R.I. sample kit</h2>
+  <p class="small">Render the short words once, then reuse the cached buffers with sample-accurate timing. This is the candidate layer above SAM.</p>
+  <div class="row">
+    <button class="btn primary" id="buildKitBtn" disabled>Build selected voice kit</button>
+    <button class="btn" id="playKitBtn" disabled>Play kit</button>
+  </div>
+  <div class="progress" id="kitProgress"><i></i></div>
+  <div class="small" id="kitStatus">No kit built.</div>
+  <div class="kit-grid" id="kitGrid"></div>
+</section>
+
+<section class="card span6">
+  <h2>4 · DnB flow test · 174 BPM</h2>
+  <p class="small">A four-bar breakbeat test using the cached voice hits. This is the important part: can the voice stay recognisable when the words are scheduled as rhythmic material?</p>
+  <div class="row">
+    <button class="btn green" id="dnbBtn" disabled>Run DnB test</button>
+    <button class="btn danger" id="stopBtn" disabled>Stop</button>
+  </div>
+  <div class="metrics">
+    <div class="metric"><b>Tempo</b><span>174 BPM</span></div>
+    <div class="metric"><b>16th note</b><span id="stepMetric">86 ms</span></div>
+    <div class="metric"><b>Cached hits</b><span id="cacheMetric">0</span></div>
+    <div class="metric"><b>Sequence</b><span id="sequenceMetric">idle</span></div>
+  </div>
+  <hr>
+  <label for="vocalLevel">Voice level <span id="vocalLevelOut">100%</span></label>
+  <input id="vocalLevel" type="range" min="0.4" max="1.4" value="1" step="0.05">
+  <label for="rateLevel" style="margin-top:10px;display:block">Playback-rate push <span id="rateLevelOut">1.18×</span></label>
+  <input id="rateLevel" type="range" min="0.85" max="1.65" value="1.18" step="0.01">
+</section>
+
+<section class="card span6">
+  <h2>5 · Runtime log</h2>
+  <div class="log" id="log"></div>
+</section>
+<section class="card span6">
+  <h2>6 · Shareable report</h2>
+  <textarea class="report" id="report" readonly></textarea>
+  <div class="row" style="margin-top:10px"><button class="btn" id="copyReportBtn">Copy report</button></div>
+</section>
+</div>
+<p class="footer">Test implementation: <code>kokoro-js@1.2.1</code>, model <code>onnx-community/Kokoro-82M-v1.0-ONNX</code>. Audio is generated locally in the browser after model download. No microphone permission is used.</p>
+</div>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const MODEL_ID = 'onnx-community/Kokoro-82M-v1.0-ONNX';
+const KOKORO_IMPORTS = [
+  {label:'esm.sh · current', url:'https://esm.sh/kokoro-js@1.2.1'},
+  {label:'esm.sh · Safari-safe target', url:'https://esm.sh/kokoro-js@1.2.1?target=es2020'},
+  {label:'jsDelivr · current', url:'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/+esm'}
+];
+const VOICES = [
+  ['af_heart','Heart','US · warm'],['af_bella','Bella','US · bright'],
+  ['af_nicole','Nicole','US · smoky'],['af_sky','Sky','US · clear'],
+  ['am_adam','Adam','US · deep'],['am_michael','Michael','US · firm'],
+  ['bf_emma','Emma','UK · soft'],['bm_george','George','UK · grounded']
+];
+const PHRASES = ['hey','yeah','one time','come on','signal locked','let’s go','ka','ta','oh','mm'];
+const KIT = [
+  ['ka','ka'],['ta','ta'],['yo','yo'],['hey','hey'],
+  ['oh','oh'],['yeah','yeah'],['mm','mmm'],['go','go']
+];
+const state = {
+  tts:null, modelReady:false, modelLoadMs:null, actualBackend:null,
+  voice:'af_heart', latest:null, audioCtx:null, active:new Set(),
+  cache:new Map(), metrics:[], kitVoice:null, kitSpeed:null, dnbRuns:0
+};
+let operation = Promise.resolve();
+
+function log(msg, type='info'){
+  const t = new Date().toLocaleTimeString([], {hour12:false});
+  const line = `[${t}] ${msg}`;
+  const el = $('#log'); el.textContent += (el.textContent?'\n':'') + line; el.scrollTop = el.scrollHeight;
+  if(type==='error') console.error(msg); else console.log(msg);
+  updateReport();
+}
+function fmtMs(ms){ return ms==null?'—':ms<1000?`${Math.round(ms)} ms`:`${(ms/1000).toFixed(2)} s`; }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function setBusy(busy, label){
+  ['loadBtn','generateBtn','buildKitBtn','dnbBtn'].forEach(id=>{ const e=$('#'+id); if(e)e.disabled=busy || (id==='loadBtn'?state.modelReady:!state.modelReady); });
+  if(label) $('#modelStatus').textContent=label;
+}
+function queue(fn){ operation = operation.then(fn,fn); return operation; }
+
+function initUI(){
+  $('#voiceGrid').innerHTML = VOICES.map(([id,name,desc],i)=>`<button class="voice ${i===0?'active':''}" data-voice="${id}"><b>${name}</b><small>${desc}</small></button>`).join('');
+  $('#phrasePills').innerHTML = PHRASES.map((p,i)=>`<button class="pill ${i===4?'active':''}" data-phrase="${esc(p)}">${esc(p)}</button>`).join('');
+  $('#kitGrid').innerHTML = KIT.map(([id])=>`<button class="kit" data-kit="${id}" disabled>${id}</button>`).join('');
+  document.querySelectorAll('.voice').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.voice').forEach(x=>x.classList.remove('active'));btn.classList.add('active');state.voice=btn.dataset.voice;log(`Voice selected: ${state.voice}`);refreshKitState();
+  }));
+  document.querySelectorAll('.pill').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$('#textInput').value=btn.dataset.phrase;
+  }));
+  document.querySelectorAll('.kit').forEach(btn=>btn.addEventListener('click',()=>playKitHit(btn.dataset.kit)));
+  $('#speed').addEventListener('input',e=>{$('#speedOut').textContent=`${(+e.target.value).toFixed(2)}×`;refreshKitState();});
+  $('#vocalLevel').addEventListener('input',e=>$('#vocalLevelOut').textContent=`${Math.round(+e.target.value*100)}%`);
+  $('#rateLevel').addEventListener('input',e=>$('#rateLevelOut').textContent=`${(+e.target.value).toFixed(2)}×`);
+  $('#loadBtn').addEventListener('click',()=>queue(loadModel));
+  $('#generateBtn').addEventListener('click',()=>queue(generateLatest));
+  $('#playBtn').addEventListener('click',()=>state.latest&&playBuffer(state.latest.buffer));
+  $('#buildKitBtn').addEventListener('click',()=>queue(buildKit));
+  $('#playKitBtn').addEventListener('click',playKitSequence);
+  $('#dnbBtn').addEventListener('click',()=>queue(runDnb));
+  $('#stopBtn').addEventListener('click',stopAll);
+  $('#clearBtn').addEventListener('click',()=>{stopAll();state.cache.clear();state.latest=null;state.kitVoice=null;$('#playBtn').disabled=true;refreshKitState();updateCacheMetric();log('Cached samples cleared.');});
+  $('#copyReportBtn').addEventListener('click',copyReport);
+  updateDeviceInfo(); updateReport(); drawEmptyWave();
+}
+
+function updateDeviceInfo(){
+  const gpu = !!navigator.gpu;
+  $('#gpuStat').textContent = gpu?'available':'not exposed'; $('#gpuStat').className=gpu?'good':'warn';
+  const dm = navigator.deviceMemory ? `${navigator.deviceMemory} GB reported` : 'not reported by browser';
+  $('#memoryStat').textContent=dm;
+  const ua=navigator.userAgent;
+  const browser=/CriOS/.test(ua)?'Chrome iOS':/FxiOS/.test(ua)?'Firefox iOS':/Safari/.test(ua)&&/Mobile/.test(ua)?'Safari iOS':/Safari/.test(ua)?'Safari':/Chrome/.test(ua)?'Chrome':'Other';
+  $('#browserStat').textContent=browser;
+  if(!gpu && $('#backend').value==='webgpu') $('#backend').value='auto';
+  log(`Environment: ${browser}; WebGPU ${gpu?'yes':'no'}; ${dm}.`);
+}
+async function ensureAudio(){
+  if(!state.audioCtx) state.audioCtx = new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+  if(state.audioCtx.state!=='running') await state.audioCtx.resume();
+  $('#audioStat').textContent=`${state.audioCtx.sampleRate/1000} kHz · ${state.audioCtx.state}`;$('#audioStat').className='good';
+  return state.audioCtx;
+}
+async function probeRuntime(entry){
+  const host=new URL(entry.url).host;
+  try{
+    log(`Checking ${entry.label}…`);
+    const response=await fetch(entry.url,{mode:'cors',cache:'default'});
+    const type=response.headers.get('content-type')||'unknown content type';
+    log(`Preflight ${host}: HTTP ${response.status} · ${type}.`);
+    if(!response.ok) throw new Error(`HTTP ${response.status}`);
+    return true;
+  }catch(e){
+    log(`Preflight failed for ${host}: ${e.message}`,'error');
+    return false;
+  }
+}
+async function importKokoro(){
+  let last;
+  for(const entry of KOKORO_IMPORTS){
+    const host=new URL(entry.url).host;
+    const reachable=await probeRuntime(entry);
+    if(!reachable){ last=new Error(`${host} could not be reached from this browser.`); continue; }
+    try{
+      log(`Importing ${entry.label}…`);
+      const mod=await import(entry.url);
+      if(typeof mod.KokoroTTS!=='function') throw new Error('Module loaded, but KokoroTTS export is missing.');
+      log(`Runtime ready from ${host}.`);
+      return mod;
+    }catch(e){
+      last=e;
+      log(`Runtime import failed from ${host}: ${e.message}`,'error');
+    }
+  }
+  const detail=last?.message||'unknown error';
+  throw new Error(`Kokoro runtime could not load. Last error: ${detail}`);
+}
+function progressCallback(p){
+  const box=$('#modelProgress'),bar=box.querySelector('i');
+  const pct = typeof p?.progress==='number' ? p.progress : null;
+  if(pct!=null){box.classList.remove('indeterminate');bar.style.width=`${Math.max(0,Math.min(100,pct))}%`;}
+  else{box.classList.add('indeterminate');}
+  const file=p?.file?` · ${p.file.split('/').pop()}`:'';
+  if(p?.status) $('#modelStatus').textContent=`${p.status}${file}${pct!=null?` · ${pct.toFixed(0)}%`:''}`;
+}
+async function loadModel(){
+  if(state.modelReady){log('Model already loaded.');return;}
+  await ensureAudio(); setBusy(true,'Importing neural voice runtime…');
+  const box=$('#modelProgress');box.classList.add('indeterminate');box.querySelector('i').style.width='35%';
+  const started=performance.now();
+  try{
+    const {KokoroTTS}=await importKokoro();
+    const requested=$('#backend').value;
+    const candidates=requested==='auto'?(navigator.gpu?['webgpu','wasm']:['wasm']):[requested];
+    let lastErr;
+    for(const device of candidates){
+      try{
+        $('#modelStatus').textContent=`Loading ${MODEL_ID} · ${device}…`;
+        log(`Loading model with ${device}/${$('#dtype').value}…`);
+        state.tts=await KokoroTTS.from_pretrained(MODEL_ID,{device,dtype:$('#dtype').value,progress_callback:progressCallback});
+        state.actualBackend=device;lastErr=null;break;
+      }catch(e){lastErr=e;log(`${device} load failed: ${e.message}`,'error');state.tts=null;}
+    }
+    if(lastErr||!state.tts) throw lastErr||new Error('Model did not initialize.');
+    state.modelLoadMs=performance.now()-started;state.modelReady=true;
+    box.classList.remove('indeterminate');box.querySelector('i').style.width='100%';
+    $('#modelStatus').innerHTML=`Ready · <b>${state.actualBackend}</b> · loaded in ${fmtMs(state.modelLoadMs)}`;
+    $('#loadBtn').textContent='Kokoro ready';$('#loadBtn').disabled=true;
+    ['generateBtn','buildKitBtn','dnbBtn'].forEach(id=>$('#'+id).disabled=false);
+    log(`Model ready in ${fmtMs(state.modelLoadMs)} using ${state.actualBackend}.`);
+  }catch(e){
+    box.classList.remove('indeterminate');box.querySelector('i').style.width='0%';
+    $('#modelStatus').innerHTML=`<span class="bad">Load failed: ${esc(e.message)}</span><br><small>If the log shows HTTP 200 followed by an import error, the CDN was reachable but Safari rejected the module graph. If preflight itself fails, a network/content blocker is stopping the CDN.</small>`;log(`MODEL ERROR: ${e.stack||e.message}`,'error');
+  }finally{setBusy(false);if(state.modelReady)$('#loadBtn').disabled=true;}
+}
+
+function cacheKey(text,voice,speed){return `${voice}|${(+speed).toFixed(2)}|t${$('#trimToggle').checked?1:0}|n${$('#normalizeToggle').checked?1:0}|${text.trim().toLowerCase()}`;}
+async function rawToAudioBuffer(raw){
+  const ctx=await ensureAudio();let ab;
+  if(typeof raw.toBlob==='function'){ab=await raw.toBlob().arrayBuffer();}
+  else if(typeof raw.toWav==='function'){
+    const wav=raw.toWav();ab=wav.buffer.slice(wav.byteOffset||0,(wav.byteOffset||0)+wav.byteLength);
+  }else throw new Error('Kokoro returned an unknown audio object.');
+  return await ctx.decodeAudioData(ab.slice(0));
+}
+function processBuffer(buffer){
+  const doTrim=$('#trimToggle').checked,doNorm=$('#normalizeToggle').checked;
+  let start=0,end=buffer.length-1,peak=0;
+  for(let c=0;c<buffer.numberOfChannels;c++){const d=buffer.getChannelData(c);for(let i=0;i<d.length;i++)peak=Math.max(peak,Math.abs(d[i]));}
+  if(doTrim&&peak>0){
+    const threshold=Math.max(.0035,peak*.035);let found=false;
+    outer:for(let i=0;i<buffer.length;i++)for(let c=0;c<buffer.numberOfChannels;c++)if(Math.abs(buffer.getChannelData(c)[i])>threshold){start=i;found=true;break outer;}
+    outer2:for(let i=buffer.length-1;i>=0;i--)for(let c=0;c<buffer.numberOfChannels;c++)if(Math.abs(buffer.getChannelData(c)[i])>threshold){end=i;break outer2;}
+    if(!found){start=0;end=buffer.length-1;}
+    const pad=Math.round(buffer.sampleRate*.012);start=Math.max(0,start-pad);end=Math.min(buffer.length-1,end+pad);
+  }
+  const out=state.audioCtx.createBuffer(buffer.numberOfChannels,Math.max(1,end-start+1),buffer.sampleRate);
+  const gain=doNorm&&peak>.001?Math.min(3,.82/peak):1;
+  for(let c=0;c<buffer.numberOfChannels;c++){const src=buffer.getChannelData(c),dst=out.getChannelData(c);for(let i=0;i<dst.length;i++)dst[i]=src[i+start]*gain;}
+  return {buffer:out,trimmedMs:(buffer.duration-out.duration)*1000,peak,gain};
+}
+async function synth(text,{voice=state.voice,speed=+$('#speed').value,force=false}={}){
+  if(!state.modelReady) throw new Error('Load the model first.');
+  const key=cacheKey(text,voice,speed);
+  if(!force&&state.cache.has(key)){log(`Cache hit: “${text}” · ${voice}`);return {...state.cache.get(key),cached:true};}
+  const started=performance.now();log(`Synthesizing “${text}” · ${voice} · ${speed.toFixed(2)}×…`);
+  const raw=await state.tts.generate(text,{voice,speed});
+  const synthMs=performance.now()-started;
+  const decoded=await rawToAudioBuffer(raw);const processed=processBuffer(decoded);
+  const item={key,text,voice,speed,synthMs,originalDuration:decoded.duration,buffer:processed.buffer,trimmedMs:processed.trimmedMs,created:Date.now(),cached:false};
+  state.cache.set(key,item);state.metrics.push({text,voice,speed,synthMs,duration:item.buffer.duration,rtf:synthMs/1000/item.buffer.duration,cached:false});
+  updateCacheMetric();updateReport();log(`Ready: ${fmtMs(synthMs)} synthesis, ${item.buffer.duration.toFixed(2)} s audio, RTF ${(synthMs/1000/item.buffer.duration).toFixed(2)}.`);
+  return item;
+}
+async function generateLatest(){
+  const text=$('#textInput').value.trim();if(!text)return;
+  setBusy(true,'Generating voice sample…');
+  try{state.latest=await synth(text);$('#playBtn').disabled=false;renderLatest(state.latest);playBuffer(state.latest.buffer);}
+  catch(e){log(`SYNTH ERROR: ${e.stack||e.message}`,'error');$('#modelStatus').innerHTML=`<span class="bad">Synthesis failed: ${esc(e.message)}</span>`;}
+  finally{setBusy(false);}
+}
+function renderLatest(item){
+  $('#synthMetric').textContent=item.cached?'cached':fmtMs(item.synthMs);
+  $('#durationMetric').textContent=`${item.buffer.duration.toFixed(2)} s`;
+  $('#rtfMetric').textContent=item.cached?'—':`${(item.synthMs/1000/item.buffer.duration).toFixed(2)}×`;
+  $('#trimMetric').textContent=`${Math.max(0,item.trimmedMs).toFixed(0)} ms`;
+  drawWave(item.buffer);
+}
+function playBuffer(buffer,{when=0,rate=1,gain=1,pan=0}={}){
+  if(!state.audioCtx||!buffer)return null;
+  const src=state.audioCtx.createBufferSource();src.buffer=buffer;src.playbackRate.value=rate;
+  const g=state.audioCtx.createGain();g.gain.value=gain;
+  let tail=g;
+  if(state.audioCtx.createStereoPanner){const p=state.audioCtx.createStereoPanner();p.pan.value=pan;g.connect(p);tail=p;}
+  tail.connect(state.audioCtx.destination);src.connect(g);state.active.add(src);src.onended=()=>state.active.delete(src);src.start(when||state.audioCtx.currentTime);return src;
+}
+function drawEmptyWave(){const c=$('#wave'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.strokeStyle='#26354a';x.lineWidth=2;x.beginPath();x.moveTo(0,c.height/2);x.lineTo(c.width,c.height/2);x.stroke();}
+function drawWave(buffer){
+  const c=$('#wave'),x=c.getContext('2d'),d=buffer.getChannelData(0);x.clearRect(0,0,c.width,c.height);x.fillStyle='#06090e';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#77d7ff';x.lineWidth=2;x.beginPath();
+  const stride=Math.max(1,Math.floor(d.length/c.width));for(let px=0;px<c.width;px++){let lo=1,hi=-1;const s=px*stride,e=Math.min(d.length,s+stride);for(let i=s;i<e;i++){lo=Math.min(lo,d[i]);hi=Math.max(hi,d[i]);}const y1=(1-hi)*c.height/2,y2=(1-lo)*c.height/2;x.moveTo(px,y1);x.lineTo(px,y2);}x.stroke();
+}
+
+function currentKitItem(id){const text=KIT.find(x=>x[0]===id)?.[1];return text?state.cache.get(cacheKey(text,state.voice,+$('#speed').value)):null;}
+function refreshKitState(){
+  let ready=0;document.querySelectorAll('.kit').forEach(btn=>{const item=currentKitItem(btn.dataset.kit);btn.classList.toggle('ready',!!item);btn.disabled=!item;if(item)ready++;});
+  const complete=ready===KIT.length;$('#playKitBtn').disabled=!complete;$('#dnbBtn').disabled=!state.modelReady;
+  $('#kitStatus').textContent=complete?`Complete · ${state.voice} · ${(+$('#speed').value).toFixed(2)}×`:`${ready}/${KIT.length} hits cached for current voice/settings.`;
+}
+async function buildKit(){
+  setBusy(true);const bar=$('#kitProgress').querySelector('i');bar.style.width='0%';
+  try{
+    for(let i=0;i<KIT.length;i++){
+      const [id,text]=KIT[i],btn=document.querySelector(`[data-kit="${id}"]`);btn.classList.add('loading');$('#kitStatus').textContent=`Rendering ${i+1}/${KIT.length}: ${text}`;
+      await synth(text);btn.classList.remove('loading');btn.classList.add('ready');btn.disabled=false;bar.style.width=`${(i+1)/KIT.length*100}%`;
+    }
+    state.kitVoice=state.voice;state.kitSpeed=+$('#speed').value;refreshKitState();log(`Voice kit complete: ${state.voice}.`);
+  }catch(e){log(`KIT ERROR: ${e.stack||e.message}`,'error');$('#kitStatus').innerHTML=`<span class="bad">Kit failed: ${esc(e.message)}</span>`;}
+  finally{setBusy(false);refreshKitState();}
+}
+function playKitHit(id){const item=currentKitItem(id);if(item)playBuffer(item.buffer,{gain:.95});}
+async function playKitSequence(){
+  await ensureAudio();stopAll();let t=state.audioCtx.currentTime+.05;for(const [id] of KIT){const item=currentKitItem(id);if(item){playBuffer(item.buffer,{when:t,gain:.85});t+=Math.max(.32,Math.min(.7,item.buffer.duration+.08));}}
+}
+
+function synthKick(t,gain=.32){
+  const ctx=state.audioCtx,o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.setValueAtTime(92,t);o.frequency.exponentialRampToValueAtTime(48,t+.11);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+.15);o.connect(g).connect(ctx.destination);o.start(t);o.stop(t+.16);state.active.add(o);o.onended=()=>state.active.delete(o);
+}
+function synthSnare(t,gain=.12){
+  const ctx=state.audioCtx,len=Math.floor(ctx.sampleRate*.12),b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2);
+  const s=ctx.createBufferSource(),bp=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=b;bp.type='bandpass';bp.frequency.value=1750;bp.Q.value=.75;g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+.12);s.connect(bp).connect(g).connect(ctx.destination);s.start(t);state.active.add(s);s.onended=()=>state.active.delete(s);
+}
+function synthHat(t,gain=.022){
+  const ctx=state.audioCtx,len=Math.floor(ctx.sampleRate*.035),b=ctx.createBuffer(1,len,ctx.sampleRate),d=b.getChannelData(0);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=ctx.createBufferSource(),hp=ctx.createBiquadFilter(),lp=ctx.createBiquadFilter(),g=ctx.createGain();s.buffer=b;hp.type='highpass';hp.frequency.value=3900;lp.type='lowpass';lp.frequency.value=8500;g.gain.value=gain;s.connect(hp).connect(lp).connect(g).connect(ctx.destination);s.start(t);state.active.add(s);s.onended=()=>state.active.delete(s);
+}
+async function ensureDnbKit(){const needed=['ka','ta','yo','hey','oh','yeah','mm','go'];for(const id of needed)if(!currentKitItem(id)){const text=KIT.find(x=>x[0]===id)[1];await synth(text);}}
+async function runDnb(){
+  setBusy(true);$('#sequenceMetric').textContent='preparing';
+  try{
+    await ensureAudio();await ensureDnbKit();refreshKitState();stopAll();
+    const bpm=174,step=60/bpm/4,start=state.audioCtx.currentTime+.12,bars=4,voiceGain=+$('#vocalLevel').value,rate=+$('#rateLevel').value;
+    $('#stepMetric').textContent=`${Math.round(step*1000)} ms`;$('#sequenceMetric').textContent='playing';$('#stopBtn').disabled=false;state.dnbRuns++;
+    const vocalPattern=[
+      [[1,'ka'],[3,'ta'],[7,'yo'],[11,'ka'],[14,'hey']],
+      [[1,'ka'],[2,'ta'],[6,'oh'],[9,'ta'],[11,'ka'],[14,'yeah']],
+      [[1,'mm'],[4,'ka'],[7,'yo'],[10,'ta'],[13,'go'],[15,'hey']],
+      [[1,'ka'],[3,'ta'],[5,'ka'],[7,'yo'],[11,'oh'],[14,'go']]
+    ];
+    for(let bar=0;bar<bars;bar++){
+      const base=start+bar*16*step;
+      [0,10].forEach(s=>synthKick(base+s*step,bar===3?.38:.32));[4,12].forEach(s=>synthSnare(base+s*step,.13));[2,6,10,14].forEach(s=>synthHat(base+s*step,.021));
+      for(const [s,id] of vocalPattern[bar]){const item=currentKitItem(id);if(item)playBuffer(item.buffer,{when:base+s*step,rate,gain:voiceGain*(id==='hey'||id==='yeah'?1:.86),pan:(s%4-1.5)*.08});}
+    }
+    const total=bars*16*step+.35;setTimeout(()=>{if($('#sequenceMetric').textContent==='playing'){$('#sequenceMetric').textContent='complete';$('#stopBtn').disabled=true;updateReport();}},total*1000);
+    log(`DnB test scheduled: ${bars} bars at ${bpm} BPM, voice rate ${rate.toFixed(2)}×.`);
+  }catch(e){log(`DNB ERROR: ${e.stack||e.message}`,'error');$('#sequenceMetric').textContent='failed';}
+  finally{setBusy(false);}
+}
+function stopAll(){for(const src of [...state.active]){try{src.stop();}catch{}state.active.delete(src);}$('#sequenceMetric').textContent='stopped';$('#stopBtn').disabled=true;}
+function updateCacheMetric(){$('#cacheMetric').textContent=state.cache.size;refreshKitState();}
+
+function updateReport(){
+  const recent=state.metrics.slice(-12);const ua=navigator.userAgent;
+  const lines=[
+    'A.R.I. NEURAL VOICE LAB 02 · REPORT',
+    `Date: ${new Date().toISOString()}`,
+    `Runtime target: kokoro-js 1.2.1`,
+    `Browser: ${ua}`,
+    `WebGPU exposed: ${!!navigator.gpu}`,
+    `Device memory hint: ${navigator.deviceMemory||'not reported'}`,
+    `Backend: ${state.actualBackend||'not loaded'}`,
+    `Model load: ${state.modelLoadMs==null?'not loaded':fmtMs(state.modelLoadMs)}`,
+    `Selected voice: ${state.voice}`,
+    `Speed: ${(+$('#speed')?.value||1.25).toFixed(2)}x`,
+    `Cached samples: ${state.cache.size}`,
+    `DnB runs: ${state.dnbRuns}`,
+    '', 'RECENT SYNTHESIS'
+  ];
+  if(!recent.length)lines.push('—');
+  recent.forEach(m=>lines.push(`${m.voice} | ${m.text} | synth ${fmtMs(m.synthMs)} | audio ${m.duration.toFixed(2)}s | RTF ${m.rtf.toFixed(2)}`));
+  lines.push('','NOTES','Add your listening impression here after copying this report.');
+  $('#report').value=lines.join('\n');
+}
+async function copyReport(){updateReport();try{await navigator.clipboard.writeText($('#report').value);$('#copyReportBtn').textContent='Copied';setTimeout(()=>$('#copyReportBtn').textContent='Copy report',1200);}catch{$('#report').select();document.execCommand('copy');}}
+
+initUI();
+</script>
+</body>
+</html>
