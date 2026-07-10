@@ -196,7 +196,7 @@
   }
   @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
   #wxText{
-    margin-top:6px;
+    margin-top:6px; line-height:1.6;
     font-family:'IBM Plex Mono',monospace; font-size:13px; letter-spacing:.14em;
     color:var(--support); text-transform:uppercase; text-align:left;
     opacity:0; transition:opacity 1.4s ease;
@@ -2297,7 +2297,7 @@ function renderWxLine(){
   }else{
     battHTML=`rig battery: <span style="color:${battColor(100)}">100%</span>`;
   }
-  el.innerHTML=(wxWeatherHTML?wxWeatherHTML+' · ':'')+battHTML;
+  el.innerHTML=(wxWeatherHTML?wxWeatherHTML+'<br>':'')+battHTML;
   el.classList.add('show');
 }
 async function loadWeather(){
