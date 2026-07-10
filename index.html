@@ -160,8 +160,8 @@
   #gVisitor,#gVisitor2{opacity:0; transition:opacity 1.4s ease}
   #gVisitor.here,#gVisitor2.here{opacity:1}
   #gArmL,#gArmLup,#gArmR,#gArmRup{transition:opacity .6s ease}
-  .note{font-family:'IBM Plex Mono',monospace; font-size:15px; fill:var(--magenta); opacity:0;}
-  .note.sp{fill:var(--lav); font-size:13px}
+  .note{font-family:'IBM Plex Mono',monospace; font-size:22px; fill:var(--magenta); opacity:0;}
+  .note.sp{fill:var(--lav); font-size:20px}
   @keyframes noteRise{
     0%{opacity:0; transform:translateY(4px)}
     15%{opacity:.95}
@@ -308,6 +308,8 @@
     #themebtn{width:18px; height:18px}
     #wxText{font-size:11px}
     header .tribute{font-size:11px; max-width:88vw}
+    .note{font-size:30px}
+    .note.sp{font-size:26px}
       #stage{padding-top:60px}
     svg#scene{width:104vw; height:104vw}
   }
@@ -1957,7 +1959,7 @@ const world=document.getElementById('world');
 let kickE=0,snareE=0,hatE=0;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const SPK=[[3.6,3.45,3.9],[10.0,3.45,3.9],[10.35,-2.6,7.9],[10.45,-2.6,5.6]];
+const SPK=[[3.6,3.45,3.9],[10.0,3.45,3.9],[8.75,-3.4,5.45],[4.85,-2.8,4.15]]; // last two: rear + lower-left backpack speaker cones
 const keyEls=[...Array(9)].map((_,i)=>document.getElementById('key'+i));
 const gWheelSpin=document.getElementById('gWheelSpin');
 const WC=iso(3.3,1.2,ZT+0.02);                 // wheel center (screen)
@@ -1971,7 +1973,7 @@ function flashChord(){
 }
 function spawnNote(pos,cls,color){
   if(reduceMotion) return;
-  const [x,y]=iso(...(pos||[0.97,-0.48,6.9]));
+  const [x,y]=iso(...(pos||[6.9,-0.6,9.9]));
   const t=document.createElementNS('http://www.w3.org/2000/svg','text');
   t.setAttribute('x',x+R(-8,10)); t.setAttribute('y',y);
   t.setAttribute('class','note '+(cls||'')+' go');
@@ -2004,7 +2006,7 @@ function frame(){
     if(e.type==='stab'){flashChord();}
     if(e.type==='lead'){const vv=(e.v===2)?vis2:vis1; spawnNote(vv.notePos,null,vv.color); eqVal[4]=1;}
     if(e.type==='alead'){
-      spawnNote([7.6,-0.56,10.1],null,getComputedStyle(document.body).getPropertyValue('--cyan').trim());
+      spawnNote([6.9,-0.6,9.9],null,getComputedStyle(document.body).getPropertyValue('--cyan').trim());
       eqVal[4]=1;
     }
   }
