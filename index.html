@@ -153,6 +153,8 @@
   .l {stroke:var(--lav);    fill:none; stroke-width:1.4; stroke-linejoin:round; stroke-linecap:round}
   .m {stroke:var(--magenta);fill:none; stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round}
   .v {stroke:currentColor;  fill:none; stroke-width:1.5; stroke-linejoin:round; stroke-linecap:round}
+  .vcapfill{fill:var(--bg); stroke:none; opacity:.985}
+  .vsolid{fill:currentColor; stroke:currentColor; stroke-width:1.2; stroke-linejoin:round; stroke-linecap:round}
   .vc{stroke:currentColor;  fill:none; stroke-width:1;   stroke-linejoin:round; stroke-linecap:round; opacity:.85}
   .g {stroke:url(#grad);    fill:none; stroke-width:1.6; stroke-linejoin:round; stroke-linecap:round}
   .f {stroke:var(--faint);  fill:none; stroke-width:1.2}
@@ -188,7 +190,7 @@
     text-transform:none; max-width:min(40vw,560px); line-height:1.6;
   }
   #hint{
-    position:fixed; left:30px; right:30px; bottom:11%; transform:none;
+    position:fixed; left:30px; right:30px; top:24%; bottom:auto; transform:none;
     font-size:11px; letter-spacing:.3em; color:var(--cyan-dim);
     animation:pulse 2.6s ease-in-out infinite; z-index:5; pointer-events:none;
     text-transform:uppercase; white-space:normal; text-align:center;
@@ -202,6 +204,7 @@
     opacity:0; transition:opacity 1.4s ease;
   }
   #wxText.show{opacity:.55}
+  .wxCond{text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1.5px}
   #trackinfo{
     position:fixed; left:30px; right:30px; bottom:30px; z-index:5; pointer-events:none;
     font-size:11px; letter-spacing:.18em; line-height:1.9; text-transform:uppercase;
@@ -299,10 +302,34 @@
   #themebtn:focus-visible{outline:2px solid var(--purple); outline-offset:4px}
   #themebtn svg{width:11px;height:11px;stroke:var(--cyan-dim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   #themebtn.auto svg path.fillhalf{fill:var(--cyan-dim); stroke:none}
+  #chat{
+    position:fixed; right:30px; top:110px; bottom:110px; width:236px; z-index:4;
+    display:flex; flex-direction:column; gap:10px; pointer-events:none;
+    padding:14px 14px 12px;
+    opacity:0; transition:opacity 1.4s ease;
+  }
+  #chat.on{opacity:1}
+  #chatHead{
+    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--cyan-dim);
+    animation:chatglow 2.8s ease-in-out infinite;
+  }
+  @keyframes chatglow{
+    0%,100%{text-shadow:0 0 3px var(--glow1); opacity:.65}
+    50%{text-shadow:0 0 14px var(--glow1); opacity:1}
+  }
+  #chatLog{flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; gap:8px}
+  .chatMsg{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; line-height:1.45; letter-spacing:.02em;
+    color:var(--support); opacity:0; transform:translateY(6px);
+    transition:opacity .5s ease, transform .5s ease; overflow-wrap:break-word;
+  }
+  .chatMsg.in{opacity:.85; transform:none}
+  .chatMsg .nick{margin-right:6px}
+  @media (max-width:1279px){ #chat{display:none} }
   @media (max-width:640px){
     header{left:18px; top:18px}
     #trackinfo{left:18px; right:18px; bottom:18px; font-size:10px}
-    #hint{left:18px; right:18px; font-size:10px; letter-spacing:.22em}
+    #hint{left:18px; right:18px; top:auto; bottom:11%; font-size:10px; letter-spacing:.22em}
     #playbtn{left:18px; bottom:130px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
@@ -336,7 +363,7 @@
 <header>
   <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">inspired by ARIatHOME and other beatmakers · version 81</p>
+  <p class="tribute">inspired by beatmakers and ARIatHOME · version 82</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -349,6 +376,11 @@
 </footer>
 
 <div id="hint">tap A.R.I. to catch the street signal</div>
+
+<aside id="chat" aria-hidden="true">
+  <div id="chatHead">street chat</div>
+  <div id="chatLog"></div>
+</aside>
 
 
 <div id="trackinfo" style="display:none">
@@ -503,10 +535,10 @@ s+=box(5.9,-3.3,3.6, 8.3,-2.35,6.7,'p');              // pack drawn after speake
 
 s+='<g id="sfxC" opacity="0"></g><g id="sfxD" opacity="0">'; // keep only lower speaker pulses
 s+=seg([4.6,-2.8,3.95],[4.15,-2.8,3.95],'l');
-s+=seg([4.65,-2.8,4.35],[4.3,-2.8,4.65],'l');
+s+=seg([4.47,-2.8,4.5],[4.12,-2.8,4.8],'l');
 s+=seg([4.65,-2.8,3.55],[4.3,-2.8,3.25],'l');
 s+=seg([9.05,-3.4,5.3],[9.5,-3.4,5.3],'l');
-s+=seg([9.0,-3.4,5.7],[9.35,-3.4,6.0],'l');
+s+=seg([9.18,-3.4,5.85],[9.53,-3.4,6.15],'l');
 s+=seg([9.0,-3.4,4.9],[9.35,-3.4,4.6],'l');
 s+='</g>';
 
@@ -547,11 +579,11 @@ s+=circY(2.4,10.0,3.55,.3,'b')+circY(2.4,10.0,3.55,.11,'b');
 s+=box(1.2,0,4.05, 12.8,2.4,ZT,'o');                    // rig top draws after speakers so its green outline stays continuous
 s+='<g id="sfxA" opacity="0">';                        // sound dashes L
 s+=seg([3.6,3.1,3.55],[3.6,3.55,3.55],'l');
-s+=seg([3.6,3.05,3.95],[3.6,3.35,4.25],'l');
+s+=seg([3.6,3.2,4.1],[3.6,3.5,4.4],'l');
 s+=seg([3.6,3.05,3.15],[3.6,3.35,2.85],'l');
 s+='</g><g id="sfxB" opacity="0">';                    // sound dashes R
 s+=seg([10.0,3.1,3.55],[10.0,3.55,3.55],'l');
-s+=seg([10.0,3.05,3.95],[10.0,3.35,4.25],'l');
+s+=seg([10.0,3.2,4.1],[10.0,3.5,4.4],'l');
 s+=seg([10.0,3.05,3.15],[10.0,3.35,2.85],'l');
 s+='</g>';
 
@@ -737,20 +769,23 @@ const SCALES={
 };
 const LEAD_CEIL=62;                       // ~D4: keep leads out of the piercing register
 const leadClamp=m=>{
-  const ceil=Math.min(LEAD_CEIL, (track?track.root:46)+16);  // never more than ~an octave+ above root
+  const span=(track&&track.bpm>150)?12:16;                   // fast genres (dnb, trap) stay lower — short high notes read as beeps
+  const ceil=Math.min(LEAD_CEIL, (track?track.root:46)+span);
   while(m>ceil) m-=12;
   return m;
 };
 const KEYS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
-const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave','chinatown','tribeca','flatbush','astoria','loisaida','gowanus','vernon blvd','the bowery','red hook','sunset park','bed-stuy','the heights','riverside','myrtle ave','the grid','the platform','corner deli','fire escape'];
-const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle','signal','current','sprawl','static drift','flicker','pulse','runoff','sway','tape','haze','crawl','bloom','ricochet','undertow','afterglow','wander','holdup','runaround'];
+const NAME_A=['canal st','bodega','uptown','midnight','rooftop','delancey','hudson','crosstown','steam vent','bushwick','harlem','5th ave','chinatown','tribeca','flatbush','astoria','loisaida','gowanus','vernon blvd','the bowery','red hook','sunset park','bed-stuy','the heights','riverside','myrtle ave','the grid','the platform','corner deli','fire escape','ludlow','mott st','turnstile','stoop','hydrant','crown heights','greenpoint','far rockaway','payphone','laundromat','borough hall','graffiti wall','scaffold','uptown express','the overpass','freight elevator','water tower','skyline','curbside','last stop','rooftop tar','subway grate','night bus','the block'];
+const NAME_B=['loop','drift','bounce','transit','echo','glow','shuffle','static','freestyle','cycle','signal','current','sprawl','static drift','flicker','pulse','runoff','sway','tape','haze','crawl','bloom','ricochet','undertow','afterglow','wander','holdup','runaround','reverb','cipher','swagger','momentum','frequency','blackout','rewind','mirage','backspin','cutback','nightshift','slipstream','undertone','stutter','breakline','voltage','scramble','patina','sidestep','knock','lowlight','tremor','glide','vandal'];
 function makeTrackName(){
-  const shape=RI(0,3);
+  const shape=RI(0,5);
   let n;
   if(shape===0) n=pick(NAME_A)+' '+pick(NAME_B);
   else if(shape===1) n=pick(NAME_B)+' on '+pick(NAME_A);
   else if(shape===2) n=pick(NAME_A);
-  else n=pick(NAME_A)+"'s "+pick(NAME_B);
+  else if(shape===3) n=pick(NAME_A)+"'s "+pick(NAME_B);
+  else if(shape===4) n=pick(NAME_B)+' at '+pick(NAME_A);
+  else n=pick(['late','deep','lost','back','slow','wild'])+' '+pick(NAME_B);
   return n;
 }
 let recentNames=[];
@@ -837,6 +872,17 @@ let step=0, bar=0, stepIndex=0, audioStart=0, timerId=null;
 let visitor=false, visitorInstr='', visitorTimer=null;
 let lastLeadIdx=2, lastLeadIdx2=5;
 const leadRun={dir:0,len:0}, leadRun2={dir:0,len:0}, leadRunA={dir:0,len:0};
+/* double-time echo: last bar's lead series replayed at 2x speed, clipped short — cheap depth */
+const leadEchoA={bar:-1,notes:[]}, leadEchoV={bar:-1,notes:[]};
+function recLeadEcho(buf,off,midi,dur){
+  if(buf.bar!==bar){ buf.bar=bar; buf.notes=[]; }
+  buf.notes.push({off,midi,dur});
+}
+function fireLeadEcho(buf,t0,instr,vmul){
+  if(buf.bar===bar-1 && buf.notes.length>=3 && Math.random()<0.55)
+    buf.notes.forEach(n=>playLead(t0+n.off*0.5, n.midi, Math.max(0.05,n.dur*0.45), instr, vmul));
+  if(buf.bar!==bar){ buf.bar=-1; buf.notes=[]; }
+}
 function nextLeadIdx(cur,maxIdx,run){
   // a plain symmetric random walk occasionally rolls several same-direction
   // steps in a row, which sounds like a rapid ascending "drill" — rare but jarring.
@@ -1067,6 +1113,8 @@ function newTrack(forced){
   const prog=pick(g.progs||[[0,5],[0,3],[0,5,6,4],[0,2,5,4],[0,3,5,4],[0,6],[0,4,5,3],[0,3,4,0],[0,6,3,4],[0,5,3,4]]);
   track={
     g, genre, bpm, root, bars, prog,
+    ariSings: Math.random()<0.22,   // when true, a.r.i. takes the mic for this whole track
+    leadWave: pick(['square','pulse','saw']),   // character layer of the mic synth varies per track
     scale: SCALES[scaleName], scaleName,
     sections: buildArrangement(bars),
     kick : genPattern(g.kick.b,g.kick.c,g.kick.p),
@@ -1079,6 +1127,7 @@ function newTrack(forced){
     voiceLead: null,          // remembered chord voicing (layer 2)
     lastBass: null,
   };
+  leadEchoA.bar=leadEchoV.bar=-1; leadEchoA.notes=[]; leadEchoV.notes=[];
   if(delayNode) delayNode.delayTime.value=(60/bpm)*0.75;
   trackNo++;
   try{
@@ -1198,16 +1247,24 @@ function playPad(t,midis,dur){
   const f=ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1150;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
-  g.gain.linearRampToValueAtTime(0.10,t+dur*0.3);
+  g.gain.linearRampToValueAtTime(0.08,t+dur*0.3);   // 3 voices per note now, keep the same weight
   g.gain.linearRampToValueAtTime(0.0001,t+dur);
   f.connect(g); g.connect(master);
   midis.forEach(m=>{
-    [-4,4].forEach(det=>{
+    [-7,0,6].forEach(det=>{   // 3-voice supersaw spread
       const o=ctx.createOscillator(); o.type='sawtooth';
       o.frequency.value=mtof(m); o.detune.value=det;
       o.connect(f); o.start(t); o.stop(t+dur+0.1);
     });
   });
+}
+let PULSE_WAVE=null;
+function pulseWave(){                     // 25%-duty pulse — brighter and thinner than a square
+  if(PULSE_WAVE) return PULSE_WAVE;
+  const N=32, re=new Float32Array(N), im=new Float32Array(N);
+  for(let n=1;n<N;n++) im[n]=(2/(n*Math.PI))*Math.sin(n*Math.PI*0.25);
+  PULSE_WAVE=ctx.createPeriodicWave(re,im);
+  return PULSE_WAVE;
 }
 function playLead(t,midi,dur,instr,vmul){
   const g=ctx.createGain();
@@ -1270,9 +1327,11 @@ function playLead(t,midi,dur,instr,vmul){
     env(t,0.008,dur,0.17,g);
     o.connect(ws); ws.connect(f); f.connect(g);
     o.start(t); o.stop(t+dur+0.2);
-  }else{ // on the mic — a synthetic voice
+  }else{ // on the mic — a synthetic voice; the character layer varies per track
     const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
-    const o2=ctx.createOscillator(); o2.type='square'; o2.frequency.value=mtof(midi);
+    const o2=ctx.createOscillator(); o2.frequency.value=mtof(midi);
+    const lw=(track&&track.leadWave)||'square';
+    if(lw==='pulse') o2.setPeriodicWave(pulseWave()); else o2.type=lw;
     const g2=ctx.createGain(); g2.gain.value=0.12; o2.connect(g2); g2.connect(g);
     vg.connect(o.detune); vg.connect(o2.detune);
     const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*1.8; f.Q.value=0.9;
@@ -1289,6 +1348,10 @@ const LOCS=[
   'TIMES SQUARE Ø','HARLEM HEIGHTS.EXE','5TH AVE / DATA ROW','GRAND CENTRAL v2',
   'BUSHWICK CIRCUIT','DUMBO DOCKING BAY','CHINATOWN CACHE','EAST VILLAGE VOLTAGE',
   'THE HIGH LINE RAIL','WASHINGTON SQ LOOP','TRIBECA TRANSISTOR','LITTLE ITALY I/O',
+  'QUEENSBRIDGE QUERY','ROCKAWAY RUNTIME','NOLITA NULL','MOTT ST MAINFRAME',
+  'LENOX LOGIC GATE','FLATIRON FIRMWARE','BOWERY BOOTLOADER','GOWANUS GATEWAY',
+  'CONEY ISLAND CACHE','INWOOD INPUT','SOHO SUBROUTINE','BQE BACKBONE',
+  'PELHAM PACKET','CROWN HEIGHTS CRON','STATEN LOOPBACK','RED HOOK ROUTER',
 ];
 let curLoc='', signTimer=null;
 // build a fresh set of blades on the pole: sometimes 1, mostly 2–3, sometimes 4.
@@ -1322,6 +1385,7 @@ function buildSignBlades(primary, force){
 }
 function setLocation(name){
   curLoc=name;
+  chatOnLocation();                             // the chat peeks in every other block
   buildSignBlades(name);                        // vary the pole layout each new block
   const g=document.getElementById('gSign');
   g.classList.add('here');                      // fade in as they pass the sign
@@ -1416,9 +1480,9 @@ function micDroop(t,ph){            // 0 = horizontal (good), 1 = vertical (ice-
 }
 
 /* ---------- A.R.I. on his own mic ---------- */
-let ariSing=false, ariSingEnd=0, lastLeadIdxA=4;
+let ariSing=false, lastLeadIdxA=4;
 function startAriSing(tt){
-  ariSing=true; ariSingEnd=bar+RI(3,6);
+  ariSing=true;
   document.getElementById('gArmR').style.opacity=0;
   document.getElementById('gArmRup').style.opacity=1;
   const vl=document.getElementById('visitorline');
@@ -1531,17 +1595,22 @@ function scheduleStep(sIdx,t){
       for(let i=0;i<8;i++) faderTarget[i]=R(0,1);
     }
   }
-  /* A.R.I.'s own vocals — only in main sections, never in intro/break */
+  /* A.R.I.'s own vocals — starts in the first main section and lasts the whole track */
   if(sIdx===0){
     const canSing=(sect==='main'||sect==='main2');
-    if(ariSing && (bar>=ariSingEnd || visitor || !canSing)) stopAriSing();
-    else if(!ariSing && !visitor && canSing && Math.random()<0.12) startAriSing(tt);
+    if(!ariSing && !visitor && canSing && track.ariSings) startAriSing(tt);
   }
-  if(ariSing && !visitor && D.lead>0 && sIdx%2===1 && Math.random()<0.3){
+  if(sIdx===0){   // double-time echo layers ride over the fresh bar
+    fireLeadEcho(leadEchoA, tt, 'on the mic', 0.32);
+    if(visitor && visitorPhase==='performing' && vis1) fireLeadEcho(leadEchoV, tt, vis1.instr, 0.28);
+  }
+  if(ariSing && D.lead>0 && sIdx%2===1 && Math.random()<0.3){
     lastLeadIdxA=nextLeadIdx(lastLeadIdxA, PENT.length*2-1, leadRunA);
     const oct=Math.floor(lastLeadIdxA/PENT.length);
     const midi=leadClamp(track.root+oct*12+leadPent()[lastLeadIdxA%leadPent().length]);
-    playLead(tt,midi,s16*pick([2,2,3,4]),'on the mic',0.9);
+    const adur=s16*pick([2,2,3,4]);
+    playLead(tt,midi,adur,'on the mic',0.9);
+    recLeadEcho(leadEchoA,sIdx*s16,midi,adur);
     visQ.push({t:tt,type:'alead'});
   }
   /* visitor leads — respect section density (quieter in break/outro) */
@@ -1557,6 +1626,7 @@ function scheduleStep(sIdx,t){
     }
     if(vmul>0){
       playLead(tt,midi,dur,vis1.instr,vmul);
+      recLeadEcho(leadEchoV,sIdx*s16,midi,dur);
       visQ.push({t:tt,type:'lead',v:1});
     }
   }
@@ -1598,13 +1668,15 @@ function tick(){
           leaveVisitors(document.getElementById('visitorline'));
         }
         tracksUntilBattery--;
-        if(tracksUntilBattery<=0 && !(visitor&&visitorPhase==='performing')) runBatterySwap();
+        if(pendingReq && visitor){ const r=pendingReq; pendingReq=null; guestGoesLive(r); }
+        else if(tracksUntilBattery<=0 && !(visitor&&visitorPhase==='performing')) runBatterySwap();
         else crossToNext();
       }
     }
   }
 }
 function crossToNext(forced){
+  stopAriSing();
   const t=ctx.currentTime;
   master.gain.setValueAtTime(master.gain.value,t);
   master.gain.linearRampToValueAtTime(0.0001,t+0.7);
@@ -1630,6 +1702,7 @@ function finishBatterySwap(){
   if(typeof renderWxLine==='function') renderWxLine();
 }
 function runBatterySwap(){
+  stopAriSing();
   batteryIntermission=true;
   const t=ctx.currentTime;
   master.gain.setValueAtTime(master.gain.value,t);
@@ -1696,7 +1769,7 @@ let guestMinLeaveBar=0, guestWantsToLeave=false;
 const short=i=>i.replace('on the ','').replace('on ','');
 function leaveVisitors(vl){
   const doLeave=()=>{
-    visitor=false; visitor2=false; visitorPhase=''; guestWantsToLeave=false;
+    visitor=false; visitor2=false; visitorPhase=''; guestWantsToLeave=false; pendingReq=null;
     gVis.classList.remove('here');
     gVis2.classList.remove('here');
     gVis.classList.remove('waving');
@@ -1717,12 +1790,28 @@ function leaveVisitors(vl){
   clearTimeout(visitorTimer);
   visitorTimer=setTimeout(doLeave, Math.max(2600,said*1000+600));
 }
+let pendingReq=null;
+function guestGoesLive(req){
+  crossToNext(req);
+  ariSurprisedUntil=ctx.currentTime+1.7;
+  const vl=document.getElementById('visitorline');
+  visitorTimer=setTimeout(()=>{
+    if(!playing) return;
+    visitorPhase='performing';
+    guestWantsToLeave=false;
+    vl.textContent=visitor2
+      ? '+ rare duo '+short(vis1.instr)+' × '+short(vis2.instr)+' →'
+      : '+ guest '+vis1.instr+' →';
+    // after a spell, the guest is ready to go — but only actually leaves at a
+    // track boundary (see tick), so they always finish at least one full track
+    visitorTimer=setTimeout(()=>{ guestWantsToLeave=true; }, R(30000,70000));
+  },1200);
+}
 function scheduleVisitor(){
   clearTimeout(visitorTimer);
   visitorTimer=setTimeout(()=>{
     if(!playing) return;
     if(reversing){ scheduleVisitor(); return; }  // let the reverse shot finish first
-    stopAriSing();
     visitor=true; visitorPhase='requesting';
     vis1=buildVisitor(gVis,pickInstr(),0);
     gVis.classList.add('here');
@@ -1740,22 +1829,15 @@ function scheduleVisitor(){
     /* the request is spoken out loud, A.R.I. answers */
     const said=speak(pick(REQ_LINES).replace('X',SPEAK_GENRE[req]),vVoice(vis1.voiceKind),0.55);
     speak(pick(ARI_LINES),ARI_VOICE,0.5,said+0.35);
-    /* the request lands, then A.R.I. flips the beat */
+    /* the request lands; if a.r.i. is mid-set the guest vibes along until his track wraps */
     visitorTimer=setTimeout(()=>{
       if(!playing) return;
-      crossToNext(req);
-      ariSurprisedUntil=ctx.currentTime+1.7;
-      visitorTimer=setTimeout(()=>{
-        if(!playing) return;
-        visitorPhase='performing';
-        guestWantsToLeave=false;
-        vl.textContent=visitor2
-          ? '+ rare duo '+short(vis1.instr)+' × '+short(vis2.instr)+' →'
-          : '+ guest '+vis1.instr+' →';
-        // after a spell, the guest is ready to go — but only actually leaves at a
-        // track boundary (see tick), so they always finish at least one full track
-        visitorTimer=setTimeout(()=>{ guestWantsToLeave=true; }, R(30000,70000));
-      },1200);
+      if(ariSing){
+        pendingReq=req;   // honored at the track boundary (see tick)
+        vl.textContent='guest vibes along — a.r.i. finishes this one →';
+        return;
+      }
+      guestGoesLive(req);
     }, R(2500,4500));
   }, Math.random()<0.55 ? R(14000,45000) : R(90000,300000));
 }
@@ -1854,24 +1936,101 @@ function buildVisitor(target,instr,dx){
   ],'v');
   v+=vcircY(-1.1,headCX,headZ+shoulderRise*0.25,.58,'v');
 
-  if(arche.kind==='cap'){
-    v+='<g style="color:'+accent+'">';
-    v+=vseg([0.34+dx+lean*0.18,-1.1,headZ+0.4],[1.06+dx+lean*0.18,-0.84,headZ+0.46],'v'); // cap top
-    v+=vseg([0.54+dx+lean*0.16,-0.94,headZ+0.34],[1.02+dx+lean*0.16,-0.78,headZ+0.38],'v'); // cap brim
-    v+='</g>';
-  }
+  /* hair that lives under the gear — never the same colour as the headgear */
+  const age=Math.random()<0.18?'older':'adult';    // now and then an elder of the block steps up
+  const hairCol=age==='older'?'#98a2ab':pick(visPalette().filter(c=>c!==col&&c!==accent));
   if(arche.kind==='masc'){
-    v+='<g style="color:'+accent+'">';
-    v+=vbez([0.44+dx+lean*0.15,-1.1,headZ+0.24],[0.95+dx+lean*0.24,-1.1,headZ+0.72],[1.46+dx+lean*0.15,-1.1,headZ+0.24],'v');
+    v+='<g style="color:'+hairCol+'">';
     v+=vseg([0.48+dx+lean*0.14,-1.1,headZ+0.1],[0.48+dx+lean*0.14,-1.1,headZ-0.01],'v');
     v+=vseg([1.42+dx+lean*0.14,-1.1,headZ+0.1],[1.42+dx+lean*0.14,-1.1,headZ-0.01],'v');
     v+='</g>';
   }
   if(arche.kind==='femme'){
-    v+='<g style="color:'+accent+'">';
-    v+=vbez([0.4+dx+lean*0.12,-1.1,headZ+0.18],[0.95+dx+lean*0.28,-1.1,headZ+0.86],[1.5+dx+lean*0.12,-1.1,headZ+0.18],'v');
+    v+='<g style="color:'+hairCol+'">';
     v+=vbez([0.4+dx+lean*0.1,-1.1,headZ+0.05],[0.14+dx+lean*0.14,-1.1,headZ-0.5],[0.46+dx+lean*0.16,-1.1,headZ-1.02],'v');
     v+=vbez([1.5+dx+lean*0.1,-1.1,headZ+0.05],[1.76+dx+lean*0.14,-1.1,headZ-0.5],[1.44+dx+lean*0.16,-1.1,headZ-1.02],'v');
+    v+='</g>';
+  }
+  /* street headgear — drawn in screen space on the PROJECTED head ellipse, so it always hugs the skull.
+     the head circle lives in the world XZ plane; on screen that is an ellipse with axes HU (world +x)
+     and HV (world +z). crown of the projected ellipse sits at ~117°. */
+  const hcp=iso(...T([headCX,-1.1,headZ+shoulderRise*0.25]));
+  const hrw=0.58*VS;                                   // vcircY scales the head radius by VS only
+  const HU=[IA*hrw,IB*hrw], HV=[0,-S*hrw], HW=[-IA*hrw,IB*hrw];  // HW = facing direction (viewer-left)
+  const hpt=(th,sc)=>[hcp[0]+(Math.cos(th)*HU[0]+Math.sin(th)*HV[0])*sc,
+                      hcp[1]+(Math.cos(th)*HU[1]+Math.sin(th)*HV[1])*sc];
+  const P2=q=>q[0].toFixed(1)+' '+q[1].toFixed(1);
+  const harc=(a0,a1,sc,n)=>{let d='';for(let i=0;i<=n;i++){d+=(i?'L ':'M ')+P2(hpt(a0+(a1-a0)*i/n,sc))+' ';}return d;};
+  const DG=Math.PI/180;
+  const basic=Math.random()<0.30;                  // some guests keep it plain — no gear, no extras
+  const gear=basic?'none':pick(age==='older'
+    ?['bucket','beanie','none','none','snapback']
+    :['snapback','snapback','backwards','beanie','bucket','none']);
+  v+='<g style="color:'+accent+'">';
+  if(gear==='snapback'||gear==='backwards'){
+    const back=gear==='backwards';
+    const tilt=R(-16,20)*DG;                     // worn low over the eyes, straight, or pushed back
+    const a0=(back?26:28)*DG+tilt, a1=(back?156:154)*DG+tilt;   // hand-tuned via accessoire-tuner
+    const csc=back?1.1:1.15;
+    v+='<path class="vcapfill" d="'+harc(a0,a1,csc,10)+'Z"/>';
+    v+='<path class="v" d="'+harc(a0,a1,csc,10)+'Z"/>';
+    const b0=hpt((back?30:147)*DG+tilt,back?1.06:1.07);
+    const bl=(back?0.78:0.86)*IA*hrw, bth=(back?0.06:0.08)*S*hrw;
+    const bd0=back?[1,0.69]:[-1,-0.44];          // base brim direction, rotated along with the tilt
+    const cs=Math.cos(-tilt), sn=Math.sin(-tilt);
+    const b1=[b0[0]+(bd0[0]*cs-bd0[1]*sn)*bl, b0[1]+(bd0[0]*sn+bd0[1]*cs)*bl];
+    v+='<polygon class="vsolid" points="'+P2(b0)+' '+P2(b1)+' '+P2([b1[0],b1[1]+bth])+' '+P2([b0[0],b0[1]+bth])+'"/>';
+  }else if(gear==='beanie'){
+    v+='<path class="vcapfill" d="'+harc(26*DG,156*DG,1.12,10)+'Z"/>';
+    v+='<path class="v" d="'+harc(26*DG,156*DG,1.12,10)+'Z"/>';
+    const c0=hpt(26*DG,1.12), c1=hpt(156*DG,1.12), cup=0.16*S*hrw;   // fold-over cuff
+    v+='<line class="v" x1="'+c0[0].toFixed(1)+'" y1="'+(c0[1]-cup).toFixed(1)+'" x2="'+c1[0].toFixed(1)+'" y2="'+(c1[1]-cup).toFixed(1)+'"/>';
+  }else if(gear==='bucket'){
+    const t1=hpt(114*DG,1.59), t2=hpt(64*DG,1.59);                   // sloped flat top
+    const s1=hpt(144*DG,1.02), s2=hpt(31*DG,1.02);                   // crown meets brim
+    const extL=0.47*IA*hrw, extR=0.41*IA*hrw, dropL=-0.02*S*hrw, dropR=0.49*S*hrw, brimCurve=0.12;
+    const bL=[s1[0]-extL,s1[1]+dropL], bR=[s2[0]+extR,s2[1]+dropR];
+    const bMid=[(bL[0]+bR[0])/2,(bL[1]+bR[1])/2+brimCurve*S*hrw];
+    const bd='M '+P2(bL)+' L '+P2(s1)+' L '+P2(t1)+' L '+P2(t2)+' L '+P2(s2)+' L '+P2(bR)+' Q '+P2(bMid)+' '+P2(bL)+' Z';
+    v+='<path class="vcapfill" d="'+bd+'"/>'+'<path class="v" d="'+bd+'"/>';
+  }else if(arche.kind!=='cap'){                                      // bare head still gets a hairline crown
+    v+='<path class="vcapfill" d="'+harc(17*DG,158*DG,1.05,10)+'Z"/>';
+    v+='<path class="v" style="color:'+hairCol+'" d="'+harc(17*DG,158*DG,1.05,10)+'"/>';
+  }
+  if(!basic && Math.random()<(age==='older'?0.2:0.35)){              // shades: frame, lens and shape all vary
+    const fCol=pick([accent,'#e8eef2','#f7c948','#c9d3da',pick(visPalette())]);   // frame colour
+    const lCol=Math.random()<0.5?fCol:pick(visPalette().filter(c=>c!==fCol));     // lens colour
+    const open=Math.random()<0.4;                                                 // open frame (bg lens) vs solid lens
+    const st='style="'+(open?'fill:var(--bg)':'fill:'+lCol)+';stroke:'+fCol+';stroke-width:1.3;stroke-linejoin:round"';
+    const fr='style="stroke:'+fCol+';stroke-width:1.3;stroke-linecap:round"';
+    const sth=0.28*S*hrw, ear=hpt(33*DG,1.06);
+    const S0=[hcp[0]-0.43*HW[0], hcp[1]-0.43*HW[1]+0.09*S*hrw];       // wraparound visor — hand-tuned via accessoire-tuner
+    const S1=[hcp[0]+0.97*HW[0], hcp[1]+0.97*HW[1]-1.29*S*hrw];
+    v+='<line '+fr+' x1="'+S0[0].toFixed(1)+'" y1="'+(S0[1]+sth*0.4).toFixed(1)+'" x2="'+ear[0].toFixed(1)+'" y2="'+ear[1].toFixed(1)+'"/>';
+    v+='<polygon '+st+' points="'+P2(S0)+' '+P2(S1)+' '+P2([S1[0],S1[1]+sth])+' '+P2([S0[0],S0[1]+sth])+'"/>';
+  }
+  v+='</g>';
+  if(age==='older'){                                                 // silver beard along the jaw, under the chin
+    const bo=harc(209*DG,334*DG,1.43,8), bi=harc(334*DG,209*DG,0.7,8).replace('M','L');
+    v+='<g style="color:#98a2ab"><path class="v" style="fill:#98a2ab" d="'+bo+bi+'Z"/></g>';   // solid silver beard
+  }
+  if(!basic && Math.random()<0.22){                                  // chain: metal, drop, strands and pendant all vary
+    const metal=pick(['#f7c948','#f7c948','#c9d3da','#e8c9a0','#f0a58f']);   // gold x2, silver, pale gold, rose gold
+    const ccx=0.95+dx+lean*0.3, dip=R(0.55,0.95);
+    v+='<g style="color:'+metal+'">';
+    v+=vbez([0.5+dx+lean*0.3,-1.1,bodT-0.06],[ccx,-1.1,bodT-0.25-dip],[1.4+dx+lean*0.3,-1.1,bodT-0.06],'v');
+    if(Math.random()<0.25) v+=vbez([0.58+dx+lean*0.3,-1.1,bodT-0.06],[ccx,-1.1,bodT-0.2-dip*0.55],[1.32+dx+lean*0.3,-1.1,bodT-0.06],'v'); // double strand
+    const pend=pick(['circle','circle','diamond','triangle','bar','none']);
+    if(pend!=='none'){
+      const pcls=Math.random()<0.55?'vsolid':'v';                    // solid metal or outline
+      const pr=(2.4+R(0,1.8))*VS;
+      const pp=iso(...T([ccx,-1.1,bodT-0.06-(0.19+dip)/2-0.02]));
+      const py=pp[1]+pr*1.1;                                         // hangs just under the chain's dip
+      if(pend==='circle')       v+='<circle class="'+pcls+'" cx="'+pp[0].toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+pr.toFixed(1)+'"/>';
+      else if(pend==='diamond') v+='<polygon class="'+pcls+'" points="'+P2([pp[0],py-pr])+' '+P2([pp[0]+pr*0.8,py])+' '+P2([pp[0],py+pr])+' '+P2([pp[0]-pr*0.8,py])+'"/>';
+      else if(pend==='triangle')v+='<polygon class="'+pcls+'" points="'+P2([pp[0]-pr,py-pr*0.7])+' '+P2([pp[0]+pr,py-pr*0.7])+' '+P2([pp[0],py+pr])+'"/>';
+      else                      v+='<polygon class="'+pcls+'" points="'+P2([pp[0]-pr*1.2,py-pr*0.4])+' '+P2([pp[0]+pr*1.2,py-pr*0.4])+' '+P2([pp[0]+pr*1.2,py+pr*0.4])+' '+P2([pp[0]-pr*1.2,py+pr*0.4])+'"/>';
+    }
     v+='</g>';
   }
 
@@ -1951,7 +2110,7 @@ function buildVisitor(target,instr,dx){
   target.innerHTML=v;
   target.style.color=col;
   const headAnchor=iso(...T([headCX,-1.1,headZ+shoulderRise*0.25+1.05]));
-  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, micPh, headAnchor};
+  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, age, micPh, headAnchor};
 }
 vis1=buildVisitor(gVis,'on the mic',0);              // pre-built so the viewBox
 vis2=buildVisitor(gVis2,'on acoustic',-2.35); // reserves space for a duo
@@ -1959,7 +2118,7 @@ const world=document.getElementById('world');
 let kickE=0,snareE=0,hatE=0;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const SPK=[[3.6,3.45,3.9],[10.0,3.45,3.9],[8.75,-3.4,5.45],[4.85,-2.8,4.15]]; // last two: rear + lower-left backpack speaker cones
+const SPK=[[3.6,3.45,3.9],[10.0,3.45,3.9],[8.75,-3.4,5.45]]; // rig speakers + rear backpack cone; the lower-left cone spawned notes that drifted up under a.r.i.'s headset mic
 const keyEls=[...Array(9)].map((_,i)=>document.getElementById('key'+i));
 const gWheelSpin=document.getElementById('gWheelSpin');
 const WC=iso(3.3,1.2,ZT+0.02);                 // wheel center (screen)
@@ -2130,6 +2289,8 @@ function start(){
 }
 function stop(){
   playing=false;
+  const chatEl=document.getElementById('chat');
+  if(chatEl) chatEl.classList.remove('on');
   clearInterval(timerId);
   clearTimeout(visitorTimer);
   clearTimeout(revTimer);
@@ -2162,7 +2323,8 @@ function resume(){
   pbicon.setAttribute('d','M8 5 v14 M16 5 v14');
   if('mediaSession' in navigator) navigator.mediaSession.playbackState='playing';
 }
-document.getElementById('stage').addEventListener('click',()=>{ if(!started) start(); });
+const stageEl=document.getElementById('stage');
+stageEl.addEventListener('click',()=>{ if(!started){ start(); stageEl.style.cursor='default'; } });   // the hand only invites the first tap
 btn.addEventListener('click',e=>{
   e.stopPropagation();
   if(!started){start();return;}
@@ -2261,6 +2423,59 @@ themeBtn.addEventListener('click',e=>{
 });
 applyTheme();
 
+/* ---------- fictional stream chat — pure garnish, desktop only. handles are invented, not real users ---------- */
+const chatLogEl=document.getElementById('chatLog');
+const chatOn=()=>innerWidth>=1280 && !!chatLogEl;
+const CHAT_USERS=[...Array(22)].map(()=>({nick:fakeHandle().replace(/^@/,''), ci:RI(0,5)}));
+const CHAT_HYPE=['this beat tho','yoooo','vibes','turn it up','no skips tonight','who produced this','bass go crazy','on repeat','lowkey a banger','grid check','first time here, love this','realest robot in nyc','headphone warning lol','loopin this forever','sheeeesh','clean mix','it do be knockin','w stream','certified street signal','nodding at my desk rn','somebody clip this','ok the drums','my neighbors hate me rn','volume maxed, no regrets','this from a robot??','street signal strong tonight','caught it live for once','whoever tuned that snare, thank u','the pole sign is my fav character','walking playlist material','stuck in my head already','crispy hats','sub bass wobbling my desk','nyc energy fr','need this on vinyl','robot got taste','how is this free','the groove is criminal','late night grid walks hit different','yo the keys tho','drums are talking to me','transitions seamless fr','been here since track 001','average night on the grid (elite)','my dog is vibing too','headset mic stays iconic','someone get this bot a residency','tape hiss of the future','wait for the drop','city soundtrack fr'];
+const CHAT_FIRE=['\ud83d\udd25','\ud83d\udd25\ud83d\udd25','\ud83d\udcaf','\ud83c\udfa7','\ud83e\udd16'];
+let chatPrev={trackNo:0, phase:'', sing:false, batt:false, v2:false};
+function chatPush(user,txt){
+  if(!chatOn()) return;
+  const d=document.createElement('div'); d.className='chatMsg';
+  const nk=document.createElement('span'); nk.className='nick';
+  nk.style.color=visPalette()[user.ci%visPalette().length];
+  nk.textContent=user.nick;
+  d.appendChild(nk); d.appendChild(document.createTextNode(txt));
+  chatLogEl.appendChild(d);
+  while(chatLogEl.children.length>16) chatLogEl.firstChild.remove();
+  requestAnimationFrame(()=>d.classList.add('in'));
+}
+const chatSay=txt=>chatPush(pick(CHAT_USERS),txt);
+setInterval(()=>{
+  if(!chatOn()||!playing||!started) return;
+  if(batteryIntermission!==chatPrev.batt){
+    chatPrev.batt=batteryIntermission;
+    if(batteryIntermission){ chatSay(pick(['rip battery','swap it swap it','classic. every stream','hydration break','the ritual','pack game weak today lol','intermission!!','stretch break y\'all','he carries spares dw','most reliable part of the show'])); return; }
+  }
+  if(track && trackNo!==chatPrev.trackNo){
+    chatPrev.trackNo=trackNo;
+    if(Math.random()<0.7){ chatSay(pick(['new one!','ok '+track.genre,'this '+track.genre+' hits','tempo!','\u201c'+track.name+'\u201d goes hard',track.bpm+' bpm sheesh','oh we in '+track.keyName+' now','track '+String(trackNo).padStart(3,'0')+' already??','name of the night: '+track.name,'this one\'s for the walkers','instant classic','the '+track.genre+' arc continues','ooh new flip'])); return; }
+  }
+  const phase=visitor?visitorPhase:'';
+  if(phase!==chatPrev.phase){
+    chatPrev.phase=phase;
+    if(phase==='requesting'){ chatSay(pick(['guest pulled up','oh? who this','request incoming','let them cook','walk-ups are the best part','a wild guest appears','they look nervous lol','block talent showing up','yo grant the request!!'])); return; }
+    if(phase==='performing'){ chatSay(pick(['guest '+(vis1?vis1.instr:'')+'!!','they got bars','collab stream??','crowd forming fr','duo of the year','ok they can PLAY','street auditions open apparently','somebody sign them','a.r.i. found a friend','chemistry is real'])); return; }
+  }
+  if(visitor2!==chatPrev.v2){ chatPrev.v2=visitor2; if(visitor2){ chatSay('CYPHER??'); return; } }
+  if(ariSing!==chatPrev.sing){
+    chatPrev.sing=ariSing;
+    if(ariSing){ chatSay(pick(['a.r.i. on the mic!!','bars incoming','he sings too??','MIC CHECK','vocal mode activated','robot bars >>>','the headset finally earning its keep','he\'s feeling it tonight','lore drop: he can sing'])); return; }
+  }
+  if(Math.random()<0.10) chatSay(Math.random()<0.25?pick(CHAT_FIRE):pick(CHAT_HYPE));
+},1100);
+/* the chat would steal focus if it were always there — it drifts in every other location change, then bows out */
+let chatLocCount=0, chatHideTimer=null;
+function flashChat(){
+  const el=document.getElementById('chat');
+  if(!el||!chatOn()||!playing) return;
+  el.classList.add('on');
+  clearTimeout(chatHideTimer);
+  chatHideTimer=setTimeout(()=>el.classList.remove('on'), R(18000,28000));
+}
+function chatOnLocation(){ if(++chatLocCount%2===0) flashChat(); }
+
 
 /* ---------- weather: a small, quiet text line in the empty corner ---------- */
 const WX_LABEL={
@@ -2274,9 +2489,10 @@ const WX_LABEL={
   95:'thunderstorm', 96:'thunderstorm', 99:'thunderstorm',
 };
 const WX_COLOR={
-  clear:'#e8c14c', 'mostly clear':'#e8c14c', 'partly cloudy':'#b8c4cc', overcast:'#9aa4ad',
+  clear:'#8fd4f0', 'mostly clear':'#a5d8ec',              // clear sky = light blue
+  'partly cloudy':'#b8c4cc', overcast:'#9aa4ad',
   fog:'#c7ccd1',
-  drizzle:'#5aa9e6', 'freezing drizzle':'#5aa9e6', rain:'#5aa9e6', 'freezing rain':'#5aa9e6', 'rain showers':'#5aa9e6',
+  drizzle:'#4a94e0', 'freezing drizzle':'#4a94e0', rain:'#4a94e0', 'freezing rain':'#4a94e0', 'rain showers':'#4a94e0',  // rain = deeper blue
   snow:'#e8ecef', 'snow showers':'#e8ecef',
   thunderstorm:'#b98bff',
 };
@@ -2314,7 +2530,7 @@ async function loadWeather(){
     const c=Math.round(cur.temperature_2m);
     const f=Math.round(c*9/5+32);
     const color=WX_COLOR[label]||'inherit';
-    wxWeatherHTML=`nyc ${f}°f / ${c}°c · <span style="color:${color}">${label}</span>`;
+    wxWeatherHTML=`nyc ${f}°f / ${c}°c · <span class="wxCond" style="text-decoration-color:${color}">${label}</span>`;
     renderWxLine();
   }catch(e){ /* offline, blocked, or unavailable — weather part just stays empty */ }
 }
