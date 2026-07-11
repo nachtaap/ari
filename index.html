@@ -57,6 +57,9 @@
     --glow1:rgba(62,232,222,.45);
     --glow2:rgba(120,90,255,.14);
     --btng:rgba(62,232,222,.25);
+    --trackcyan:#52c8c0;    /* dark-mode-only: a good bit lighter than cyan-dim for track time + meta */
+    --signgreen:#58cc8c;    /* dark-mode-only: lighter street-sign green */
+    --livetext:#f4f7f7;     /* LIVE overlay text — bright on the dark stage */
   }
   body.light{
     --bg:#f2f4f6;
@@ -80,6 +83,9 @@
     --glow1:rgba(11,156,147,.20);
     --glow2:rgba(116,82,232,.08);
     --btng:rgba(11,156,147,.18);
+    --trackcyan:#0a7a72;   /* light mode: darker teal so track time/meta clears AA */
+    --signgreen:var(--nyc-green-dim);
+    --livetext:#c81e2a;    /* light mode: dark red so LIVE stays readable on light bg */
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%; background:var(--bg)}
@@ -124,7 +130,15 @@
   .signblade{stroke:var(--nyc-green); fill:none; stroke-width:1.35; stroke-linejoin:round; stroke-linecap:round}
   .signmark{stroke:var(--nyc-green-dim); fill:none; stroke-width:1.05; stroke-linejoin:round; stroke-linecap:round; opacity:.75}
   .bg {stroke:var(--muted); fill:none; stroke-width:.9;   stroke-linejoin:round; stroke-linecap:round; opacity:.5}
-  .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--nyc-green-dim); stroke:none; letter-spacing:.12em; opacity:.9}
+  .sgntxt{font-family:'IBM Plex Mono',monospace; font-size:9px; fill:var(--signgreen); stroke:none; letter-spacing:.12em; opacity:.9}
+  /* cameraman-robot cutscene actor */
+  .rbShadow{fill:#000; opacity:.32}
+  .rbBatt{stroke:var(--signgreen); fill:none; stroke-width:1.9; stroke-linejoin:round; stroke-linecap:round}
+  .rbFill{fill:var(--signgreen); opacity:.20; stroke:none}
+  .rbBolt{fill:var(--signgreen); opacity:.9; stroke:none}
+  .rbDot{fill:var(--magenta); stroke:none}
+  .rbRec{fill:#ff2638; stroke:none; animation:recblink 1s steps(1) infinite}
+  .rbStreak{stroke:var(--cyan); stroke-width:1.4; stroke-linecap:round; opacity:0}
   #followBubble{
     position:fixed; left:0; top:0; z-index:7; pointer-events:none;
     max-width:min(84vw,380px);
@@ -183,7 +197,7 @@
   }
   header h1 a:hover{opacity:.8}
   header p{
-    margin-top:4px; font-size:10px; letter-spacing:.32em; color:var(--cyan-dim);
+    margin-top:4px; font-size:10px; letter-spacing:.32em; color:var(--magenta);
   }
   header .tribute{
     margin-top:10px; font-size:13px; letter-spacing:.12em; color:var(--support);
@@ -191,7 +205,7 @@
   }
   #hint{
     position:fixed; left:30px; right:30px; top:24%; bottom:auto; transform:none;
-    font-size:11px; letter-spacing:.3em; color:var(--cyan-dim);
+    font-size:11px; letter-spacing:.3em; color:var(--magenta);
     animation:pulse 2.6s ease-in-out infinite; z-index:5; pointer-events:none;
     text-transform:uppercase; white-space:normal; text-align:center;
     overflow-wrap:break-word;
@@ -203,7 +217,7 @@
     color:var(--support); text-transform:uppercase; text-align:left;
     opacity:0; transition:opacity 1.4s ease;
   }
-  #wxText.show{opacity:.55}
+  #wxText.show{opacity:.9}
   .wxCond{text-decoration:underline; text-underline-offset:3px; text-decoration-thickness:1.5px}
   #trackinfo{
     position:fixed; left:30px; right:30px; bottom:30px; z-index:5; pointer-events:none;
@@ -220,9 +234,9 @@
   #trackNumTime,#trackname,#trackmeta,#visitorline,#cypherline{max-width:100%}
   #trackNumTime{letter-spacing:.18em; white-space:nowrap}
   #trackNumTime .tnNum{color:var(--support); font-size:13px}
-  #trackNumTime .tnTime{color:var(--cyan-dim); font-size:13px}
+  #trackNumTime .tnTime{color:var(--trackcyan); font-size:13px}
   #trackname{color:var(--text); font-size:13px; letter-spacing:.22em}
-  #trackmeta{color:var(--cyan-dim)}
+  #trackmeta{color:var(--trackcyan)}
   #visitorline{color:var(--magenta); opacity:0; transition:opacity .9s}
   #visitorline.on{opacity:1}
   #cypherline{
@@ -238,7 +252,7 @@
     opacity:0; transition:opacity .28s ease, transform .28s ease;
     font-family:'Space Grotesk',sans-serif; font-weight:600;
     font-size:clamp(28px,8.5vw,76px); line-height:1; letter-spacing:.12em;
-    color:#f4f7f7; text-shadow:0 0 12px rgba(255,42,54,.55),0 0 28px rgba(62,232,222,.18);
+    color:var(--livetext); text-shadow:0 0 12px rgba(255,42,54,.55),0 0 28px rgba(62,232,222,.18);
     white-space:nowrap; text-transform:uppercase;
   }
   #liveRecording.on{opacity:1; transform:translate(-50%,0)}
@@ -261,7 +275,7 @@
   }
   #batterySub{
     font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.08em;
-    color:var(--muted);
+    color:var(--support);
   }
   @keyframes liveblink{50%{opacity:.18}}
   #playbtn{
@@ -679,6 +693,50 @@ s+='</g>';
 /* ---------- close gAri; visitors were declared before it ---------- */
 s+='</g>';
 
+/* cameraman-robot: rolls across during the battery swap. Local origin = wheel centre,
+   faces left (spare battery led out front). Hidden until the cutscene runs. */
+s+=`<g id="camBot" style="display:none">
+  <ellipse class="rbShadow" cx="0" cy="48" rx="74" ry="12"/>
+  <g id="camBotStreak">
+    <line class="rbStreak" x1="70" y1="-70" x2="150" y2="-70"/>
+    <line class="rbStreak" x1="80" y1="-30" x2="168" y2="-30"/>
+    <line class="rbStreak" x1="66" y1="12"  x2="140" y2="12"/>
+  </g>
+  <g id="camBotBatt" transform="translate(-98,-70)">
+    <rect class="rbBatt" x="-72" y="-48" width="122" height="96" rx="13"/>
+    <rect class="rbBatt" x="-86" y="-18" width="16" height="36" rx="5"/>
+    <rect class="rbFill" x="-60" y="-36" width="30" height="72" rx="4"/>
+    <rect class="rbFill" x="-24" y="-36" width="30" height="72" rx="4"/>
+    <rect class="rbFill" x="12"  y="-36" width="26" height="72" rx="4"/>
+    <polygon class="rbBolt" points="4,-30 -14,6 -1,6 -8,34 20,-8 4,-8 12,-30"/>
+  </g>
+  <line class="c" x1="-30" y1="-74" x2="-72" y2="-70"/>
+  <line class="c" x1="-24" y1="-46" x2="-66" y2="-44"/>
+  <rect class="c" x="-36" y="-142" width="82" height="118" rx="16"/>
+  <line class="cd" x1="-24" y1="-64" x2="34" y2="-64"/>
+  <line class="cd" x1="-24" y1="-50" x2="34" y2="-50"/>
+  <circle class="rbDot" cx="26" cy="-120" r="5"/>
+  <line class="c" x1="4" y1="-142" x2="-4" y2="-162"/>
+  <g transform="translate(-8,-176) rotate(-8)">
+    <rect class="p" x="-38" y="-26" width="80" height="50" rx="9"/>
+    <polyline class="p" points="-38,-15 -58,-11 -58,11 -38,15"/>
+    <circle class="p"  cx="-40" cy="0" r="14"/>
+    <circle class="pd" cx="-40" cy="0" r="7"/>
+    <polyline class="pd" points="-8,-26 -8,-40 26,-40 26,-26"/>
+    <circle class="rbRec" cx="28" cy="-6" r="4"/>
+  </g>
+  <line class="cd" x1="-30" y1="-26" x2="-4" y2="2"/>
+  <line class="cd" x1="34"  y1="-26" x2="6"  y2="2"/>
+  <g id="camBotWheel">
+    <circle class="c"  cx="0" cy="6" r="46"/>
+    <circle class="cd" cx="0" cy="6" r="30"/>
+    <circle class="c"  cx="0" cy="6" r="6"/>
+    <line class="cd" x1="0"   y1="-40" x2="0"  y2="52"/>
+    <line class="cd" x1="-46" y1="6"   x2="46" y2="6"/>
+    <line class="cd" x1="-32" y1="-26" x2="32" y2="38"/>
+    <line class="cd" x1="-32" y1="38"  x2="32" y2="-26"/>
+  </g>
+</g>`;
 document.getElementById('world').innerHTML=s;
 
 /* ---------- the reverse shot: the cameraman ---------- */
@@ -833,6 +891,7 @@ const GENRES={
     hat:'rolls', hatP:[.85,.95],
     bassPat:{b:[0],c:[3,6,10,11],p:.4}, bass:'808', pad:'saw', ext:false,
     progs:[[0],[0,5],[0,6]],
+    kick808:true, cowbell:true,
     kd:{f0:120,f1:36,d:.4}},
   'jerk':{
     bpm:[96,106], swing:[.02,.05],
@@ -840,6 +899,7 @@ const GENRES={
     hat:'eights', hatP:[.45,.7],
     bassPat:{b:[0,7],c:[10,11],p:.3}, bass:'saw', pad:'keys', ext:false,
     progs:[[0,5],[0],[0,3]],
+    kick808:true, cowbell:true,
     kd:{f0:150,f1:45,d:.18}},
   'drum n bass':{
     bpm:[168,176], swing:[0,.02],
@@ -858,7 +918,28 @@ const GENRES={
     kick:{b:[0,4,8,12],c:[],p:0}, snare:{b:[4,12],c:[],p:0}, clap:true,
     hat:'offbeat', hatP:[.9,1],
     bassPat:{b:[2,6,10,14],c:[],p:0}, bass:'saw', pad:'stab', ext:false,
+    cowbell:true,
     kd:{f0:150,f1:52,d:.16}},
+};
+
+/* drum & bass sub-styles — distilled from Attack Magazine's Beat Dissected (raw dnb:
+   kick on 1 & 3+, snares on 2 & 4, 168-178bpm, swung 16ths), Matt Chapman's dnb pattern
+   bank (ghost snare on 2a, early/late snare, front-loaded, dotted, minimal), Studio
+   Brootle's programming guide (ghost snares, 2-bar loops with a varied B bar, thin the
+   4th bar, velocity-humanised hats, doubled end-of-bar hat, the late-snare stumble) and
+   Red Bull's A-Z of dnb sub-genres (jump up, liquid, techstep, jungle, halftime).
+   steps are 16ths: 0='1', 2='1+', 4='2', 6='2+', 7='2a', 8='3', 10='3+', 12='4', 13='4e', 14='4+', 15='4a' */
+const DNB_STYLES={
+  classic:      {bpm:[170,176], swing:[.02,.06], kickA:[0,10],   kickB:[0,2,10,13], snare:[4,12], ghost:[7],      hats:[2,6,8,14],  pad:'saw'},
+  rolling:      {bpm:[172,178], swing:[.02,.05], kickA:[0,7,10], kickB:[0,2,10,13], snare:[4,12], ghost:[15],     hats:[2,8,14],    pad:'saw'},
+  'jump up':    {bpm:[172,180], swing:[0,.03],   kickA:[0,6],    kickB:[0,6,13],    snare:[4,12], ghost:[7],      hats:[2,6,10,14], pad:'stab', bass:'saw'},
+  liquid:       {bpm:[168,174], swing:[.04,.08], kickA:[0,10],   kickB:[0,10,14],   snare:[4,12], ghost:[7,15],   hats:[2,6,8,14],  pad:'keys', late:true},
+  techstep:     {bpm:[170,176], swing:[0,.02],   kickA:[0,10],   kickB:[0,10,13],   snare:[4,14], ghost:[7],      hats:[2,6,10,14], pad:'saw',  bass:'saw', scale:'phryg'},
+  'early snare':{bpm:[168,176], swing:[.02,.05], kickA:[0,14],   kickB:[0,6,14],    snare:[4,10], ghost:[13],     hats:[2,6,12,14], pad:'saw'},
+  jungle:       {bpm:[166,174], swing:[.04,.08], kickA:[0,10],   kickB:[0,2,10],    snare:[4,12], ghost:[7,9,15], hats:[2,6,14],    pad:'saw'},
+  dotted:       {bpm:[168,176], swing:[0,.03],   kickA:[0,6],    kickB:[0,6,10],    snare:[12],   ghost:[7],      hats:[0,2,4,6,8,10,14], pad:'saw'},
+  minimal:      {bpm:[166,172], swing:[.03,.06], kickA:[0],      kickB:[0,13],      snare:[4,12], ghost:[],       hats:[8],         pad:'keys', late:true},
+  halftime:     {bpm:[168,176], swing:[0,.03],   kickA:[0,6],    kickB:[0,6,11],    snare:[8],    ghost:[11],     hats:[2,6,10,14], pad:'saw',  bass:'808'},
 };
 
 let ctx=null, master=null, delayNode=null, delayGain=null;
@@ -1107,9 +1188,11 @@ const SECT={
 function newTrack(forced){
   const genre=forced||pick(Object.keys(GENRES));
   const g=GENRES[genre];
-  const bpm=RI(g.bpm[0],g.bpm[1]);
+  const subStyle=genre==='drum n bass'?pick(Object.keys(DNB_STYLES)):null;
+  const st=subStyle?DNB_STYLES[subStyle]:null;
+  const bpm=RI((st?st.bpm:g.bpm)[0],(st?st.bpm:g.bpm)[1]);
   const root=RI(36,48);
-  const scaleName=Math.random()<0.62?'minor':pick(['dorian','major','phryg','minor']);
+  const scaleName=(st&&st.scale)?st.scale:(Math.random()<0.62?'minor':pick(['dorian','major','phryg','minor']));
   const secs=R(72,168);
   const bars=Math.max(28,Math.round(secs*bpm/240));
   const prog=pick(g.progs||[[0,5],[0,3],[0,5,6,4],[0,2,5,4],[0,3,5,4],[0,6],[0,4,5,3],[0,3,4,0],[0,6,3,4],[0,5,3,4]]);
@@ -1119,11 +1202,19 @@ function newTrack(forced){
     leadWave: pick(['square','pulse','saw']),   // character layer of the mic synth varies per track
     scale: SCALES[scaleName], scaleName,
     sections: buildArrangement(bars),
-    kick : genPattern(g.kick.b,g.kick.c,g.kick.p),
-    snare: genPattern(g.snare.b,g.snare.c,g.snare.p),
+    kick : st?genPattern(st.kickA,[],0):genPattern(g.kick.b,g.kick.c,g.kick.p),
+    kickB: st?genPattern(st.kickB,[],0):null,          // dnb: varied second bar of the 2-bar loop
+    snare: st?genPattern(st.snare,[],0):genPattern(g.snare.b,g.snare.c,g.snare.p),
+    ghost: (st&&st.ghost.length)?genPattern(st.ghost,[],0):null,
+    hatSteps: st?genPattern(st.hats,[],0):null,
+    tickHats: (genre==='trap'||genre==='jerk') && Math.random()<0.5,   // ~half of trap/jerk tracks swap closed hats for 808 ticks
+    subStyle,
+    padType:(st&&st.pad)?st.pad:g.pad,
+    bassType:(st&&st.bass)?st.bass:g.bass,
+    lateSnare:!!(st&&st.late),
     hatP : R(g.hatP[0],g.hatP[1]),
     bassP: genPattern(g.bassPat.b,g.bassPat.c,g.bassPat.p),
-    swing: R(g.swing[0],g.swing[1]),
+    swing: R((st?st.swing:g.swing)[0],(st?st.swing:g.swing)[1]),
     name : nextTrackName(),
     keyName: KEYS[root%12]+' '+scaleName,
     voiceLead: null,          // remembered chord voicing (layer 2)
@@ -1145,7 +1236,7 @@ function updateMeta(sec){
   const m=Math.floor(sec/60), ss=String(Math.floor(sec%60)).padStart(2,'0');
   const sc=(playing&&track.sections)?' · '+sectionAt(bar):'';
   document.getElementById('trackNumTime').innerHTML=`<span class="tnNum">track ${String(trackNo).padStart(3,'0')}</span> · <span class="tnTime">${m}:${ss}</span>`;
-  document.getElementById('trackmeta').textContent=`${track.genre} · ${track.keyName} · ${track.bpm} bpm${sc}`;
+  document.getElementById('trackmeta').textContent=`${track.genre}${track.subStyle?' · '+track.subStyle:''} · ${track.keyName} · ${track.bpm} bpm${sc}`;
 }
 
 /* ---------- instruments ---------- */
@@ -1167,22 +1258,25 @@ function noiseBuf(){
   for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1; return b;
 }
 let NB=null;
-function playSnare(t){
+function playSnare(t,vol){
   NB=NB||noiseBuf();
+  const v=vol==null?1:vol;
+  const ghost=v<0.6;                       // ghost hits sit tighter and slightly pitched up
   const n=ctx.createBufferSource(); n.buffer=NB;
-  const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1900; f.Q.value=0.8;
-  const g=ctx.createGain(); env(t,0.001,0.16,0.5,g);
+  const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=ghost?2400:1900; f.Q.value=0.8;
+  const g=ctx.createGain(); env(t,0.001,ghost?0.09:0.16,0.5*v,g);
   n.connect(f); f.connect(g); g.connect(master);
-  const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=185;
-  const g2=ctx.createGain(); env(t,0.001,0.09,0.3,g2);
+  const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=ghost?222:185;
+  const g2=ctx.createGain(); env(t,0.001,ghost?0.05:0.09,0.3*v,g2);
   o.connect(g2); g2.connect(master);
   n.start(t); n.stop(t+0.2); o.start(t); o.stop(t+0.12);
 }
-function playHat(t,open){
+function playHat(t,open,vol){
+  if(track && track.tickHats && !open){ play808Tick(t,vol); return; }  // 808 ticks stand in for closed hats
   NB=NB||noiseBuf();
   const n=ctx.createBufferSource(); n.buffer=NB;
   const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=7200;
-  const g=ctx.createGain(); env(t,0.001,open?0.22:0.045,0.18,g);
+  const g=ctx.createGain(); env(t,0.001,open?0.22:0.045,0.18*(vol==null?1:vol),g);
   n.connect(f); f.connect(g); g.connect(master);
   n.start(t); n.stop(t+(open?0.25:0.07));
 }
@@ -1201,6 +1295,49 @@ function play808(t,midi,dur){
   o.frequency.exponentialRampToValueAtTime(fr,t+0.045);
   const g=ctx.createGain(); env(t,0.005,dur,0.55,g);
   o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.15);
+}
+/* ---------- TR-808 kit (the real thing, not just the sub) ---------- */
+// classic 808 bass drum with the decay knob turned up: a pitch-swept sine with a
+// long boomy tail, plus a short click transient so the attack still reads
+function play808Kick(t){
+  const o=ctx.createOscillator(); o.type='sine';
+  o.frequency.setValueAtTime(180,t);
+  o.frequency.exponentialRampToValueAtTime(52,t+0.08);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(0.95,t+0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);      // long decay
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+0.66);
+  const c=ctx.createOscillator(); c.type='triangle'; c.frequency.value=1600;
+  const cg=ctx.createGain();
+  cg.gain.setValueAtTime(0.5,t); cg.gain.exponentialRampToValueAtTime(0.0001,t+0.03);
+  c.connect(cg); cg.connect(master); c.start(t); c.stop(t+0.04);
+}
+// the iconic 808 cowbell — two detuned square waves (540 & 800 Hz) through a bandpass
+function play808Cowbell(t,vol){
+  const v=vol==null?0.5:vol;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2640; bp.Q.value=1.1;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(0.22*v,t+0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.32);
+  bp.connect(g); g.connect(master);
+  [540,800].forEach(fq=>{
+    const o=ctx.createOscillator(); o.type='square'; o.frequency.value=fq;
+    o.connect(bp); o.start(t); o.stop(t+0.34);
+  });
+}
+// short 808-style tick — a crisp high-passed blip that can stand in for the closed hat
+function play808Tick(t,vol){
+  const v=vol==null?1:vol;
+  NB=NB||noiseBuf();
+  const n=ctx.createBufferSource(); n.buffer=NB;
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.linearRampToValueAtTime(0.14*v,t+0.0006);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.02);     // very short
+  n.connect(hp); hp.connect(g); g.connect(master); n.start(t); n.stop(t+0.03);
 }
 function playSub(t,midi,dur){
   const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
@@ -1543,16 +1680,32 @@ function scheduleStep(sIdx,t){
   const barsLeftInSect=(()=>{ const s=track.sections.find(x=>x.name===sect); return s?s.end-bar:99; })();
   const fillBar=(barsLeftInSect===1);              // last bar of a section → little fill
 
-  /* drums (scaled by section) */
-  if(track.kick[sIdx] && Math.random()<D.drums){playKick(tt); visQ.push({t:tt,type:'kick'});}
-  if(track.snare[sIdx] && Math.random()<Math.max(D.drums,D.hats)){
-    g.clap?playClap(tt):playSnare(tt);
-    visQ.push({t:tt,type:'snare'});
+  /* drums (scaled by section). dnb runs a 2-bar loop: bar B varies the kicks and
+     every 4th bar thins them, so the break keeps moving (Studio Brootle) */
+  const kp=(track.kickB && bar%2===1)?track.kickB:track.kick;
+  const kickThin=track.kickB && bar%4===3 && sIdx!==0;
+  if(kp[sIdx] && Math.random()<D.drums*(kickThin?0.5:1)){(g.kick808?play808Kick(tt):playKick(tt)); visQ.push({t:tt,type:'kick'});}
+  /* occasional 808 cowbell accent — kept incidental so it stays a spice, not a staple */
+  if(g.cowbell && D.drums>0 && (sIdx===4||sIdx===7||sIdx===10) && Math.random()<0.08){
+    play808Cowbell(tt,R(0.4,0.7)); visQ.push({t:tt,type:'hat'});
   }
+  if(track.snare[sIdx] && Math.random()<Math.max(D.drums,D.hats)){
+    const stt=(track.lateSnare && bar%4===2 && sIdx===12)?tt+s16*0.55:tt;   // the late-snare stumble
+    g.clap?playClap(stt):playSnare(stt);
+    visQ.push({t:stt,type:'snare'});
+  }
+  /* ghost snares — the quiet in-between hits that give dnb its shuffle */
+  if(track.ghost && track.ghost[sIdx] && D.drums>0 && Math.random()<0.75) playSnare(tt,0.32);
   /* hats per genre, gated by section density */
   const hatGate=D.hats;
   if(hatGate>0){
-    if(g.hat==='eights'){
+    if(track.hatSteps){                     // fixed dnb hat placements, velocity-humanised
+      if(track.hatSteps[sIdx] && Math.random()<0.92*hatGate){
+        playHat(tt,false,R(0.45,1));
+        if(sIdx%4===2) visQ.push({t:tt,type:'hat'});
+      }
+      if(sIdx===15 && Math.random()<0.2*hatGate){ playHat(tt,false,0.5); playHat(tt+s16/2,false,0.8); }  // doubled hat pushing into the next bar
+    }else if(g.hat==='eights'){
       if(sIdx%2===0 && Math.random()<track.hatP*hatGate){
         playHat(tt,(sIdx%8===6&&Math.random()<0.4)); visQ.push({t:tt,type:'hat'});
       }
@@ -1576,15 +1729,17 @@ function scheduleStep(sIdx,t){
   /* bass follows the chord root of the moment */
   if(track.bassP[sIdx] && D.bass>0 && Math.random()<D.bass+0.2){
     const bm=track.root-12+(track.scale||MINOR)[rootDeg];
-    if(g.bass==='808')       play808(tt,bm-12,spb*R(0.8,1.6));
-    else if(g.bass==='sub')  playSub(tt,bm-12,s16*R(2,4));
-    else if(g.bass==='round')playRound(tt,bm,s16*R(2,3.5));
-    else                     playBass(tt,bm,s16*R(1.5,3));
+    const bassType=track.bassType||g.bass;
+    if(bassType==='808')       play808(tt,bm-12,spb*R(0.8,1.6));
+    else if(bassType==='sub')  playSub(tt,bm-12,s16*R(2,4));
+    else if(bassType==='round')playRound(tt,bm,s16*R(2,3.5));
+    else                       playBass(tt,bm,s16*R(1.5,3));
     track.lastBass=bm;
   }
   /* harmony — voice-led, scaled by section */
   if(D.harm>0){
-    if(g.pad==='stab'){
+    const padType=track.padType||g.pad;
+    if(padType==='stab'){
       if(sIdx%4===2 && Math.random()<0.85*D.harm){
         playStab(tt,voiceChord(deg));
         visQ.push({t:tt,type:'stab'});
@@ -1596,7 +1751,7 @@ function scheduleStep(sIdx,t){
     }else if(sIdx===0 && bar%2===0){
       const notes=voiceChord(deg);
       const dur = (sect==='break') ? spb*8*1.1 : spb*8*0.95;   // pads breathe in the breakdown
-      g.pad==='keys'?playKeys(tt,notes,dur):playPad(tt,notes,dur);
+      padType==='keys'?playKeys(tt,notes,dur):playPad(tt,notes,dur);
       visQ.push({t:tt,type:'chord'});
       for(let i=0;i<8;i++) faderTarget[i]=R(0,1);
     }
@@ -1707,16 +1862,71 @@ function finishBatterySwap(){
   trackStart=t+0.05; audioStart=t+0.05;
   if(typeof renderWxLine==='function') renderWxLine();
 }
+/* ---- battery-swap cutscene: A.R.I. rolls off, the cameraman robot rolls by with a
+   fresh battery and pauses mid-stage for the handoff, then A.R.I. rolls back on ---- */
+const CS={aOut:850, gap:120, roll:3200, pause:700, gap2:120, aIn:1000, scale:1.0, bob:8, groundY:78};
+let cutsceneActive=false, csT0=0, csFinished=false, csVB=null;
+let camBot=null, camBotWheel=null, camBotStreaks=null;
+const csEase=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+function csWithPause(rp,pf){
+  if(pf<=0) return rp;
+  const half=(1-pf)/2;
+  if(rp<half) return (rp/half)*0.5;
+  if(rp<half+pf) return 0.5;
+  return 0.5+((rp-(half+pf))/half)*0.5;
+}
+function startCutscene(){
+  camBot=camBot||document.getElementById('camBot');
+  camBotWheel=camBotWheel||document.getElementById('camBotWheel');
+  camBotStreaks=camBotStreaks||[...document.querySelectorAll('#camBotStreak .rbStreak')];
+  if(!camBot || reduceMotion){ setTimeout(finishBatterySwap, reduceMotion?1400:0); return; }
+  const vb=sceneEl.viewBox.baseVal;
+  csVB={x:vb.x, w:vb.width};
+  csT0=performance.now(); csFinished=false; cutsceneActive=true;
+}
+function updateCutscene(now){
+  const t=now-csT0;
+  const {aOut,gap,roll,pause,gap2,aIn,scale,bob,groundY}=CS;
+  const rStart=aOut+gap, rEnd=rStart+roll, aInStart=rEnd+gap2, total=aInStart+aIn;
+  const GY=groundY-52*scale;
+  const ARIOUT=csVB?csVB.w*0.55:520;
+  // A.R.I. exits to the left, then rolls back
+  let ax=0, aop=1;
+  if(t<aOut){ const p=csEase(t/aOut); ax=-ARIOUT*p; aop=1-p; }
+  else if(t<aInStart){ ax=-ARIOUT; aop=0; }
+  else if(t<total){ const p=csEase((t-aInStart)/aIn); ax=-ARIOUT*(1-p); aop=p; }
+  gAri.style.transform=`translate(${ax.toFixed(1)}px,0)`;
+  gAri.style.opacity=aop.toFixed(3);
+  // robot crosses right -> left with a pause mid-stage
+  const show=(t>=rStart && t<=rEnd);
+  camBot.style.display=show?'':'none';
+  if(show){
+    let rp=(t-rStart)/roll;
+    const pf=pause/roll;
+    const paused=(rp>=(1-pf)/2 && rp<=(1-pf)/2+pf && pf>0);
+    rp=csWithPause(rp,pf);
+    const sx=csVB.x+csVB.w+220, ex=csVB.x-220;
+    const rx=sx+(ex-sx)*rp;
+    const by=paused?Math.sin(t/260)*2:Math.sin(t/95)*bob;
+    camBot.setAttribute('transform',`translate(${rx.toFixed(1)},${(GY+by).toFixed(1)}) scale(${scale})`);
+    if(camBotWheel) camBotWheel.setAttribute('transform',`rotate(${(rx/46*57.2958).toFixed(1)} 0 6)`);
+    const so=paused?0:0.5; camBotStreaks.forEach((el,i)=>el.style.opacity=(so*(1-i*0.22)).toFixed(2));
+  }
+  if(!csFinished && t>=aInStart){ csFinished=true; finishBatterySwap(); }   // music + new track return as A.R.I. rolls back
+  if(t>=total){
+    cutsceneActive=false;
+    camBot.style.display='none';
+    gAri.style.opacity=1; gAri.style.transform='';   // hand control back to the walk loop
+  }
+}
 function runBatterySwap(){
   stopAriSing();
   batteryIntermission=true;
   const t=ctx.currentTime;
   master.gain.setValueAtTime(master.gain.value,t);
   master.gain.linearRampToValueAtTime(0.0001,t+0.8);
-  document.getElementById('batterySub').textContent=pick(BATTERY_SUBS);
-  setTimeout(()=>document.getElementById('batteryScreen').classList.add('on'),500);
   clearTimeout(batteryTimer);
-  batteryTimer=setTimeout(finishBatterySwap,5300);
+  startCutscene();
   if(typeof renderWxLine==='function') renderWxLine();
 }
 
@@ -2158,6 +2368,7 @@ function frame(){
   requestAnimationFrame(frame);
   if(!ctx) return;
   const now=ctx.currentTime;
+  if(cutsceneActive) updateCutscene(performance.now());
   while(visQ.length && visQ[0].t<=now){
     const e=visQ.shift();
     if(now-e.t>0.4) continue;   // stale (we were backgrounded) — skip without firing
@@ -2205,7 +2416,7 @@ function frame(){
       }
     });
   }
-  if(!reduceMotion){
+  if(!reduceMotion && !cutsceneActive){
     gAri.style.transform=`translateY(${(-bob).toFixed(1)}px)`;
     gHead.style.transform=`translateY(${(kickE*4.2).toFixed(1)}px)`;
     gWheel.style.transform=`translateY(${(kickE*1.4).toFixed(1)}px)`;
@@ -2456,7 +2667,7 @@ setInterval(()=>{
   }
   if(track && trackNo!==chatPrev.trackNo){
     chatPrev.trackNo=trackNo;
-    if(Math.random()<0.7){ chatSay(pick(['new one!','ok '+track.genre,'this '+track.genre+' hits','tempo!','\u201c'+track.name+'\u201d goes hard',track.bpm+' bpm sheesh','oh we in '+track.keyName+' now','track '+String(trackNo).padStart(3,'0')+' already??','name of the night: '+track.name,'this one\'s for the walkers','instant classic','the '+track.genre+' arc continues','ooh new flip'])); return; }
+    if(Math.random()<0.7){ chatSay(pick(['new one!','ok '+track.genre,'this '+track.genre+' hits','tempo!','\u201c'+track.name+'\u201d goes hard',track.bpm+' bpm sheesh','oh we in '+track.keyName+' now','track '+String(trackNo).padStart(3,'0')+' already??','name of the night: '+track.name,'this one\'s for the walkers','instant classic','the '+track.genre+' arc continues','ooh new flip'].concat(track.subStyle?[track.subStyle+'!!','oh we in '+track.subStyle+' territory','real heads know '+track.subStyle]:[]))); return; }
   }
   const phase=visitor?visitorPhase:'';
   if(phase!==chatPrev.phase){
