@@ -363,7 +363,7 @@
 <header>
   <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">inspired by ARIatHOME and other beatmakers · version 82</p>
+  <p class="tribute">inspired by beatmakers and ARIatHOME · version 82</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -915,8 +915,10 @@ function initAudio(){
   comp.threshold.value=-16; comp.ratio.value=4;
   master.connect(shelf); shelf.connect(comp);
   /* background playback: route the mix through a hidden <audio> element so
-     iOS/Android keep the stream alive when the app is minimized */
-  if(ctx.createMediaStreamDestination){
+     iOS/Android keep the stream alive when the app is minimized.
+     desktop skips this — Firefox's MediaStream output path crackles under load */
+  const needsBgAudio=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(needsBgAudio && ctx.createMediaStreamDestination){
     streamDest=ctx.createMediaStreamDestination();
     comp.connect(streamDest);
     bgAudioEl=document.createElement('audio');
@@ -1519,6 +1521,10 @@ function voiceChord(deg,centerMidi){
     const target=prev?prev[Math.min(i,prev.length-1)]:center;
     while(m-target>6) m-=12;
     while(target-m>6) m+=12;
+    // anchor to the home register: pure nearest-note voicing climbs an octave
+    // per progression cycle and ends up in the piercing register
+    while(m>center+10) m-=12;
+    while(m<center-10) m+=12;
     return m;
   });
   track.voiceLead=voiced;
