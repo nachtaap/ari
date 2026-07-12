@@ -484,7 +484,26 @@
         text-transform: lowercase;
         filter: drop-shadow(0 0 4px var(--glow1));
       }
-      @keyframes noteRise {
+      @keyframes sleepZRise {
+        0% {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        16% {
+          opacity: 0.9;
+        }
+        78% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-38px);
+        }
+      }
+      .note.sleepz.go {
+        animation: sleepZRise 2.8s ease-in-out forwards;
+      }
+            @keyframes noteRise {
         0% {
           opacity: 0;
           transform: translateY(4px);
@@ -1043,7 +1062,7 @@
           animation-duration: 0.01s;
         }
         .note.sleepz.go {
-          animation-duration: 2.2s;
+          animation-duration: 2.8s;
         }
       }
     </style>
@@ -5683,6 +5702,7 @@
         document.getElementById("followBubble").classList.remove("on");
       }
       let sleepZTimer = null;
+      let sleepZBurstTimers = [];
       function spawnSleepZ() {
         if (playing || !started) return;
         const [hx, hy] = iso(6.68, -0.56, 8.44);
@@ -5697,17 +5717,34 @@
         t.style.pointerEvents = "none";
         t.textContent = "z";
         world.appendChild(t);
-        setTimeout(() => t.remove(), 2300);
+        setTimeout(() => t.remove(), 2900);
+      }
+      function runSleepZBurst() {
+        if (playing || !started) return;
+
+        // A compact cloud of three z's, followed by a real silent rest.
+        sleepZBurstTimers.forEach(clearTimeout);
+        sleepZBurstTimers = [0, 280, 560].map((delay) =>
+          setTimeout(spawnSleepZ, delay),
+        );
+
+        // The cloud lasts a little over three seconds. Then nothing appears
+        // for a random 2–3 seconds, creating a slow breathing-like rhythm.
+        const cloudMs = 3500;
+        const restMs = RI(2000, 3001);
+        sleepZTimer = setTimeout(runSleepZBurst, cloudMs + restMs);
       }
       function startSleepZ() {
-        clearInterval(sleepZTimer);
-        spawnSleepZ();
-        setTimeout(spawnSleepZ, 260);
-        sleepZTimer = setInterval(spawnSleepZ, reduceMotion ? 1800 : 760);
+        stopSleepZ();
+
+        // Begin with a quiet pause before the first sleepy exhale.
+        sleepZTimer = setTimeout(runSleepZBurst, RI(2000, 3001));
       }
       function stopSleepZ() {
-        clearInterval(sleepZTimer);
+        clearTimeout(sleepZTimer);
         sleepZTimer = null;
+        sleepZBurstTimers.forEach(clearTimeout);
+        sleepZBurstTimers = [];
         sceneEl.querySelectorAll(".note.sleepz").forEach((el) => el.remove());
       }
       /* ---------- guest lifecycle ---------- */
@@ -6797,7 +6834,8 @@
         }
         if (!reduceMotion && !cutsceneActive) {
           gAri.style.transform = `translateY(${(-bob).toFixed(1)}px)`;
-          gHead.style.transform = `translateY(${(kickE * 4.2).toFixed(1)}px)`;
+          if (playing)
+            gHead.style.transform = `translateY(${(kickE * 4.2).toFixed(1)}px)`;
           gWheel.style.transform = `translateY(${(kickE * 1.4).toFixed(1)}px)`;
           gArmL.style.transform = `translateY(${(kickE * 2).toFixed(1)}px)`;
           gArmLup.style.transform = `translateY(${(kickE * 3.4).toFixed(1)}px)`;
