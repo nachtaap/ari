@@ -60,6 +60,9 @@
     --trackcyan:#52c8c0;    /* dark-mode-only: a good bit lighter than cyan-dim for track time + meta */
     --signgreen:#58cc8c;    /* dark-mode-only: lighter street-sign green */
     --livetext:#f4f7f7;     /* LIVE overlay text — bright on the dark stage */
+    --ratinggold:#f2c14e;   /* rating control — warm gold, high contrast on dark */
+    --ratinggold-hover:#ffd978;
+    --ratingempty:#5f6875;
   }
   body.light{
     --bg:#f2f4f6;
@@ -86,6 +89,9 @@
     --trackcyan:#0a7a72;   /* light mode: darker teal so track time/meta clears AA */
     --signgreen:var(--nyc-green-dim);
     --livetext:#c81e2a;    /* light mode: dark red so LIVE stays readable on light bg */
+    --ratinggold:#8a5a00;   /* darker gold for strong contrast on light */
+    --ratinggold-hover:#6f4700;
+    --ratingempty:#8b94a3;
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%; background:var(--bg)}
@@ -297,9 +303,13 @@
   #playbtn svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linejoin:round}
   #ratingControl{position:fixed;left:96px;bottom:157px;z-index:6;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease;pointer-events:none}
   #ratingControl.show{opacity:1;transform:none;pointer-events:auto}
-  #ratingToggle,.ratingStar{border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--cyan-dim);transition:color .2s ease,transform .15s ease}
-  #ratingToggle{width:38px;height:38px}
-  #ratingToggle:hover,.ratingStar:hover{color:var(--cyan)}
+  #ratingToggle,.ratingStar{border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:color .2s ease,transform .15s ease,filter .2s ease}
+  #ratingToggle{width:38px;height:38px;color:var(--ratingempty)}
+  #ratingToggle:hover{color:var(--ratinggold-hover)}
+  #ratingToggle.rated{color:var(--ratinggold);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--ratinggold) 55%,transparent))}
+  .ratingStar{color:var(--ratingempty)}
+  .ratingStar:hover,.ratingStar.preview{color:var(--ratinggold-hover)}
+  .ratingStar.active{color:var(--ratinggold);filter:drop-shadow(0 0 4px color-mix(in srgb,var(--ratinggold) 48%,transparent))}
   #ratingToggle:active,.ratingStar:active{transform:scale(.9)}
   #ratingToggle:focus-visible,.ratingStar:focus-visible{outline:2px solid var(--purple);outline-offset:3px;border-radius:50%}
   #ratingToggle svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linejoin:round}
@@ -395,7 +405,7 @@
 <header>
   <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">inspired by ARIatHOME · version 87</p>
+  <p class="tribute">inspired by ARIatHOME · version 89</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
