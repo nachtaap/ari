@@ -118,7 +118,7 @@ rarely, a second guest joins and a cypher forms.
 
 ### Remembering tracks: the pink heart and Echoes
 
-The glowing pink heart is A.R.I.'s one-tap **5★ / remember this track** action.
+The glowing pink heart is A.R.I.'s one-tap **remember this track** action.
 
 When you heart a track, A.R.I. stores the complete musical recipe locally in
 your browser: seed, genre, BPM, key, progression, arrangement, Guest DNA, gear,
@@ -210,7 +210,7 @@ Keep these files together in the same directory:
   effects, greatly expanding the tonal range without adding samples.
 - Moved track generation onto deterministic per-track seeds and attached a
   generator version plus full recipe to every track.
-- Added the local **5★ / remember** system and **Echoes**: hearted tracks can
+- Added the local **remember** system and **Echoes**: hearted tracks can
   influence future tracks in the same genre through controlled inheritance and
   mutation.
 - Expanded drum n bass into ten rhythmically distinct substyles.
