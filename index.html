@@ -60,8 +60,6 @@
     --trackcyan:#52c8c0;    /* dark-mode-only: a good bit lighter than cyan-dim for track time + meta */
     --signgreen:#58cc8c;    /* dark-mode-only: lighter street-sign green */
     --livetext:#f4f7f7;     /* LIVE overlay text — bright on the dark stage */
-    --walltxt:var(--key-dim);  /* wall micro-text — key-dim clears AA on the dark stage */
-    --chathead:var(--cyan-dim);/* chat header — cyan-dim clears AA on the dark stage */
   }
   body.light{
     --bg:#f2f4f6;
@@ -88,8 +86,6 @@
     --trackcyan:#0a7a72;   /* light mode: darker teal so track time/meta clears AA */
     --signgreen:var(--nyc-green-dim);
     --livetext:#c81e2a;    /* light mode: dark red so LIVE stays readable on light bg */
-    --walltxt:#5f6b72;     /* light mode: darker slate so ~4px wall text clears AA */
-    --chathead:#0a7a72;    /* light mode: darker teal so chat header clears AA */
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%; background:var(--bg)}
@@ -126,7 +122,7 @@
   .occface{fill:var(--bg); stroke:none; opacity:.985}
   .legFace{fill:var(--bg); stroke-width:1.25}
   .isoHidden{opacity:.22; stroke-width:.75}
-  .wtxt{font-family:'IBM Plex Mono',monospace; font-size:4.2px; fill:var(--walltxt); stroke:none}
+  .wtxt{font-family:'IBM Plex Mono',monospace; font-size:4.2px; fill:var(--key-dim); stroke:none}
   .key{fill:transparent; transition:fill .22s}
   .key.on{fill:var(--key); fill-opacity:.4; transition:fill .05s}
   .rec{fill:var(--magenta); stroke:none; animation:recblink 1s steps(1) infinite}
@@ -188,6 +184,9 @@
     100%{opacity:0; transform:translateY(-42px)}
   }
   .note.go{animation:noteRise 2.2s ease-out forwards}
+
+
+  /* ---------- brief track feedback from A.R.I. ---------- */
 
   /* ---------- UI ---------- */
   header{position:fixed; top:26px; left:30px; pointer-events:none; z-index:5}
@@ -296,6 +295,20 @@
   #playbtn.show:active{transform:scale(.94)}
   #playbtn:focus-visible{outline:2px solid var(--purple); outline-offset:4px}
   #playbtn svg{width:18px;height:18px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linejoin:round}
+  #ratingControl{position:fixed;left:96px;bottom:157px;z-index:6;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(10px);transition:opacity .8s ease,transform .8s ease;pointer-events:none}
+  #ratingControl.show{opacity:1;transform:none;pointer-events:auto}
+  #ratingToggle,.ratingStar{border:0;background:transparent;padding:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--cyan-dim);transition:color .2s ease,transform .15s ease}
+  #ratingToggle{width:38px;height:38px}
+  #ratingToggle:hover,.ratingStar:hover{color:var(--cyan)}
+  #ratingToggle:active,.ratingStar:active{transform:scale(.9)}
+  #ratingToggle:focus-visible,.ratingStar:focus-visible{outline:2px solid var(--purple);outline-offset:3px;border-radius:50%}
+  #ratingToggle svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linejoin:round}
+  #ratingToggle.rated svg{fill:currentColor}
+  #ratingStars{display:flex;align-items:center;gap:5px;max-width:0;opacity:0;overflow:hidden;pointer-events:none;transition:max-width .28s ease,opacity .22s ease}
+  #ratingControl.open #ratingStars{max-width:180px;opacity:1;pointer-events:auto}
+  .ratingStar{width:26px;height:32px}
+  .ratingStar svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linejoin:round}
+  .ratingStar.active svg,.ratingStar.preview svg{fill:currentColor}
   footer{
     position:fixed; right:30px; top:32px; z-index:5;
     display:flex; align-items:center; gap:10px; justify-content:flex-end;
@@ -328,21 +341,12 @@
   }
   #chat.on{opacity:1}
   #chatHead{
-    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--chathead);
+    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--cyan-dim);
     animation:chatglow 2.8s ease-in-out infinite;
   }
   @keyframes chatglow{
     0%,100%{text-shadow:0 0 3px var(--glow1); opacity:.65}
     50%{text-shadow:0 0 14px var(--glow1); opacity:1}
-  }
-  /* light mode: keep the header fully opaque (the opacity dip would drop it below AA
-     on a light background); pulse only the glow instead */
-  body.light #chatHead{
-    opacity:1; animation:chatglowlight 2.8s ease-in-out infinite;
-  }
-  @keyframes chatglowlight{
-    0%,100%{text-shadow:0 0 3px var(--glow1)}
-    50%{text-shadow:0 0 14px var(--glow1)}
   }
   #chatLog{flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; gap:8px}
   .chatMsg{
@@ -358,6 +362,7 @@
     #trackinfo{left:18px; right:18px; bottom:18px; font-size:10px}
     #hint{left:18px; right:18px; top:auto; bottom:11%; font-size:10px; letter-spacing:.22em}
     #playbtn{left:18px; bottom:130px}
+    #ratingControl{left:82px;bottom:137px}
     footer{right:18px; top:20px}
     #themebtn{width:18px; height:18px}
     #wxText{font-size:11px}
@@ -390,7 +395,7 @@
 <header>
   <h1><a href="https://github.com/nachtaap/A.R.I./blob/main/README.md" target="_blank" rel="noopener">A.R.I.</a></h1>
   <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-  <p class="tribute">inspired by ARIatHOME · version 82</p>
+  <p class="tribute">inspired by ARIatHOME · version 87</p>
   <div id="wxText" aria-hidden="true"></div>
 </header>
 
@@ -425,6 +430,7 @@
 
 <div id="followBubble" aria-hidden="true"><div id="followBubbleText"></div></div>
 
+
 <div id="liveRecording" aria-hidden="true"><span class="dot"></span><span>LIVE RECORDING</span></div>
 
 <div id="batteryScreen" aria-hidden="true">
@@ -440,6 +446,18 @@
 <button id="playbtn" style="display:none" aria-label="play or pause">
   <svg viewBox="0 0 24 24"><path id="pbicon" d="M8 5 L18 12 L8 19 Z"/></svg>
 </button>
+<div id="ratingControl" aria-label="track rating">
+  <button id="ratingToggle" aria-label="rate this track" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg>
+  </button>
+  <div id="ratingStars" role="radiogroup" aria-label="rate this track from 1 to 5 stars">
+    <button class="ratingStar" data-rating="1" role="radio" aria-checked="false" aria-label="1 star"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg></button>
+    <button class="ratingStar" data-rating="2" role="radio" aria-checked="false" aria-label="2 stars"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg></button>
+    <button class="ratingStar" data-rating="3" role="radio" aria-checked="false" aria-label="3 stars"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg></button>
+    <button class="ratingStar" data-rating="4" role="radio" aria-checked="false" aria-label="4 stars"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg></button>
+    <button class="ratingStar" data-rating="5" role="radio" aria-checked="false" aria-label="5 stars"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8 14.8 8.5 21 9.4 16.5 13.8 17.6 20 12 17.1 6.4 20 7.5 13.8 3 9.4 9.2 8.5Z"/></svg></button>
+  </div>
+</div>
 
 
 
@@ -828,6 +846,53 @@ requestAnimationFrame(()=>{
 const R=(a,b)=>a+Math.random()*(b-a);
 const RI=(a,b)=>Math.floor(R(a,b+1));
 const pick=a=>a[RI(0,a.length-1)];
+function hashSeed(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function makeSeed(){const a=new Uint32Array(2);if(globalThis.crypto?.getRandomValues)crypto.getRandomValues(a);else{a[0]=Date.now();a[1]=Math.floor(Math.random()*0xffffffff);}return 'ARI86-'+[...a].map(n=>n.toString(36)).join('-');}
+function withTrackSeed(seed,fn){const oldR=Math.random;Math.random=mulberry32(hashSeed(seed));try{return fn();}finally{Math.random=oldR;}}
+function guestDNA(){return {energy:RI(15,95),warmth:RI(10,95),darkness:RI(5,95),complexity:RI(10,90),curiosity:RI(15,100),chaos:RI(3,85),space:RI(10,95),confidence:RI(10,95)};}
+const ECHO_KEY='ari.echoes.v1';
+function readEchoes(){try{const v=JSON.parse(localStorage.getItem(ECHO_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
+function writeEchoes(list){try{localStorage.setItem(ECHO_KEY,JSON.stringify(list.slice(-100)));}catch(e){}}
+function clampDNA(v){return Math.max(0,Math.min(100,Math.round(v)));}
+function mutateEchoDNA(dna){
+  const source=dna||guestDNA(), amount=R(.10,.22);
+  const out={};
+  for(const [k,v] of Object.entries(source)) out[k]=clampDNA(v+R(-100*amount,100*amount));
+  return out;
+}
+function chooseEchoForGenre(genre){
+  const matches=readEchoes().filter(e=>e&&e.genre===genre&&e.rating===5);
+  if(!matches.length||Math.random()>=.14)return null;
+  return pick(matches);
+}
+function echoGear(source,dna,genre,subStyle){
+  const fresh=chooseGear(dna,genre,subStyle), old=source?.gear||{};
+  const keep=.82;
+  return {
+    drumMachine:old.drumMachine&&Math.random()<keep?old.drumMachine:fresh.drumMachine,
+    bassSynth:old.bassSynth&&Math.random()<keep?old.bassSynth:fresh.bassSynth,
+    padSynth:old.padSynth&&Math.random()<keep?old.padSynth:fresh.padSynth,
+    leadSynth:old.leadSynth&&Math.random()<keep?old.leadSynth:fresh.leadSynth,
+    fxRack:old.fxRack&&Math.random()<keep?old.fxRack:fresh.fxRack
+  };
+}
+const GEAR_DB={
+ drums:{warm:['rounded analog','tape dust','soft studio'],hard:['tight digital','street punch','fm impact'],wild:['broken circuit','metal room','glitch hybrid']},
+ bass:{warm:['deep sub','rubber mono','round analog'],dark:['wide reese','hollow reese','filtered growl'],clean:['clean sine','short 808','plucked mono']},
+ pad:{warm:['tape keys','chorus poly','soft strings'],dark:['shadow wash','hollow choir','filtered air'],digital:['glass cloud','fm mist','neon poly']},
+ lead:{warm:['muted triangle','soft organ','rounded vocal'],dark:['filtered dual','low brass synth','hollow mono'],digital:['fm keys','glass pluck','digital reed']},
+ fx:{warm:['tape room','slow chorus','short echo'],dark:['filtered space','saturated room','mono delay'],clean:['dry studio','small room','gentle stereo']}
+};
+function chooseGear(dna,genre,subStyle){
+ const intensity=(dna.energy+dna.chaos)/2;
+ const drumPool=intensity>68?GEAR_DB.drums.hard:(dna.warmth>60?GEAR_DB.drums.warm:GEAR_DB.drums.wild);
+ const bassPool=dna.darkness>62?GEAR_DB.bass.dark:(dna.warmth>58?GEAR_DB.bass.warm:GEAR_DB.bass.clean);
+ const padPool=dna.warmth>65?GEAR_DB.pad.warm:(dna.darkness>62?GEAR_DB.pad.dark:GEAR_DB.pad.digital);
+ const leadPool=dna.darkness>65?GEAR_DB.lead.dark:(dna.warmth>62?GEAR_DB.lead.warm:GEAR_DB.lead.digital);
+ const fxPool=dna.space>65?(dna.darkness>55?GEAR_DB.fx.dark:GEAR_DB.fx.warm):GEAR_DB.fx.clean;
+ return {drumMachine:pick(drumPool),bassSynth:pick(bassPool),padSynth:pick(padPool),leadSynth:pick(leadPool),fxRack:pick(fxPool)};
+}
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 const MINOR=[0,2,3,5,7,8,10], PENT=[0,3,5,7,10];
 const PENT_MAJ=[0,2,4,7,9];
@@ -1199,51 +1264,57 @@ const SECT={
   outro:{drums:0.7, hats:0.5,bass:1,harm:1,lead:0.3,fill:0},
 };
 function newTrack(forced){
-  const genre=forced||pick(Object.keys(GENRES));
-  const g=GENRES[genre];
-  const subStyle=genre==='drum n bass'?pick(Object.keys(DNB_STYLES)):null;
-  const st=subStyle?DNB_STYLES[subStyle]:null;
-  const bpm=RI((st?st.bpm:g.bpm)[0],(st?st.bpm:g.bpm)[1]);
-  const root=RI(36,48);
-  const scaleName=(st&&st.scale)?st.scale:(Math.random()<0.62?'minor':pick(['dorian','major','phryg','minor']));
-  const secs=R(72,168);
-  const bars=Math.max(28,Math.round(secs*bpm/240));
-  const prog=pick(g.progs||[[0,5],[0,3],[0,5,6,4],[0,2,5,4],[0,3,5,4],[0,6],[0,4,5,3],[0,3,4,0],[0,6,3,4],[0,5,3,4]]);
-  track={
-    g, genre, bpm, root, bars, prog,
-    ariSings: Math.random()<0.22,   // when true, a.r.i. takes the mic for this whole track
-    leadWave: pick(['square','pulse','saw']),   // character layer of the mic synth varies per track
-    scale: SCALES[scaleName], scaleName,
-    sections: buildArrangement(bars),
-    kick : st?genPattern(st.kickA,[],0):genPattern(g.kick.b,g.kick.c,g.kick.p),
-    kickB: st?genPattern(st.kickB,[],0):null,          // dnb: varied second bar of the 2-bar loop
-    snare: st?genPattern(st.snare,[],0):genPattern(g.snare.b,g.snare.c,g.snare.p),
-    ghost: (st&&st.ghost.length)?genPattern(st.ghost,[],0):null,
-    hatSteps: st?genPattern(st.hats,[],0):null,
-    tickHats: (genre==='trap'||genre==='jerk') && Math.random()<0.5,   // ~half of trap/jerk tracks swap closed hats for 808 ticks
-    subStyle,
-    padType:(st&&st.pad)?st.pad:g.pad,
-    bassType:(st&&st.bass)?st.bass:g.bass,
-    lateSnare:!!(st&&st.late),
-    hatP : R(g.hatP[0],g.hatP[1]),
-    bassP: genPattern(g.bassPat.b,g.bassPat.c,g.bassPat.p),
-    swing: R((st?st.swing:g.swing)[0],(st?st.swing:g.swing)[1]),
-    name : nextTrackName(),
-    keyName: KEYS[root%12]+' '+scaleName,
-    voiceLead: null,          // remembered chord voicing (layer 2)
-    lastBass: null,
-  };
+  const seed=makeSeed();
+  const built=withTrackSeed(seed,()=>{
+    const genre=forced||pick(Object.keys(GENRES));
+    const g=GENRES[genre];
+    const echo=chooseEchoForGenre(genre);
+    const subStyle=genre==='drum n bass'?(echo?.subStyle&&Math.random()<.86?echo.subStyle:pick(Object.keys(DNB_STYLES))):null;
+    const st=subStyle?DNB_STYLES[subStyle]:null;
+    const freshDNA=(visitor&&vis1&&vis1.dna)?vis1.dna:guestDNA();
+    const dna=echo?mutateEchoDNA(echo.guestDNA):freshDNA;
+    const gear=echo?echoGear(echo,dna,genre,subStyle):chooseGear(dna,genre,subStyle);
+    const bpmRange=(st?st.bpm:g.bpm);
+    const baseBpm=(echo?.bpm&&Math.random()<.78)?Math.round(echo.bpm+R(-4,4)):RI(bpmRange[0],bpmRange[1]);
+    const bpm=Math.max(bpmRange[0],Math.min(bpmRange[1],baseBpm+Math.round((dna.energy-50)/28)));
+    const root=(echo?.root!=null&&Math.random()<.74)?Math.max(36,Math.min(48,echo.root+pick([-2,0,0,0,2]))):RI(36,48);
+    const scaleName=(echo?.scaleName&&Math.random()<.80)?echo.scaleName:((st&&st.scale)?st.scale:(dna.darkness>75?'phryg':dna.warmth>72?pick(['major','dorian']):(Math.random()<0.62?'minor':pick(['dorian','major','phryg','minor']))));
+    const secs=R(72,168);
+    const bars=Math.max(28,Math.round(secs*bpm/240));
+    const prog=(echo?.progression&&Math.random()<.78)?echo.progression.slice():pick(g.progs||[[0,5],[0,3],[0,5,6,4],[0,2,5,4],[0,3,5,4],[0,6],[0,4,5,3],[0,3,4,0],[0,6,3,4],[0,5,3,4]]);
+    const bassMap={'deep sub':'sub','clean sine':'sub','short 808':'808','round analog':'round','rubber mono':'rubber','plucked mono':'pluck','wide reese':'reese','hollow reese':'hollow','filtered growl':'growl'};
+    const padMap={'tape keys':'keys','chorus poly':'chorus','soft strings':'strings','shadow wash':'shadow','hollow choir':'choir','filtered air':'air','glass cloud':'glass','fm mist':'fm','neon poly':'neon'};
+    return {
+      trackId:seed,seed,generatorVersion:86,g,genre,bpm,root,bars,prog,guestDNA:dna,gear,echoOrigin:echo?echo.seed:null,
+      ariSings:Math.random()<0.22,
+      leadWave:gear.leadSynth,
+      scale:SCALES[scaleName],scaleName,
+      sections:buildArrangement(bars),
+      kick:st?genPattern(st.kickA,[],0):genPattern(g.kick.b,g.kick.c,g.kick.p),
+      kickB:st?genPattern(st.kickB,[],0):null,
+      snare:st?genPattern(st.snare,[],0):genPattern(g.snare.b,g.snare.c,g.snare.p),
+      ghost:(st&&st.ghost.length)?genPattern(st.ghost,[],0):null,
+      hatSteps:st?genPattern(st.hats,[],0):null,
+      tickHats:(genre==='trap'||genre==='jerk')&&gear.drumMachine==='tight digital'&&Math.random()<0.35,
+      subStyle,
+      padType:padMap[gear.padSynth]||((st&&st.pad)?st.pad:g.pad),
+      bassType:bassMap[gear.bassSynth]||((st&&st.bass)?st.bass:g.bass),
+      lateSnare:!!(st&&st.late),
+      hatP:R(g.hatP[0],g.hatP[1])*(dna.energy>70?1:0.92),
+      bassP:genPattern(g.bassPat.b,g.bassPat.c,g.bassPat.p),
+      swing:R((st?st.swing:g.swing)[0],(st?st.swing:g.swing)[1]),
+      name:nextTrackName(),keyName:KEYS[root%12]+' '+scaleName,voiceLead:null,lastBass:null,
+    };
+  });
+  track=built;
   leadEchoA.bar=leadEchoV.bar=-1; leadEchoA.notes=[]; leadEchoV.notes=[];
-  if(delayNode) delayNode.delayTime.value=(60/bpm)*0.75;
+  if(delayNode){delayNode.delayTime.value=(60/track.bpm)*(track.gear.fxRack.includes('short')?.5:.75);delayGain.gain.value=track.gear.fxRack.includes('dry')?.08:track.gear.fxRack.includes('space')?.22:.15;}
   trackNo++;
-  try{
-    track.artURL=drawAlbumArt(track);
-    const artEl=document.getElementById('albumArt');
-    if(artEl) artEl.src=track.artURL;
-  }catch(e){}
+  try{track.artURL=drawAlbumArt(track);const artEl=document.getElementById('albumArt');if(artEl)artEl.src=track.artURL;}catch(e){}
   document.getElementById('trackname').textContent='“'+track.name+'”';
   updateMeta(0);
-  if(typeof updateMediaSession==='function') try{updateMediaSession();}catch(e){}
+  if(typeof loadCurrentTrackRating==='function')loadCurrentTrackRating();
+  if(typeof updateMediaSession==='function')try{updateMediaSession();}catch(e){}
 }
 function updateMeta(sec){
   const m=Math.floor(sec/60), ss=String(Math.floor(sec%60)).padStart(2,'0');
@@ -1272,26 +1343,21 @@ function noiseBuf(){
 }
 let NB=null;
 function playSnare(t,vol){
-  NB=NB||noiseBuf();
-  const v=vol==null?1:vol;
-  const ghost=v<0.6;                       // ghost hits sit tighter and slightly pitched up
-  const n=ctx.createBufferSource(); n.buffer=NB;
-  const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=ghost?2400:1900; f.Q.value=0.8;
-  const g=ctx.createGain(); env(t,0.001,ghost?0.09:0.16,0.5*v,g);
-  n.connect(f); f.connect(g); g.connect(master);
-  const o=ctx.createOscillator(); o.type='triangle'; o.frequency.value=ghost?222:185;
-  const g2=ctx.createGain(); env(t,0.001,ghost?0.05:0.09,0.3*v,g2);
-  o.connect(g2); g2.connect(master);
-  n.start(t); n.stop(t+0.2); o.start(t); o.stop(t+0.12);
+  NB=NB||noiseBuf();const v=vol==null?1:vol,ghost=v<.6,dm=track.gear?.drumMachine||'';
+  const hard=/digital|impact|punch|metal/.test(dm),dusty=/tape|dust|broken/.test(dm);
+  const n=ctx.createBufferSource();n.buffer=NB;
+  const f=ctx.createBiquadFilter();f.type='bandpass';f.frequency.value=ghost?2200:hard?2350:dusty?1450:1850;f.Q.value=hard?1.15:.75;
+  const g=ctx.createGain();env(t,.001,ghost?.07:dusty?.21:hard?.11:.16,(hard?.56:.46)*v,g);n.connect(f);f.connect(g);g.connect(master);
+  const o=ctx.createOscillator();o.type=hard?'sine':'triangle';o.frequency.value=ghost?210:hard?205:175;
+  const g2=ctx.createGain();env(t,.001,ghost?.04:.085,(hard?.34:.26)*v,g2);o.connect(g2);g2.connect(master);
+  n.start(t);n.stop(t+.24);o.start(t);o.stop(t+.12);
 }
 function playHat(t,open,vol){
-  if(track && track.tickHats && !open){ play808Tick(t,vol); return; }  // 808 ticks stand in for closed hats
-  NB=NB||noiseBuf();
-  const n=ctx.createBufferSource(); n.buffer=NB;
-  const f=ctx.createBiquadFilter(); f.type='highpass'; f.frequency.value=7200;
-  const g=ctx.createGain(); env(t,0.001,open?0.22:0.045,0.18*(vol==null?1:vol),g);
-  n.connect(f); f.connect(g); g.connect(master);
-  n.start(t); n.stop(t+(open?0.25:0.07));
+  if(track&&track.tickHats&&!open){play808Tick(t,vol);return;}
+  NB=NB||noiseBuf();const dm=track.gear?.drumMachine||'',dark=/tape|dust|soft|broken/.test(dm),hard=/digital|impact|metal/.test(dm);
+  const n=ctx.createBufferSource();n.buffer=NB;const f=ctx.createBiquadFilter();f.type='highpass';f.frequency.value=dark?4300:hard?6100:5200;
+  const g=ctx.createGain();env(t,.001,open?(dark?.18:.22):(hard?.028:.045),(dark?.12:hard?.15:.16)*(vol==null?1:vol),g);
+  n.connect(f);f.connect(g);g.connect(master);n.start(t);n.stop(t+(open?.25:.07));
 }
 function playBass(t,midi,dur){
   const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=mtof(midi);
@@ -1301,6 +1367,14 @@ function playBass(t,midi,dur){
   o.connect(f); f.connect(g); g.connect(master);
   o.start(t); o.stop(t+dur+0.1);
 }
+function playReese(t,midi,dur,hollow){
+  const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=hollow?520:850;f.Q.value=.7;
+  const g=ctx.createGain();env(t,.012,dur,hollow?.25:.31,g);f.connect(g);g.connect(master);
+  [-11,11].forEach(dt=>{const o=ctx.createOscillator();o.type='sawtooth';o.frequency.value=mtof(midi);o.detune.value=dt;o.connect(f);o.start(t);o.stop(t+dur+.1);});
+}
+function playRubber(t,midi,dur){const o=ctx.createOscillator();o.type='square';o.frequency.value=mtof(midi);const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(900,t);f.frequency.exponentialRampToValueAtTime(260,t+Math.min(dur,.35));const g=ctx.createGain();env(t,.008,dur,.27,g);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.1);}
+function playGrowl(t,midi,dur){const o=ctx.createOscillator();o.type='triangle';o.frequency.value=mtof(midi);const ws=ctx.createWaveShaper();const c=new Float32Array(512);for(let i=0;i<c.length;i++){const x=i/255.5-1;c[i]=Math.tanh(x*2.2);}ws.curve=c;ws.oversample='4x';const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=650;const g=ctx.createGain();env(t,.01,dur,.24,g);o.connect(ws);ws.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+.1);}
+function playPluckBass(t,midi,dur){const o=ctx.createOscillator();o.type='triangle';o.frequency.value=mtof(midi);const g=ctx.createGain();env(t,.002,Math.min(dur,.24),.34,g);o.connect(g);g.connect(master);o.start(t);o.stop(t+.35);}
 function play808(t,midi,dur){
   const o=ctx.createOscillator(); o.type='sine';
   const fr=mtof(midi);
@@ -1329,7 +1403,7 @@ function play808Kick(t){
 // the iconic 808 cowbell — two detuned square waves (540 & 800 Hz) through a bandpass
 function play808Cowbell(t,vol){
   const v=vol==null?0.5:vol;
-  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2640; bp.Q.value=1.1;
+  const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=2200; bp.Q.value=1.1;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.22*v,t+0.002);
@@ -1345,7 +1419,7 @@ function play808Tick(t,vol){
   const v=vol==null?1:vol;
   NB=NB||noiseBuf();
   const n=ctx.createBufferSource(); n.buffer=NB;
-  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=9000;
+  const hp=ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=6200;
   const g=ctx.createGain();
   g.gain.setValueAtTime(0.0001,t);
   g.gain.linearRampToValueAtTime(0.14*v,t+0.0006);
@@ -1410,6 +1484,13 @@ function playPad(t,midis,dur){
     });
   });
 }
+function playAltPad(t,midis,dur,type){
+ const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=type==='glass'?2100:type==='air'?1500:type==='shadow'?700:1200;
+ const g=ctx.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(type==='choir'?.055:.07,t+dur*.28);g.gain.linearRampToValueAtTime(.0001,t+dur);f.connect(g);g.connect(master);if(type==='chorus'||type==='air'||type==='glass')g.connect(delayNode);
+ const wave=(type==='glass'||type==='fm')?'sine':(type==='strings'||type==='shadow')?'sawtooth':'triangle';
+ const dets=type==='chorus'?[-9,0,9]:type==='choir'?[-4,4]:[0];
+ midis.forEach(m=>dets.forEach(dt=>{const o=ctx.createOscillator();o.type=wave;o.frequency.value=mtof(m+(type==='glass'?12:0));o.detune.value=dt;o.connect(f);o.start(t);o.stop(t+dur+.1);}));
+} 
 let PULSE_WAVE=null;
 function pulseWave(){                     // 25%-duty pulse — brighter and thinner than a square
   if(PULSE_WAVE) return PULSE_WAVE;
@@ -1482,8 +1563,11 @@ function playLead(t,midi,dur,instr,vmul){
   }else{ // on the mic — a synthetic voice; the character layer varies per track
     const o=ctx.createOscillator(); o.type='sine'; o.frequency.value=mtof(midi);
     const o2=ctx.createOscillator(); o2.frequency.value=mtof(midi);
-    const lw=(track&&track.leadWave)||'square';
-    if(lw==='pulse') o2.setPeriodicWave(pulseWave()); else o2.type=lw;
+    const lw=(track&&track.leadWave)||'rounded vocal';
+    if(lw==='fm keys'||lw==='glass pluck')o2.type='sine';
+    else if(lw==='muted triangle'||lw==='soft organ'||lw==='digital reed')o2.type='triangle';
+    else if(lw==='filtered dual'||lw==='low brass synth'||lw==='hollow mono')o2.type='sawtooth';
+    else o2.type='square';
     const g2=ctx.createGain(); g2.gain.value=0.12; o2.connect(g2); g2.connect(g);
     vg.connect(o.detune); vg.connect(o2.detune);
     const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=mtof(midi)*1.8; f.Q.value=0.9;
@@ -1764,7 +1848,7 @@ function scheduleStep(sIdx,t){
     }else if(sIdx===0 && bar%2===0){
       const notes=voiceChord(deg);
       const dur = (sect==='break') ? spb*8*1.1 : spb*8*0.95;   // pads breathe in the breakdown
-      padType==='keys'?playKeys(tt,notes,dur):playPad(tt,notes,dur);
+      padType==='keys'?playKeys(tt,notes,dur):(['chorus','strings','shadow','choir','air','glass','fm','neon'].includes(padType)?playAltPad(tt,notes,dur,padType):playPad(tt,notes,dur));
       visQ.push({t:tt,type:'chord'});
       for(let i=0;i<8;i++) faderTarget[i]=R(0,1);
     }
@@ -1860,6 +1944,44 @@ function crossToNext(forced){
   newTrack(forced||((visitor&&visitorPhase==='performing')?track.genre:null));
   trackStart=t+0.9; audioStart=t+0.9;
 }
+
+/* ---------- local 1–5 star track rating + hidden Echoes memory ---------- */
+const TRACK_RATING_KEY='ari.trackRatings.v2';
+let currentTrackRating=0;
+function readTrackRatings(){try{const v=JSON.parse(localStorage.getItem(TRACK_RATING_KEY)||'[]');return Array.isArray(v)?v:[];}catch(e){return [];}}
+function captureTrackRatingData(t){
+  if(!t)return null;
+  return {trackId:t.trackId,seed:t.seed,generatorVersion:86,trackNo,name:t.name,genre:t.genre,subStyle:t.subStyle||null,bpm:t.bpm,root:t.root,keyName:t.keyName,scaleName:t.scaleName,bars:t.bars,progression:Array.isArray(t.prog)?t.prog.slice():[],sections:Array.isArray(t.sections)?t.sections.map(x=>({...x})):[],guestDNA:t.guestDNA||null,gear:t.gear||null,leadWave:t.leadWave||null,padType:t.padType||null,bassType:t.bassType||null,kick:Array.isArray(t.kick)?t.kick.slice():null,kickB:Array.isArray(t.kickB)?t.kickB.slice():null,snare:Array.isArray(t.snare)?t.snare.slice():null,ghost:Array.isArray(t.ghost)?t.ghost.slice():null,hatSteps:Array.isArray(t.hatSteps)?t.hatSteps.slice():null,bassP:Array.isArray(t.bassP)?t.bassP.slice():null,echoOrigin:t.echoOrigin||null,ariSings:!!t.ariSings,tickHats:!!t.tickHats,lateSnare:!!t.lateSnare,swing:Number((t.swing||0).toFixed(4))};
+}
+function updateRatingUI(value=0){
+  currentTrackRating=Number(value)||0;
+  const toggle=document.getElementById('ratingToggle');
+  toggle.classList.toggle('rated',currentTrackRating>0);
+  toggle.setAttribute('aria-label',currentTrackRating?`rated ${currentTrackRating} out of 5; change rating`:'rate this track');
+  document.querySelectorAll('.ratingStar').forEach(star=>{const n=Number(star.dataset.rating);star.classList.toggle('active',n<=currentTrackRating);star.setAttribute('aria-checked',String(n===currentTrackRating));});
+}
+function loadCurrentTrackRating(){
+  if(!track||!track.trackId){updateRatingUI(0);return;}
+  const found=readTrackRatings().find(x=>x.trackId===track.trackId);updateRatingUI(found?found.rating:0);
+}
+function saveCurrentTrackRating(value){
+  if(!track||!track.trackId)return;
+  const rec={...captureTrackRatingData(track),rating:Number(value),ratedAt:new Date().toISOString()};
+  try{const list=readTrackRatings().filter(x=>x.trackId!==track.trackId);list.push(rec);localStorage.setItem(TRACK_RATING_KEY,JSON.stringify(list.slice(-500)));}catch(e){}
+  const echoes=readEchoes().filter(x=>x.seed!==track.seed);
+  if(Number(value)===5) echoes.push(rec);
+  writeEchoes(echoes);
+  updateRatingUI(value);ratingControl.classList.remove('open');ratingToggle.setAttribute('aria-expanded','false');
+}
+const ratingControl=document.getElementById('ratingControl');
+const ratingToggle=document.getElementById('ratingToggle');
+ratingToggle.addEventListener('click',e=>{e.stopPropagation();const open=ratingControl.classList.toggle('open');ratingToggle.setAttribute('aria-expanded',String(open));});
+document.querySelectorAll('.ratingStar').forEach(star=>{
+  star.addEventListener('click',e=>{e.stopPropagation();saveCurrentTrackRating(star.dataset.rating);});
+  star.addEventListener('mouseenter',()=>{const n=Number(star.dataset.rating);document.querySelectorAll('.ratingStar').forEach(s=>s.classList.toggle('preview',Number(s.dataset.rating)<=n));});
+  star.addEventListener('mouseleave',()=>document.querySelectorAll('.ratingStar').forEach(s=>s.classList.remove('preview')));
+});
+document.addEventListener('click',e=>{if(!ratingControl.contains(e.target)){ratingControl.classList.remove('open');ratingToggle.setAttribute('aria-expanded','false');}});
 /* ---------- "the batteries need swapping" intermission — a fond livestream ritual ---------- */
 function finishBatterySwap(){
   document.getElementById('batteryScreen').classList.remove('on');
@@ -2339,7 +2461,7 @@ function buildVisitor(target,instr,dx){
   target.innerHTML=v;
   target.style.color=col;
   const headAnchor=iso(...T([headCX,-1.1,headZ+shoulderRise*0.25+1.05]));
-  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, age, micPh, headAnchor};
+  return {instr, color:col, notePos, voiceKind:arche.voiceKind, archetype:arche.kind, age, micPh, headAnchor, dna:guestDNA()};
 }
 vis1=buildVisitor(gVis,'on the mic',0);              // pre-built so the viewBox
 vis2=buildVisitor(gVis2,'on acoustic',-2.35); // reserves space for a duo
@@ -2497,11 +2619,12 @@ function start(){
   info.style.display='block';
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     btn.classList.add('show');
+    ratingControl.classList.add('show');
     setTimeout(()=>info.classList.add('show'),220);
   }));
   const vl=document.getElementById('visitorline');
   vl.textContent='A.R.I. is tuning into the street signal…';
-  vl.style.color='var(--cyan-dim)';
+  vl.style.color='var(--trackcyan)';
   vl.classList.add('on');
   setCypherLine(false);
   setTimeout(()=>{ if(!visitor) vl.classList.remove('on'); },4200);
@@ -2528,6 +2651,7 @@ function stop(){
   clearTimeout(locTimer);
   clearTimeout(batteryTimer);
   hideFollowBubble();
+  hideTrackFeedback();
   ctx.suspend();
   if(bgAudioEl) bgAudioEl.pause();
   dropWakeLock();
