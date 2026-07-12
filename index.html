@@ -60,6 +60,8 @@
     --trackcyan:#52c8c0;    /* dark-mode-only: a good bit lighter than cyan-dim for track time + meta */
     --signgreen:#58cc8c;    /* dark-mode-only: lighter street-sign green */
     --livetext:#f4f7f7;     /* LIVE overlay text — bright on the dark stage */
+    --walltxt:var(--key-dim);  /* wall micro-text — key-dim clears AA on the dark stage */
+    --chathead:var(--cyan-dim);/* chat header — cyan-dim clears AA on the dark stage */
   }
   body.light{
     --bg:#f2f4f6;
@@ -86,6 +88,8 @@
     --trackcyan:#0a7a72;   /* light mode: darker teal so track time/meta clears AA */
     --signgreen:var(--nyc-green-dim);
     --livetext:#c81e2a;    /* light mode: dark red so LIVE stays readable on light bg */
+    --walltxt:#5f6b72;     /* light mode: darker slate so ~4px wall text clears AA */
+    --chathead:#0a7a72;    /* light mode: darker teal so chat header clears AA */
   }
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{height:100%; background:var(--bg)}
@@ -122,7 +126,7 @@
   .occface{fill:var(--bg); stroke:none; opacity:.985}
   .legFace{fill:var(--bg); stroke-width:1.25}
   .isoHidden{opacity:.22; stroke-width:.75}
-  .wtxt{font-family:'IBM Plex Mono',monospace; font-size:4.2px; fill:var(--key-dim); stroke:none}
+  .wtxt{font-family:'IBM Plex Mono',monospace; font-size:4.2px; fill:var(--walltxt); stroke:none}
   .key{fill:transparent; transition:fill .22s}
   .key.on{fill:var(--key); fill-opacity:.4; transition:fill .05s}
   .rec{fill:var(--magenta); stroke:none; animation:recblink 1s steps(1) infinite}
@@ -324,12 +328,21 @@
   }
   #chat.on{opacity:1}
   #chatHead{
-    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--cyan-dim);
+    font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:var(--chathead);
     animation:chatglow 2.8s ease-in-out infinite;
   }
   @keyframes chatglow{
     0%,100%{text-shadow:0 0 3px var(--glow1); opacity:.65}
     50%{text-shadow:0 0 14px var(--glow1); opacity:1}
+  }
+  /* light mode: keep the header fully opaque (the opacity dip would drop it below AA
+     on a light background); pulse only the glow instead */
+  body.light #chatHead{
+    opacity:1; animation:chatglowlight 2.8s ease-in-out infinite;
+  }
+  @keyframes chatglowlight{
+    0%,100%{text-shadow:0 0 3px var(--glow1)}
+    50%{text-shadow:0 0 14px var(--glow1)}
   }
   #chatLog{flex:1; overflow:hidden; display:flex; flex-direction:column; justify-content:flex-end; gap:8px}
   .chatMsg{
