@@ -477,7 +477,14 @@
         fill: var(--lav);
         font-size: 20px;
       }
-            @keyframes noteRise {
+      .note.sleepz {
+        fill: var(--trackcyan);
+        font-size: 16px;
+        font-weight: 500;
+        text-transform: lowercase;
+        filter: drop-shadow(0 0 4px var(--glow1));
+      }
+      @keyframes noteRise {
         0% {
           opacity: 0;
           transform: translateY(4px);
@@ -1035,6 +1042,9 @@
         .note.go {
           animation-duration: 0.01s;
         }
+        .note.sleepz.go {
+          animation-duration: 2.2s;
+        }
       }
     </style>
   </head>
@@ -1062,7 +1072,7 @@
         >
       </h1>
       <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-      <p class="tribute">inspired by ARIatHOME · version 95</p>
+      <p class="tribute">inspired by ARIatHOME · version 96</p>
       <div id="wxText" aria-hidden="true"></div>
     </header>
 
@@ -5673,9 +5683,25 @@
         document.getElementById("followBubble").classList.remove("on");
       }
       let sleepZTimer = null;
+      function spawnSleepZ() {
+        if (playing || !started) return;
+        const [hx, hy] = iso(6.68, -0.56, 8.44);
+        const t = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "text",
+        );
+        t.setAttribute("x", hx + R(2, 12));
+        t.setAttribute("y", hy - R(14, 26));
+        t.setAttribute("class", "note sleepz go");
+        t.setAttribute("aria-hidden", "true");
+        t.style.pointerEvents = "none";
+        t.textContent = "z";
+        world.appendChild(t);
+        setTimeout(() => t.remove(), 2300);
+      }
       function startSleepZ() {
         clearInterval(sleepZTimer);
-        
+        spawnSleepZ();
         setTimeout(spawnSleepZ, 260);
         sleepZTimer = setInterval(spawnSleepZ, reduceMotion ? 1800 : 760);
       }
@@ -6900,7 +6926,6 @@
         clearTimeout(locTimer);
         clearTimeout(batteryTimer);
         hideFollowBubble();
-        hideTrackFeedback();
         ctx.suspend();
         if (bgAudioEl) bgAudioEl.pause();
         dropWakeLock();

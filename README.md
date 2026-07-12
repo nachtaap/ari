@@ -1,157 +1,305 @@
 # A.R.I. — Audiological Roaming Intelligence
 
-A minimalist, generative web experience. An isometric neon android roams the grid
-with a wearable synth rig, making beats on the spot. Every now and then a visitor
-steps up on A.R.I.'s right side, requests a genre — and performs on it.
+A minimalist, generative street-music web experience. An isometric neon android
+roams the grid with a wearable synth rig, building beats on the spot. Every now
+and then a guest steps up on A.R.I.'s right side, requests a genre — and adds a
+voice, instrument, or personality of their own.
 
 **Live demo:** https://nachtaap.github.io/A.R.I./  
 **Best experienced with sound on.**
 
 ![A.R.I. preview](icon-512.png)
 
-Everything is a single HTML file. No build step, no dependencies, no samples.
+The core experience lives in a single `index.html`: no build step, no audio
+samples, and no runtime JavaScript framework. The music is synthesized live in
+the browser.
 
 ## ⚠️ Disclaimer
 
 **This is an unofficial fan tribute inspired by [ARIatHOME](https://www.youtube.com/@ARIatHOME),
-the NYC street musician and streamer.** It is not affiliated with, endorsed by, or
-connected to ARIatHOME in any way. No music, recordings, samples, footage, names,
-or likenesses from ARIatHOME are used — all audio is synthesized live in the
-browser with the Web Audio API, and all visuals are original line art.
+the NYC street musician and streamer.** It is not affiliated with, endorsed by,
+or connected to ARIatHOME in any way. No music, recordings, samples, footage,
+names, or likenesses from ARIatHOME are used — all audio is synthesized live in
+the browser with the Web Audio API, and all visuals are original line art.
 
 If you enjoy this, go watch the real thing. It's better.
 
 ## How it works
 
-**The scene** is procedural SVG line art in an isometric projection: A.R.I. with
-headphones and headset mic, a hip-mounted flightcase rig (jog wheel, pads, keys,
-faders, the corner monitor), backpack speakers, and comic sound dashes pulsing on
-the beat. A.R.I.'s expression shifts with the moment — happy by default, briefly
-surprised when a request lands, quietly "in the zone" during a solo or breakdown,
-and comically deflated if a guest lets the mic droop.
+### The scene
 
-**The music** is fully generative. Each track (1–3 minutes) picks a genre — boom
-bap, trap, jerk, drum n bass, 2000s rnb, or house — and a scale (mostly minor, but
-sometimes dorian, major, or phrygian), which together with the BPM range, drum
-patterns, swing, bass synthesis (saw / 808 / sub / round) and harmony style (pads,
-keys, or house stabs) keep tracks from blurring into each other. Every track has a
-real arrangement (one of several intro/main/breakdown shapes, not always the same
-skeleton), with voice-led chords and a bass that follows the chord root. Drums,
-bass, chords and leads are all synthesized per-note with the Web Audio API and
-scheduled on a driftless clock, so playback survives the tab being backgrounded
-without stuttering.
+The world is procedural SVG line art in an isometric projection: A.R.I. wears
+headphones and a headset mic, carries a backpack with batteries, CPU and
+speakers, and performs from a connected synth / loopstation flightcase with
+keys, pads, faders, jog wheel and a small corner monitor.
 
-**The guests** arrive at random, each with a generated look (color, height,
-build, headwear) and a coiled cable plugged into the rig. A guest requests a
-genre — spoken out loud in a retro robotic voice, with A.R.I. answering back —
-then A.R.I. crossfades into a fresh track in that style, and the guest performs:
-9 out of 10 times on the mic, occasionally on sax, flute, acoustic or electric
-guitar, or (rarely) a violin or a spacy e-violin. Sometimes it's a duo. Every
-guest sticks around for at least one full track before wrapping up, and often
-leaves with a flat-out fake "follow me on [invented platform]" shout-out and a
-speech bubble to match — occasionally with a wave goodbye.
+The scene reacts to the stream instead of merely illustrating it. Keys light up,
+the jog wheel turns, speakers throw floating music notes, A.R.I. changes
+expression, guests walk in and perform, and the city sign changes as the crew
+roams to a new block.
 
-**Other details worth noticing:** a street sign fades in as the crew roams to a
-new block; a rare reverse-shot camera flip reveals the cameraman — Dill-2000
-(model Z); roughly
-every 10–15 tracks the rig "runs out of battery" for a short, charming
-intermission; and a small status line quietly shows NYC's current weather
-(fetched live, fails silently if offline) alongside the rig's battery level,
-color-coded from green to red.
+A.R.I. itself is the play/pause control. Tap or click the robot to start, pause,
+or resume. While paused, A.R.I.'s eyes flatten into sleepy lines and lowercase
+`z` characters float above the head using the same rise-and-fade animation as
+the music notes.
+
+### The music
+
+Every track is generated from scratch with the Web Audio API. There are no
+samples or prerecorded loops.
+
+A track chooses a genre — **boom bap, trap, jerk, drum n bass, 2000s rnb, or
+house** — plus its own BPM, root, scale, chord progression, arrangement, drum
+patterns, swing, bass behavior, harmony, lead voice and effects. Tracks usually
+run for roughly one to three minutes and use several arrangement shapes rather
+than repeating one fixed intro → verse → breakdown template.
+
+Drum n bass has its own family of substyles, including **classic, rolling, jump
+up, liquid, techstep, early snare, jungle, dotted, minimal, and halftime**.
+Those styles change the kick/snare relationship, ghost notes, hats, swing, bass,
+harmony and timing rather than only changing the label.
+
+The scheduler runs from an absolute audio clock. While the tab is hidden, A.R.I.
+pre-schedules a larger window directly onto the Web Audio thread, so the groove
+can continue without the usual background-tab stutter or timing drift.
+
+### Guest DNA and sonic personality
+
+Every guest receives a hidden eight-part personality profile:
+
+- energy
+- warmth
+- darkness
+- complexity
+- curiosity
+- chaos
+- space
+- confidence
+
+That **Guest DNA** is not displayed as a stat sheet. It quietly changes the
+music. It can influence tempo, scale choice, density and the gear A.R.I. reaches
+for: drum machine, bass synth, pad, lead voice and effects rack.
+
+The gear system contains families of warm, dark, clean, digital, hard and
+slightly broken sounds. A warm guest may pull a track toward tape keys, rounded
+bass and soft space; a darker guest can steer it toward reese bass, shadow pads
+and filtered effects. The result is a guest with an audible personality, not
+just a different color and hat.
+
+Every track is also generated from an internal deterministic seed. The seed,
+generator version and full musical recipe stay attached to the track, which
+makes the memory system below possible.
+
+### Guests and instruments
+
+Guests arrive at random with generated height, build, color, hair/headwear,
+stance and voice character. The interaction stays intentionally short: the guest
+requests a genre, A.R.I. answers, and the music takes over.
+
+Most guests perform on the mic. Occasionally they play:
+
+- sax
+- flute
+- acoustic guitar
+- electric guitar
+- violin
+- e-violin
+
+These are not all the same oscillator with a different name. Each instrument has
+its own synthesis path and articulation: breath noise for flute, filtered
+saw-like resonance for sax, plucked envelopes for acoustic guitar, oversampled
+distortion for electric guitar, bowed-style vibrato for violin, and a wider,
+delay-heavy voice for e-violin.
+
+A guest always holds the mic with one hand. The free arm can rest, move slowly,
+or react to the beat. Guests stay for at least one full track before wrapping
+up, and may leave with an entirely fictional “follow me on…” shout-out. Very
+rarely, a second guest joins and a cypher forms.
+
+### Remembering tracks: the pink heart and Echoes
+
+The glowing pink heart is A.R.I.'s one-tap **5★ / remember this track** action.
+
+When you heart a track, A.R.I. stores the complete musical recipe locally in
+your browser: seed, genre, BPM, key, progression, arrangement, Guest DNA, gear,
+patterns and sound choices. Nothing is uploaded and no account is required.
+
+Remembered tracks become **Echoes**. A future track in the same genre can
+occasionally inherit parts of an Echo — then mutate them. It may keep much of
+the original DNA, gear, BPM area, root or progression while changing enough to
+become a descendant rather than an exact replay.
+
+Tap the heart again to forget the track.
+
+### Other details worth noticing
+
+- A rare reverse-camera shot reveals the fictional cameraman robot,
+  **Dill-2000 (model Z)**.
+- Roughly every 10–15 tracks the rig runs out of battery and triggers a short
+  battery-swap intermission.
+- NYC weather is fetched live from Open-Meteo and shown quietly under the
+  header. The feature fails silently when offline.
+- The status line also shows the rig's battery level, color-coded from green to
+  red.
+- Wide desktop layouts include a fictional, reactive **street chat** with
+  invented handles and messages. It reacts to new tracks, genres, guests,
+  A.R.I.'s vocals and battery swaps.
+- Each track gets generated cover art for the browser / operating system
+  **Media Session** and lock-screen player. The artwork is intentionally hidden
+  from the minimal on-page player.
+- A.R.I. occasionally takes the mic too, but short guest interactions and
+  musical performance remain the focus.
 
 The speech is [SAM (Software Automatic Mouth)](https://github.com/discordier/sam),
-the 1982 C64 speech synthesizer ported to JavaScript by Christian Schiffler (MIT),
-inlined so everything stays a single file.
+the 1982 C64 speech synthesizer ported to JavaScript by Christian Schiffler
+(MIT). It is inlined so the core experience stays self-contained.
 
 ## Running it
 
 Open `index.html` in a browser. That's it.
 
-For the screen wake lock to work (keeps the display on during a stream), serve it
-over `https` or `localhost` — for example:
+Tap or click **A.R.I.** to start the stream. Tap A.R.I. again to pause or
+resume. The **Space** key does the same thing.
+
+For the screen wake lock to work, serve the project over `https` or
+`localhost` — for example:
 
 ```bash
 npx serve .
 ```
 
-Tap A.R.I. to start the stream. Space toggles play/pause.
-
 ## Installing as an app
 
-Served over https (GitHub Pages works), A.R.I. is an installable PWA:
+Served over HTTPS (GitHub Pages works), A.R.I. is an installable PWA:
 
-- **Android / Chrome**: menu → "Install app" (or the install prompt). The
-  `manifest.webmanifest`, icons and `sw.js` service worker make it installable
-  and cache the app shell for offline-ish startup.
-- **iOS / Safari**: share sheet → "Add to Home Screen". Runs standalone with the
-  dark status bar.
+- **Android / Chrome:** menu → **Install app** (or use the install prompt).
+- **iOS / Safari:** share sheet → **Add to Home Screen**.
 
-Keep `index.html`, `manifest.webmanifest`, `sw.js`, `apple-touch-icon.png`,
-`icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`,
-`favicon-32.png` and `favicon-16.png` together in the same directory.
+The manifest, icons and service worker provide the standalone app identity and
+cache the app shell for offline-ish startup.
+
+Keep these files together in the same directory:
+
+- `index.html`
+- `manifest.webmanifest`
+- `sw.js`
+- `apple-touch-icon.png`
+- `icon-192.png`
+- `icon-512.png`
+- `icon-maskable-192.png`
+- `icon-maskable-512.png`
+- `favicon-32.png`
+- `favicon-16.png`
 
 ## Current version
 
-- **Version 77** — the cameraman now has his own fictional name on-screen too,
-  Dill-2000 (model Z), matching the disclaimer's no-real-names policy.
-- **Version 76** — track info now sits in fixed, predictable rows (track
-  number + time, title, genre/tempo, guest info) instead of a couple of long
-  strings that wrapped differently depending on content length.
-- **Version 73** — a pass of small-but-real fixes:
-  - Fixed a rare "dentist drill" glitch: leads occasionally rolled several
-    same-direction steps in a row, producing a fast ascending run. Melody
-    movement is now run-limited so that can't happen.
-  - Fixed audible crackle on lower notes: the electric-guitar distortion had
-    no oversampling, which aliases in Web Audio. Added 4× oversampling.
-  - The mic is now always cyan instead of matching the guest's own color, so
-    it doesn't disappear against certain outfits.
-  - Track names got a much bigger word pool, more phrasing shapes, and a
-    no-immediate-repeat rule.
-- **Version 60–62** — guest behavior overhaul: renamed "visitor" to "guest",
-  arms no longer pump to the beat (was distracting), farewell speech bubbles
-  show up far more often, and every guest now finishes at least one full
-  track before leaving. Widened track variety (arrangement shapes, scale
-  modes, root range, more chord progressions) and then re-tuned the audio
-  comfort pass so the wider variety never drifts into harsh territory.
-  Guest "follow me on…" handles were rebuilt to look like real usernames
-  instead of URL-like strings.
-- **Version 66–71** — added a small, quiet status line under the header:
-  NYC's live weather (via Open-Meteo, fails silently offline) and the rig's
-  battery level, color-coded per condition and from green to red.
-- **Version 36–41** — the rear speaker was fixed to the backpack; a
-  battery-swap intermission now runs every 10–15 tracks; a slow-blinking
-  status LED sits by "live from the grid"; A.R.I. gained real facial
-  expressions (happy / surprised / in-the-zone / comically-deflated-at-a-drooping-mic).
-- **Version 18–33** — adopted a cleaner hidden-line rendering technique
-  (painter's-algorithm occluders) for a calmer, more solid-reading wireframe;
-  gave guests feet and a second arm; rebuilt the background-audio lifecycle
-  around a driftless clock so playback survives the tab being minimized
-  without stuttering or drifting out of sync.
-- **Version 13–17** — fixed a PWA identity bug: the manifest and service
-  worker now use an explicit, unique scope, so the installed app can no
-  longer be confused with an unrelated app on the same device.
-- **Version 12** — the breakdown now keeps the core kick+snare groove (stripped
-  of hats, bass and extras) instead of dropping to near-silence, so the flow
-  carries through and the main sections land harder when everything returns.
-- **Version 11** — headphone-comfort audio pass:
-  - Track roots sit lower, and all leads dropped an octave (the second visitor
-    was two octaves too high); flute/violin/e-violin no longer secretly play an
-    octave up.
-  - A hard lead ceiling plus a gentle master high-shelf keep melodies out of the
-    piercing register — the low end comes through far more often now.
-- **Version 10** — reworked generative music engine for consistent depth:
-  - **Arrangement**: every track now has a real structure (intro → main →
-    breakdown → main → outro) with elements entering and leaving on bar
-    boundaries, plus small fills on section transitions.
-  - **Voice-leading**: chords now move smoothly (each voice stays near the
-    previous one) and the bass follows the chord root instead of wandering.
-  - **Section-aware interaction**: drums, hats, leads and A.R.I.'s own vocals
-    respect the arrangement — sparse in the intro, open in the breakdown, full
-    in the main sections.
-  - No shrill/"modem" tones: nothing was added that can become harsh; depth
-    comes from existing sounds playing at the right moments.
-- Visible footer tribute: `version 77`.
-- Service worker cache: `ari-v77`.
+### Version 96
+
+- Added a real pause/sleep state: A.R.I.'s eyes become two horizontal lines and
+  lowercase `z` characters float above the head with the same animation as the
+  music notes.
+- The remember control is now a pink heart with a matching pink glow.
+- Removed a stale `hideTrackFeedback()` call that could interrupt the pause flow
+  before the sleep animation started.
+
+### Versions 78–95 — personality, variation and memory
+
+- Added **Guest DNA**, an eight-part hidden personality model that affects BPM,
+  scale, density and gear selection.
+- Added track-specific gear profiles for drum machines, basses, pads, leads and
+  effects, greatly expanding the tonal range without adding samples.
+- Moved track generation onto deterministic per-track seeds and attached a
+  generator version plus full recipe to every track.
+- Added the local **5★ / remember** system and **Echoes**: hearted tracks can
+  influence future tracks in the same genre through controlled inheritance and
+  mutation.
+- Expanded drum n bass into ten rhythmically distinct substyles.
+- Gave sax, flute, acoustic guitar, electric guitar, violin and e-violin more
+  clearly differentiated synthesis and articulation.
+- Expanded guest variation with visual archetypes, different body proportions,
+  stance, voice character and more natural arm behavior.
+- Added generated album artwork for Media Session / lock-screen playback while
+  keeping the on-page player minimal.
+- Added a fictional reactive street chat on wide desktop screens.
+- Made A.R.I. itself the start/play/pause control; no separate playback button
+  is needed.
+- Continued the headphone-comfort pass with lower lead ranges, run-limited
+  melody movement, filtering and oversampled electric-guitar distortion to
+  prevent harsh or repetitive high-frequency glitches.
+
+### Version 77
+
+- The cameraman received his own fictional on-screen name:
+  **Dill-2000 (model Z)**, matching the disclaimer's no-real-names policy.
+
+### Version 76
+
+- Track info moved into fixed, predictable rows for track number/time, title,
+  genre/tempo and guest information.
+
+### Version 73
+
+- Fixed a rare “dentist drill” glitch by limiting repeated same-direction melody
+  movement.
+- Added 4× oversampling to electric-guitar distortion to prevent audible
+  aliasing on lower notes.
+- Made the guest mic permanently cyan so it does not disappear against certain
+  outfit colors.
+- Expanded the track-name generator with a larger word pool, more phrasing
+  shapes and a no-immediate-repeat rule.
+
+### Versions 66–71
+
+- Added NYC's live weather and the rig battery level beneath the header.
+- Both fail gracefully or stay unobtrusive when data is unavailable.
+
+### Versions 60–62
+
+- Renamed “visitor” to “guest”.
+- Removed distracting beat-pumping arms.
+- Increased farewell speech bubbles.
+- Made every guest stay for at least one complete track.
+- Expanded arrangement, scale, root and progression variety while keeping the
+  audio comfort limits intact.
+- Rebuilt fictional “follow me on…” handles so they read like usernames rather
+  than URLs.
+
+### Versions 36–41
+
+- Fixed the rear speaker to the backpack.
+- Added the recurring battery-swap intermission.
+- Added the slow-blinking “live from the grid” status LED.
+- Added A.R.I.'s happy, surprised, in-the-zone and comically deflated facial
+  expressions.
+
+### Versions 18–33
+
+- Adopted hidden-line rendering with painter's-algorithm occluders for a calmer,
+  more solid-reading wireframe.
+- Added guests' feet and second arm.
+- Rebuilt the background-audio lifecycle around a driftless clock.
+
+### Versions 13–17
+
+- Added explicit PWA identity, start URL and scope so the installed app is kept
+  separate from unrelated web apps.
+
+### Version 12
+
+- Kept the core kick-and-snare groove alive during breakdowns instead of
+  dropping to near-silence.
+
+### Version 11
+
+- Lowered track roots and lead ranges.
+- Added a hard lead ceiling and gentle master high-shelf for headphone comfort.
+- Corrected flute, violin and e-violin octave behavior.
+
+### Version 10
+
+- Added full track arrangements with section-aware instrumentation.
+- Added voice-led chords and root-following bass.
+- Added fills and section transitions without introducing harsh “modem” tones.
 
 ## License
 
