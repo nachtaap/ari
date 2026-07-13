@@ -698,7 +698,7 @@
       #liveRecording {
         position: fixed;
         left: 50%;
-        top: calc(env(safe-area-inset-top, 0px) + 82px);
+        top: 28%;
         transform: translate(-50%, -8px);
         z-index: 8;
         pointer-events: none;
@@ -1047,6 +1047,9 @@
         }
         .note.sp {
           font-size: 26px;
+        }
+        #liveRecording {
+          top: 31%;
         }
         #stage {
           padding-top: 60px;
@@ -4211,7 +4214,7 @@
         document.getElementById("trackNumTime").innerHTML =
           `<span class="tnNum">track ${String(trackNo).padStart(3, "0")}</span> · <span class="tnTime">${m}:${ss}</span>`;
         document.getElementById("trackmeta").textContent =
-          `${track.genre}${track.subStyle ? " · " + track.subStyle : ""} · ${track.keyName} · ${track.bpm} bpm${sc}`;
+          `${displayGenre(track.genre)}${track.subStyle ? " · " + track.subStyle : ""} · ${track.keyName} · ${track.bpm} bpm${sc}`;
       }
 
       /* ---------- instruments ---------- */
@@ -5755,7 +5758,15 @@
         visitorPhase = "";
       let guestMinLeaveBar = 0,
         guestWantsToLeave = false;
-      const short = (i) => i.replace("on the ", "").replace("on ", "");
+      const displayInstr = (i) =>
+        i === "on acoustic"
+          ? "on acoustic guitar"
+          : i === "on electric"
+            ? "on electric guitar"
+            : i;
+      const short = (i) =>
+        displayInstr(i).replace("on the ", "").replace("on ", "");
+      const displayGenre = (g) => (g === "drum n bass" ? "DnB" : g);
       function leaveVisitors(vl) {
         const doLeave = () => {
           visitor = false;
@@ -5806,7 +5817,7 @@
               " × " +
               short(vis2.instr) +
               " →"
-            : "+ guest " + vis1.instr + " →";
+            : "+ guest " + displayInstr(vis1.instr) + " →";
           // after a spell, the guest is ready to go — but only actually leaves at a
           // track boundary (see tick), so they always finish at least one full track
           visitorTimer = setTimeout(
@@ -5844,7 +5855,7 @@
             const vl = document.getElementById("visitorline");
             vl.textContent =
               (visitor2 ? "rare tag-team request: " : "guest requests: ") +
-              req +
+              displayGenre(req) +
               " →";
             vl.style.color = vis1.color;
             vl.classList.add("on");
@@ -7302,7 +7313,7 @@
           if (phase === "performing") {
             chatSay(
               pick([
-                "guest " + (vis1 ? vis1.instr : "") + "!!",
+                "guest " + (vis1 ? displayInstr(vis1.instr) : "") + "!!",
                 "they got bars",
                 "collab stream??",
                 "crowd forming fr",
