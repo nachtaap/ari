@@ -5709,9 +5709,19 @@
       }
       let sleepZTimer = null;
       let sleepZBurstTimers = [];
-      function spawnSleepZ() {
+      function spawnSleepZ(target = "ari") {
         if (playing || !started) return;
-        const [hx, hy] = iso(6.68, -0.56, 8.44);
+
+        let hx;
+        let hy;
+
+        if (target === "guest") {
+          if (!visitor || !vis1?.headAnchor) return;
+          [hx, hy] = vis1.headAnchor;
+        } else {
+          [hx, hy] = iso(6.68, -0.56, 8.44);
+        }
+
         const t = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "text",
@@ -5730,9 +5740,17 @@
 
         // A compact cloud of three z's, followed by a real silent rest.
         sleepZBurstTimers.forEach(clearTimeout);
-        sleepZBurstTimers = [0, 280, 560].map((delay) =>
-          setTimeout(spawnSleepZ, delay),
-        );
+        sleepZBurstTimers = [];
+        [0, 280, 560].forEach((delay) => {
+          sleepZBurstTimers.push(
+            setTimeout(() => spawnSleepZ("ari"), delay),
+          );
+          if (visitor && vis1?.headAnchor) {
+            sleepZBurstTimers.push(
+              setTimeout(() => spawnSleepZ("guest"), delay + 140),
+            );
+          }
+        });
 
         // The cloud lasts a little over three seconds. Then nothing appears
         // for a random 2–3 seconds, creating a slow breathing-like rhythm.
@@ -5782,25 +5800,41 @@
           hideFollowBubble();
           if (playing) scheduleVisitor();
         };
-        const waves = Math.random() < 0.18; // every so often, a friendly wave goodbye
+
+        const waves = Math.random() < 0.18;
         if (waves) gVis.classList.add("waving");
-        if (!playing || !vis1 || Math.random() > 0.78) {
-          // most guests give a shout-out now
-          if (waves) {
-            setTimeout(doLeave, 1600);
-          } else doLeave();
+
+        if (!vis1) {
+          doLeave();
           return;
         }
-        const plat = pick(PLATFORMS),
-          handle = fakeHandle();
-        const said = speak("follow me on " + plat, vVoice(vis1.voiceKind), 0.5);
-        showFollowBubble(
-          vis1.headAnchor,
-          "follow " + handle + " on " + plat,
-          vis1.color,
-        );
+
+        let bubbleText;
+        let spokenText;
+
+        if (RI(1, 31) === 1) {
+          // One guest in thirty has no social media at all.
+          const firstName = titlecase(pick(FIRST));
+          bubbleText = "I’m just " + firstName;
+          spokenText = "I'm just " + firstName;
+        } else {
+          const platform = pick(PLATFORMS);
+          const handle = fakeHandle();
+          bubbleText = "follow " + handle + " on " + platform;
+          spokenText = "follow me on " + platform;
+        }
+
+        const said = playing
+          ? speak(spokenText, vVoice(vis1.voiceKind), 0.5)
+          : 0;
+
+        showFollowBubble(vis1.headAnchor, bubbleText, vis1.color);
+
         clearTimeout(visitorTimer);
-        visitorTimer = setTimeout(doLeave, Math.max(2600, said * 1000 + 600));
+        visitorTimer = setTimeout(
+          doLeave,
+          Math.max(3600, said * 1000 + 700),
+        );
       }
       let pendingReq = null;
       function guestGoesLive(req) {
@@ -7045,7 +7079,6 @@
           gAri.style.transform = `translateY(${(-bob).toFixed(1)}px)`;
           if (playing)
             gHead.style.transform = `translateY(${(kickE * 4.2).toFixed(1)}px)`;
-          gWheel.style.transform = `translateY(${(kickE * 1.4).toFixed(1)}px)`;
           gArmL.style.transform = `translateY(${(kickE * 2).toFixed(1)}px)`;
           gArmLup.style.transform = `translateY(${(kickE * 3.4).toFixed(1)}px)`;
           gArmR.style.transform = `translateY(${(snareE * 2.4).toFixed(1)}px)`;
