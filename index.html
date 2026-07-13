@@ -1057,6 +1057,8 @@
         svg#scene {
           width: 104vw;
           height: 104vw;
+          filter: drop-shadow(0 0 5px var(--glow1))
+            drop-shadow(0 0 17px var(--glow2));
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -6993,6 +6995,44 @@
       const reduceMotion = matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
+      const mobileVisual30 = matchMedia("(max-width: 640px)").matches;
+      const visualFrameInterval = 1000 / 30;
+      let lastVisualFrame = 0;
+      let lastMetaUpdate = -Infinity;
+      let cachedMicHolds = [];
+      let cachedMicState = "";
+      const guestMotionCache = new WeakMap();
+
+      function getMicHoldEls() {
+        const state = `${visitor ? 1 : 0}${visitor2 ? 1 : 0}`;
+        if (
+          state !== cachedMicState ||
+          cachedMicHolds.some((el) => !el.isConnected)
+        ) {
+          cachedMicState = state;
+          cachedMicHolds = visitor || visitor2
+            ? Array.from(document.querySelectorAll(".gMicHold"))
+            : [];
+        }
+        return cachedMicHolds;
+      }
+
+      function getGuestMotionParts(group) {
+        let parts = guestMotionCache.get(group);
+        if (
+          !parts ||
+          !parts.legA?.isConnected ||
+          !parts.legB?.isConnected
+        ) {
+          parts = {
+            legA: group.querySelector(".wlegA"),
+            legB: group.querySelector(".wlegB"),
+            freeArm: group.querySelector(".vFreeArm"),
+          };
+          guestMotionCache.set(group, parts);
+        }
+        return parts;
+      }
 
       const SPK = [
         [3.6, 3.45, 3.9],
@@ -7035,11 +7075,10 @@
         setTimeout(() => (p.style.fill = "rgba(167,139,255,0)"), 120);
       }
 
-      function frame() {
+      function frame(frameNow) {
         requestAnimationFrame(frame);
         if (!ctx) return;
         const now = ctx.currentTime;
-        if (cutsceneActive) updateCutscene(performance.now());
         while (visQ.length && visQ[0].t <= now) {
           const e = visQ.shift();
           if (now - e.t > 0.4) continue; // stale (we were backgrounded) — skip without firing
@@ -7083,9 +7122,19 @@
             eqVal[4] = 1;
           }
         }
-        kickE *= 0.86;
-        snareE *= 0.85;
-        hatE *= 0.8;
+
+        if (
+          mobileVisual30 &&
+          frameNow - lastVisualFrame < visualFrameInterval
+        ) {
+          return;
+        }
+        lastVisualFrame = frameNow;
+        if (cutsceneActive) updateCutscene(frameNow);
+
+        kickE *= mobileVisual30 ? 0.74 : 0.86;
+        snareE *= mobileVisual30 ? 0.72 : 0.85;
+        hatE *= mobileVisual30 ? 0.64 : 0.8;
         sfxA.style.opacity = sfxB.style.opacity = Math.min(
           1,
           kickE * 1.3,
@@ -7105,9 +7154,10 @@
             [gVis2, visitor2, 2.1],
           ].forEach(([g, on, ph]) => {
             if (!on) return;
-            const eA = g.querySelector(".wlegA"),
-              eB = g.querySelector(".wlegB");
-            if (!eA) return;
+            const parts = getGuestMotionParts(g);
+            const eA = parts.legA,
+              eB = parts.legB;
+            if (!eA || !eB) return;
             const bv = (Math.abs(Math.sin(wp + ph)) * 2.2 * walkAmp).toFixed(1);
             const a = (13 * Math.sin(wp + ph) * walkAmp).toFixed(2);
             eA.setAttribute(
@@ -7118,7 +7168,7 @@
               "transform",
               `translate(0 ${bv}) rotate(${-a} ${eB.dataset.px} ${eB.dataset.py})`,
             );
-            const fa = g.querySelector(".vFreeArm");
+            const fa = parts.freeArm;
             if (fa) {
               let ang = 0;
               if (g.classList.contains("waving"))
@@ -7146,7 +7196,7 @@
           if (visitor2)
             gVis2.style.transform = `translateY(${(Math.sin(now * 2.2 + 1.7) * 2.4 - Math.abs(Math.sin(wp + 2.1)) * 2.2 * walkAmp).toFixed(1)}px)`;
           let maxDroop = 0;
-          document.querySelectorAll(".gMicHold").forEach((el) => {
+          getMicHoldEls().forEach((el) => {
             const ph = +el.dataset.ph;
             if (ph < 0) return; // holds it properly — no animation
             const dp = micDroop(now, ph);
@@ -7193,7 +7243,14 @@
           faderEls[i].style.transform =
             `translate(${(-faderPos[i] * IA * 0.28).toFixed(1)}px,${(-faderPos[i] * IB * 0.28).toFixed(1)}px)`;
         }
-        if (playing && track) updateMeta(Math.max(0, now - trackStart));
+        if (
+          playing &&
+          track &&
+          frameNow - lastMetaUpdate >= 250
+        ) {
+          lastMetaUpdate = frameNow;
+          updateMeta(Math.max(0, now - trackStart));
+        }
         if (batteryIntermission) {
           const bf = document.getElementById("battFill");
           if (bf)
