@@ -5954,116 +5954,164 @@
       const gAri = document.getElementById("gAri");
 
       /* ---------- A.R.I. session outfit ----------
-         Pick one curated palette per page load. Only A.R.I.'s inherited SVG
-         colors change; the surrounding UI, guests and world keep their own
-         palette. Each outfit includes a light-mode counterpart so contrast
-         remains intentional when the theme changes. */
+         Every page load selects one curated multicolour outfit. The existing
+         visual roles remain separate: body, speakers, backpack/headset, rig,
+         light accents and small details each keep their own colour. */
       const ARI_OUTFITS = [
         {
-          name: "signal cyan",
+          name: "signal streetwear",
           dark: {
-            cyan: "#3ee8de", cyanDim: "#1f8f8a",
-            purple: "#a78bff", purpleDim: "#5e50a8",
-            lav: "#b9a8ff", magenta: "#ff5fd2",
+            body: "#3ee8de", bodyDim: "#1f8f8a",
+            speakers: "#6aa8ff",
+            gear: "#a78bff", gearDim: "#5e50a8",
+            rig: "#ff9f68", rigDim: "#a85836",
+            light: "#b9a8ff", detail: "#ff5fd2",
+            key: "#eef6f6", keyDim: "#7e9496",
           },
           light: {
-            cyan: "#0b8f87", cyanDim: "#71aaa6",
-            purple: "#6745d8", purpleDim: "#9b8bd2",
-            lav: "#6745d8", magenta: "#c71991",
+            body: "#0b8f87", bodyDim: "#71aaa6",
+            speakers: "#3267b7",
+            gear: "#6745d8", gearDim: "#9b8bd2",
+            rig: "#bd5425", rigDim: "#b58d7a",
+            light: "#7452e8", detail: "#c71991",
+            key: "#26313c", keyDim: "#93a0a6",
           },
         },
         {
           name: "sunset runner",
           dark: {
-            cyan: "#ff9f68", cyanDim: "#a85836",
-            purple: "#ff6fae", purpleDim: "#9f406b",
-            lav: "#ffc0d8", magenta: "#ffd166",
+            body: "#ff8f70", bodyDim: "#a94e3c",
+            speakers: "#6fd6ff",
+            gear: "#ff6fae", gearDim: "#9f406b",
+            rig: "#ffd166", rigDim: "#9d7832",
+            light: "#cbb7ff", detail: "#72f2c5",
+            key: "#fff4e8", keyDim: "#9a887a",
           },
           light: {
-            cyan: "#c85b24", cyanDim: "#b88a74",
-            purple: "#c42e72", purpleDim: "#b7839a",
-            lav: "#a51f61", magenta: "#9b6500",
+            body: "#bd3f28", bodyDim: "#b17b70",
+            speakers: "#24769a",
+            gear: "#c42e72", gearDim: "#b7839a",
+            rig: "#9b6500", rigDim: "#b59a63",
+            light: "#6544b7", detail: "#08785a",
+            key: "#302820", keyDim: "#a49a91",
           },
         },
         {
           name: "acid garden",
           dark: {
-            cyan: "#8dff96", cyanDim: "#409a50",
-            purple: "#d7ff63", purpleDim: "#7d9135",
-            lav: "#b9ffb4", magenta: "#ff75cf",
+            body: "#8dff96", bodyDim: "#409a50",
+            speakers: "#62cfff",
+            gear: "#d7ff63", gearDim: "#7d9135",
+            rig: "#ff8d5c", rigDim: "#a05232",
+            light: "#c6b4ff", detail: "#ff75cf",
+            key: "#f4ffe9", keyDim: "#899a7b",
           },
           light: {
-            cyan: "#24833a", cyanDim: "#80ad88",
-            purple: "#6b7900", purpleDim: "#a5ad6b",
-            lav: "#337d39", magenta: "#c51d8f",
+            body: "#24833a", bodyDim: "#80ad88",
+            speakers: "#29769a",
+            gear: "#6b7900", gearDim: "#a5ad6b",
+            rig: "#b1461d", rigDim: "#b78470",
+            light: "#6543b1", detail: "#c51d8f",
+            key: "#263020", keyDim: "#97a18f",
           },
         },
         {
           name: "midnight violet",
           dark: {
-            cyan: "#8aa4ff", cyanDim: "#4c5d9b",
-            purple: "#c58cff", purpleDim: "#754e9d",
-            lav: "#dfbdff", magenta: "#ff62b7",
+            body: "#8aa4ff", bodyDim: "#4c5d9b",
+            speakers: "#5ee6d0",
+            gear: "#c58cff", gearDim: "#754e9d",
+            rig: "#ff8c66", rigDim: "#9e5137",
+            light: "#dfbdff", detail: "#ff62b7",
+            key: "#f1f3ff", keyDim: "#858aa4",
           },
           light: {
-            cyan: "#3557c4", cyanDim: "#8696c8",
-            purple: "#7b38bd", purpleDim: "#a98bc4",
-            lav: "#6c2fac", magenta: "#c41b78",
+            body: "#3557c4", bodyDim: "#8696c8",
+            speakers: "#087c70",
+            gear: "#7b38bd", gearDim: "#a98bc4",
+            rig: "#b24820", rigDim: "#b38675",
+            light: "#6c2fac", detail: "#c41b78",
+            key: "#252a3b", keyDim: "#969bab",
           },
         },
         {
           name: "gold circuit",
           dark: {
-            cyan: "#ffd166", cyanDim: "#9d7832",
-            purple: "#ff9f43", purpleDim: "#9a5b25",
-            lav: "#ffe0a3", magenta: "#ff5f8f",
+            body: "#ffd166", bodyDim: "#9d7832",
+            speakers: "#5fc7ff",
+            gear: "#ff8f43", gearDim: "#9a5525",
+            rig: "#8dffcf", rigDim: "#46997b",
+            light: "#c8b7ff", detail: "#ff5f8f",
+            key: "#fff8e6", keyDim: "#9b9075",
           },
           light: {
-            cyan: "#9a6500", cyanDim: "#b59a63",
-            purple: "#b34d00", purpleDim: "#b68b69",
-            lav: "#8b5a00", magenta: "#bc1e5d",
+            body: "#9a6500", bodyDim: "#b59a63",
+            speakers: "#286f98",
+            gear: "#b34d00", gearDim: "#b68b69",
+            rig: "#14775c", rigDim: "#7fa99b",
+            light: "#6445b1", detail: "#bc1e5d",
+            key: "#332b1c", keyDim: "#a39b8d",
           },
         },
         {
           name: "ice bloom",
           dark: {
-            cyan: "#8cecff", cyanDim: "#4e96a6",
-            purple: "#76b7ff", purpleDim: "#466f9e",
-            lav: "#c6ddff", magenta: "#ff8bd8",
+            body: "#8cecff", bodyDim: "#4e96a6",
+            speakers: "#7d9cff",
+            gear: "#76b7ff", gearDim: "#466f9e",
+            rig: "#ff9bcf", rigDim: "#9f5680",
+            light: "#c6ddff", detail: "#ffd166",
+            key: "#f2fbff", keyDim: "#80959f",
           },
           light: {
-            cyan: "#177b92", cyanDim: "#80aeb8",
-            purple: "#275faa", purpleDim: "#8198b7",
-            lav: "#315d96", magenta: "#c72591",
+            body: "#177b92", bodyDim: "#80aeb8",
+            speakers: "#405ab5",
+            gear: "#275faa", gearDim: "#8198b7",
+            rig: "#b72c78", rigDim: "#b6849e",
+            light: "#315d96", detail: "#8d6500",
+            key: "#233038", keyDim: "#91a0a6",
           },
         },
         {
           name: "street cherry",
           dark: {
-            cyan: "#ff6b7a", cyanDim: "#a53e49",
-            purple: "#ff9b74", purpleDim: "#9d5b43",
-            lav: "#ffc1aa", magenta: "#ffdc5e",
+            body: "#ff6b7a", bodyDim: "#a53e49",
+            speakers: "#65d7ff",
+            gear: "#ff9b74", gearDim: "#9d5b43",
+            rig: "#ffd85f", rigDim: "#9d7c2f",
+            light: "#c5b5ff", detail: "#72f2c5",
+            key: "#fff0f1", keyDim: "#9d8285",
           },
           light: {
-            cyan: "#bd2638", cyanDim: "#b67f85",
-            purple: "#b54a24", purpleDim: "#b28777",
-            lav: "#a13e20", magenta: "#8d6500",
+            body: "#bd2638", bodyDim: "#b67f85",
+            speakers: "#277394",
+            gear: "#b54a24", gearDim: "#b28777",
+            rig: "#8d6500", rigDim: "#b5a16a",
+            light: "#6445b1", detail: "#08785a",
+            key: "#342326", keyDim: "#a39396",
           },
         },
         {
           name: "mint cassette",
           dark: {
-            cyan: "#72f2c5", cyanDim: "#399478",
-            purple: "#57d7d0", purpleDim: "#367f7b",
-            lav: "#b4fff0", magenta: "#ff78bd",
+            body: "#72f2c5", bodyDim: "#399478",
+            speakers: "#6e9cff",
+            gear: "#57d7d0", gearDim: "#367f7b",
+            rig: "#ff9966", rigDim: "#9f5737",
+            light: "#c9b8ff", detail: "#ff78bd",
+            key: "#effff9", keyDim: "#819b91",
           },
           light: {
-            cyan: "#08785a", cyanDim: "#7ba99a",
-            purple: "#087b78", purpleDim: "#78a3a1",
-            lav: "#167862", magenta: "#bf1d7a",
+            body: "#08785a", bodyDim: "#7ba99a",
+            speakers: "#3b59b2",
+            gear: "#087b78", gearDim: "#78a3a1",
+            rig: "#b3491e", rigDim: "#b48773",
+            light: "#6545b4", detail: "#bf1d7a",
+            key: "#22312c", keyDim: "#91a19b",
           },
         },
       ];
+
       const ariOutfitIndex = (() => {
         if (globalThis.crypto?.getRandomValues) {
           const n = new Uint32Array(1);
@@ -6074,20 +6122,22 @@
       })();
       const ariOutfit = ARI_OUTFITS[ariOutfitIndex];
 
-      function applyAriOutfit(light) {
-        const p = light ? ariOutfit.light : ariOutfit.dark;
+      function applyAriOutfit(lightMode) {
+        const p = lightMode ? ariOutfit.light : ariOutfit.dark;
         const vars = {
-          "--cyan": p.cyan,
-          "--cyan-dim": p.cyanDim,
-          "--purple": p.purple,
-          "--purple-dim": p.purpleDim,
-          "--lav": p.lav,
-          "--magenta": p.magenta,
-          "--orange": p.cyan,
-          "--orange-dim": p.cyanDim,
-          "--blue": p.purple,
-          "--glow1": `color-mix(in srgb, ${p.cyan} 45%, transparent)`,
-          "--glow2": `color-mix(in srgb, ${p.purple} 18%, transparent)`,
+          "--cyan": p.body,
+          "--cyan-dim": p.bodyDim,
+          "--blue": p.speakers,
+          "--purple": p.gear,
+          "--purple-dim": p.gearDim,
+          "--orange": p.rig,
+          "--orange-dim": p.rigDim,
+          "--lav": p.light,
+          "--magenta": p.detail,
+          "--key": p.key,
+          "--key-dim": p.keyDim,
+          "--glow1": `color-mix(in srgb, ${p.body} 45%, transparent)`,
+          "--glow2": `color-mix(in srgb, ${p.gear} 18%, transparent)`,
         };
         Object.entries(vars).forEach(([key, value]) =>
           gAri.style.setProperty(key, value),
