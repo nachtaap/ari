@@ -5952,6 +5952,149 @@
       const gWheel = document.getElementById("gWheel");
       const gArmL = document.getElementById("gArmL");
       const gAri = document.getElementById("gAri");
+
+      /* ---------- A.R.I. session outfit ----------
+         Pick one curated palette per page load. Only A.R.I.'s inherited SVG
+         colors change; the surrounding UI, guests and world keep their own
+         palette. Each outfit includes a light-mode counterpart so contrast
+         remains intentional when the theme changes. */
+      const ARI_OUTFITS = [
+        {
+          name: "signal cyan",
+          dark: {
+            cyan: "#3ee8de", cyanDim: "#1f8f8a",
+            purple: "#a78bff", purpleDim: "#5e50a8",
+            lav: "#b9a8ff", magenta: "#ff5fd2",
+          },
+          light: {
+            cyan: "#0b8f87", cyanDim: "#71aaa6",
+            purple: "#6745d8", purpleDim: "#9b8bd2",
+            lav: "#6745d8", magenta: "#c71991",
+          },
+        },
+        {
+          name: "sunset runner",
+          dark: {
+            cyan: "#ff9f68", cyanDim: "#a85836",
+            purple: "#ff6fae", purpleDim: "#9f406b",
+            lav: "#ffc0d8", magenta: "#ffd166",
+          },
+          light: {
+            cyan: "#c85b24", cyanDim: "#b88a74",
+            purple: "#c42e72", purpleDim: "#b7839a",
+            lav: "#a51f61", magenta: "#9b6500",
+          },
+        },
+        {
+          name: "acid garden",
+          dark: {
+            cyan: "#8dff96", cyanDim: "#409a50",
+            purple: "#d7ff63", purpleDim: "#7d9135",
+            lav: "#b9ffb4", magenta: "#ff75cf",
+          },
+          light: {
+            cyan: "#24833a", cyanDim: "#80ad88",
+            purple: "#6b7900", purpleDim: "#a5ad6b",
+            lav: "#337d39", magenta: "#c51d8f",
+          },
+        },
+        {
+          name: "midnight violet",
+          dark: {
+            cyan: "#8aa4ff", cyanDim: "#4c5d9b",
+            purple: "#c58cff", purpleDim: "#754e9d",
+            lav: "#dfbdff", magenta: "#ff62b7",
+          },
+          light: {
+            cyan: "#3557c4", cyanDim: "#8696c8",
+            purple: "#7b38bd", purpleDim: "#a98bc4",
+            lav: "#6c2fac", magenta: "#c41b78",
+          },
+        },
+        {
+          name: "gold circuit",
+          dark: {
+            cyan: "#ffd166", cyanDim: "#9d7832",
+            purple: "#ff9f43", purpleDim: "#9a5b25",
+            lav: "#ffe0a3", magenta: "#ff5f8f",
+          },
+          light: {
+            cyan: "#9a6500", cyanDim: "#b59a63",
+            purple: "#b34d00", purpleDim: "#b68b69",
+            lav: "#8b5a00", magenta: "#bc1e5d",
+          },
+        },
+        {
+          name: "ice bloom",
+          dark: {
+            cyan: "#8cecff", cyanDim: "#4e96a6",
+            purple: "#76b7ff", purpleDim: "#466f9e",
+            lav: "#c6ddff", magenta: "#ff8bd8",
+          },
+          light: {
+            cyan: "#177b92", cyanDim: "#80aeb8",
+            purple: "#275faa", purpleDim: "#8198b7",
+            lav: "#315d96", magenta: "#c72591",
+          },
+        },
+        {
+          name: "street cherry",
+          dark: {
+            cyan: "#ff6b7a", cyanDim: "#a53e49",
+            purple: "#ff9b74", purpleDim: "#9d5b43",
+            lav: "#ffc1aa", magenta: "#ffdc5e",
+          },
+          light: {
+            cyan: "#bd2638", cyanDim: "#b67f85",
+            purple: "#b54a24", purpleDim: "#b28777",
+            lav: "#a13e20", magenta: "#8d6500",
+          },
+        },
+        {
+          name: "mint cassette",
+          dark: {
+            cyan: "#72f2c5", cyanDim: "#399478",
+            purple: "#57d7d0", purpleDim: "#367f7b",
+            lav: "#b4fff0", magenta: "#ff78bd",
+          },
+          light: {
+            cyan: "#08785a", cyanDim: "#7ba99a",
+            purple: "#087b78", purpleDim: "#78a3a1",
+            lav: "#167862", magenta: "#bf1d7a",
+          },
+        },
+      ];
+      const ariOutfitIndex = (() => {
+        if (globalThis.crypto?.getRandomValues) {
+          const n = new Uint32Array(1);
+          crypto.getRandomValues(n);
+          return n[0] % ARI_OUTFITS.length;
+        }
+        return Math.floor(Math.random() * ARI_OUTFITS.length);
+      })();
+      const ariOutfit = ARI_OUTFITS[ariOutfitIndex];
+
+      function applyAriOutfit(light) {
+        const p = light ? ariOutfit.light : ariOutfit.dark;
+        const vars = {
+          "--cyan": p.cyan,
+          "--cyan-dim": p.cyanDim,
+          "--purple": p.purple,
+          "--purple-dim": p.purpleDim,
+          "--lav": p.lav,
+          "--magenta": p.magenta,
+          "--orange": p.cyan,
+          "--orange-dim": p.cyanDim,
+          "--blue": p.purple,
+          "--glow1": `color-mix(in srgb, ${p.cyan} 45%, transparent)`,
+          "--glow2": `color-mix(in srgb, ${p.purple} 18%, transparent)`,
+        };
+        Object.entries(vars).forEach(([key, value]) =>
+          gAri.style.setProperty(key, value),
+        );
+        gAri.dataset.outfit = ariOutfit.name;
+      }
+
       const gArmLup = document.getElementById("gArmLup");
       const gArmR = document.getElementById("gArmR");
       const gVis = document.getElementById("gVisitor");
@@ -7125,6 +7268,7 @@
         const light =
           themeMode === "light" || (themeMode === "auto" && sysLight.matches);
         document.body.classList.toggle("light", light);
+        applyAriOutfit(light);
         thicon.innerHTML = ICONS[themeMode];
         themeBtn.classList.toggle("auto", themeMode === "auto");
         if (!visitor) {
