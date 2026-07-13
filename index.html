@@ -497,7 +497,7 @@
         }
         100% {
           opacity: 0;
-          transform: translateY(-52px);
+          transform: translateY(-72px);
         }
       }
       .note.sleepz.go {
@@ -513,7 +513,7 @@
         }
         100% {
           opacity: 0;
-          transform: translateY(-52px);
+          transform: translateY(-72px);
         }
       }
       .note.go {
@@ -671,6 +671,7 @@
       }
       #trackmeta {
         color: var(--trackcyan);
+        white-space: nowrap;
       }
       #visitorline {
         color: var(--magenta);
@@ -821,11 +822,13 @@
           box-shadow 0.22s ease,
           transform 0.15s ease;
       }
-      #memoryBtn:hover {
-        color: var(--ratinggold-hover);
-        border-color: var(--ratinggold-hover);
-        box-shadow: 0 0 14px
-          color-mix(in srgb, var(--ratinggold-hover) 34%, transparent);
+      @media (hover: hover) and (pointer: fine) {
+        #memoryBtn:hover {
+          color: var(--ratinggold-hover);
+          border-color: var(--ratinggold-hover);
+          box-shadow: 0 0 14px
+            color-mix(in srgb, var(--ratinggold-hover) 34%, transparent);
+        }
       }
       #memoryBtn.remembered {
         color: var(--ratinggold);
@@ -5816,9 +5819,11 @@
       }
       function scheduleVisitor() {
         clearTimeout(visitorTimer);
+        if (visitor || pendingReq) return;
         visitorTimer = setTimeout(
           () => {
             if (!playing) return;
+            if (visitor || pendingReq) return;
             if (reversing) {
               scheduleVisitor();
               return;
@@ -5857,7 +5862,7 @@
                 if (ariSing) {
                   pendingReq = req; // honored at the track boundary (see tick)
                   vl.textContent =
-                    "guest vibes along — a.r.i. finishes this one →";
+                    "guest vibes along";
                   return;
                 }
                 guestGoesLive(req);
@@ -6943,7 +6948,7 @@
         audioStart = ctx.currentTime + 0.1;
         trackStart = audioStart;
         timerId = setInterval(tick, 25);
-        scheduleVisitor();
+        if (!visitor && !pendingReq) scheduleVisitor();
         scheduleReverse();
         roaming = true;
         scheduleRoam();
