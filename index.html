@@ -1124,11 +1124,32 @@
       }
       .devhead {
         display: flex;
-        justify-content: flex-start;
+        justify-content: space-between;
         align-items: center;
+        gap: 12px;
         color: #3ee8de;
         letter-spacing: 0.18em;
         margin-bottom: 6px;
+      }
+      #devClose {
+        flex: 0 0 auto;
+        width: 30px;
+        height: 30px;
+        margin: -6px -6px -6px 0;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #8fa3a8;
+        font: inherit;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      #devClose:hover,
+      #devClose:focus-visible {
+        color: #ff5fd2;
+        outline: none;
       }
       .devname {
         color: #dfeef0;
@@ -8923,7 +8944,7 @@
         function render() {
           if (!track) {
             panel.innerHTML =
-              '<div class="devhead"><span>DEV · waiting for a track…</span></div>';
+              '<div class="devhead"><span>DEV · waiting for a track…</span><button id="devClose" type="button" aria-label="close track inspector">×</button></div>';
             return;
           }
           const t = track,
@@ -8963,7 +8984,7 @@
             : "";
 
           panel.innerHTML = `
-            <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span></div>
+            <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span><button id="devClose" type="button" aria-label="close track inspector">×</button></div>
             <div class="devname">“${esc(t.name)}”</div>
             <div class="devsec">
               <div class="krow"><span>genre</span><b>${esc(displayGenre(t.genre))}${t.subStyle ? " · " + esc(t.subStyle) : ""}</b></div>
@@ -9064,8 +9085,8 @@
         }
 
         // activation: one click/tap on the track title toggles the inspector.
-        // Once open, any click or tap elsewhere closes it immediately.
-        // There is deliberately no close button.
+        // On touch devices the panel stays open while scrolling; use the close
+        // button or tap the title again to dismiss it.
         const title = document.getElementById("trackname");
         if (title) {
           title.style.cursor = "pointer";
@@ -9088,18 +9109,12 @@
           });
         }
 
-        // Use the capture phase so this still works when another control calls
-        // stopPropagation(). The title is excluded because it already toggles
-        // the panel itself: open on the first click, closed on the next.
-        document.addEventListener(
-          "pointerdown",
-          (e) => {
-            if (!devOpen) return;
-            if (title && (e.target === title || title.contains(e.target))) return;
-            closeDev();
-          },
-          true,
-        );
+        panel.addEventListener("click", (e) => {
+          const closeButton = e.target.closest("#devClose");
+          if (!closeButton) return;
+          e.stopPropagation();
+          closeDev();
+        });
 
         window.toggleDevPanel = toggleDev;
       })();
