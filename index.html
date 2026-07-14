@@ -503,7 +503,7 @@
       .note.sleepz.go {
         animation: sleepZRise 2.8s ease-in-out forwards;
       }
-      @keyframes noteRise {
+            @keyframes noteRise {
         0% {
           opacity: 0;
           transform: translateY(4px);
@@ -664,10 +664,19 @@
         color: var(--trackcyan);
         font-size: 13px;
       }
+      #trackNumTime .tnSect {
+        color: var(--support);
+        font-size: 13px;
+      }
       #trackname {
         color: var(--text);
         font-size: 13px;
         letter-spacing: 0.22em;
+        pointer-events: auto;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
       }
       #trackmeta {
         color: var(--trackcyan);
@@ -1073,6 +1082,200 @@
           animation-duration: 2.8s;
         }
       }
+
+      /* ---------- dev inspector panel (click/tap the track title) ---------- */
+      .devpanel {
+        position: fixed;
+        top: 12px;
+        right: 12px;
+        z-index: 60;
+        width: 344px;
+        max-width: 92vw;
+        max-height: 90vh;
+        overflow: auto;
+        background: rgba(4, 5, 10, 0.94);
+        border: 1px solid rgba(62, 232, 222, 0.35);
+        border-radius: 10px;
+        padding: 12px 14px 14px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        line-height: 1.5;
+        color: #dfeef0;
+        letter-spacing: 0.02em;
+        box-shadow: 0 10px 44px rgba(0, 0, 0, 0.6);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .devpanel.show {
+        opacity: 1;
+        transform: none;
+        pointer-events: auto;
+      }
+      .devpanel::-webkit-scrollbar {
+        width: 8px;
+      }
+      .devpanel::-webkit-scrollbar-thumb {
+        background: rgba(62, 232, 222, 0.25);
+        border-radius: 4px;
+      }
+      .devhead {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        color: #3ee8de;
+        letter-spacing: 0.18em;
+        margin-bottom: 6px;
+      }
+      .devname {
+        color: #dfeef0;
+        margin-bottom: 6px;
+        letter-spacing: 0.06em;
+      }
+      .devsec {
+        border-top: 1px solid #1a2230;
+        padding: 7px 0;
+      }
+      .devsec:last-child {
+        padding-bottom: 0;
+      }
+      .devh {
+        color: #a78bff;
+        letter-spacing: 0.16em;
+        font-size: 10px;
+        margin-bottom: 4px;
+      }
+      .devh2 {
+        color: #8fa3a8;
+        letter-spacing: 0.02em;
+      }
+      .krow {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+        margin: 1px 0;
+      }
+      .krow > span:first-child {
+        color: #8fa3a8;
+        width: 50px;
+        flex: none;
+      }
+      .krow b {
+        color: #3ee8de;
+        font-weight: 500;
+      }
+      .kdim,
+      .pdim {
+        color: #5b6b73;
+      }
+      .prow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 3px 0;
+      }
+      .plab {
+        color: #8fa3a8;
+        width: 44px;
+        flex: none;
+      }
+      .dgrid {
+        display: inline-flex;
+        gap: 2px;
+      }
+      .dstep {
+        width: 13px;
+        height: 13px;
+        border-radius: 2px;
+        background: #141b28;
+        display: inline-block;
+        box-sizing: border-box;
+      }
+      .dstep.beat {
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      }
+      .dstep.on.k {
+        background: #3ee8de;
+      }
+      .dstep.on.s {
+        background: #ff5fd2;
+      }
+      .dstep.on.g {
+        background: #5e50a8;
+      }
+      .dstep.on.h {
+        background: #a78bff;
+      }
+      .dstep.on.b {
+        background: #b9a8ff;
+      }
+      .dstep.play {
+        outline: 2px solid #fff;
+        outline-offset: 1px;
+      }
+      .dflags {
+        color: #5b6b73;
+        margin-top: 5px;
+      }
+      .arrow {
+        display: flex;
+        gap: 8px;
+        padding: 1px 0;
+        color: #8fa3a8;
+      }
+      .arrow .arrnm {
+        width: 58px;
+        flex: none;
+      }
+      .arrow .arrbars {
+        color: #5b6b73;
+      }
+      .arrow.now,
+      .arrow.now .arrbars {
+        color: #3ee8de;
+      }
+      .arrnow {
+        color: #ff5fd2;
+        margin-left: auto;
+      }
+      .prog {
+        color: #3ee8de;
+        letter-spacing: 0.06em;
+      }
+      .dnarow {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 1px 0;
+      }
+      .dnalab {
+        width: 78px;
+        flex: none;
+        color: #8fa3a8;
+      }
+      .dnabar {
+        flex: 1;
+        height: 6px;
+        background: #141b28;
+        border-radius: 3px;
+        overflow: hidden;
+      }
+      .dnabar > span {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, #3ee8de, #a78bff);
+      }
+      .dnaval {
+        width: 20px;
+        text-align: right;
+        color: #dfeef0;
+      }
+      .devnone {
+        color: #5b6b73;
+      }
     </style>
   </head>
   <body>
@@ -1099,7 +1302,7 @@
         >
       </h1>
       <p>AUDIOLOGICAL&nbsp;ROAMING&nbsp;INTELLIGENCE</p>
-      <p class="tribute">inspired by ARIatHOME · version 97</p>
+      <p class="tribute">inspired by ARIatHOME · version 98</p>
       <div id="wxText" aria-hidden="true"></div>
     </header>
 
@@ -2996,7 +3199,7 @@
         bass: {
           warm: ["deep sub", "rubber mono", "round analog"],
           dark: ["wide reese", "hollow reese", "filtered growl"],
-          clean: ["clean sine", "short 808", "plucked mono"],
+          clean: ["silk sub", "short 808", "plucked mono", "muted pulse"],
         },
         pad: {
           warm: ["tape keys", "chorus poly", "soft strings"],
@@ -3014,6 +3217,79 @@
           clean: ["dry studio", "small room", "gentle stereo"],
         },
       };
+      const BASS_TYPE_BY_GEAR = {
+        "deep sub": "deepSub",
+        "silk sub": "silk",
+        "clean sine": "silk", // legacy echoes: retire the pure-sine engine without breaking saved tracks
+        "short 808": "808",
+        "round analog": "round",
+        "rubber mono": "rubber",
+        "plucked mono": "pluck",
+        "muted pulse": "pulse",
+        "wide reese": "reese",
+        "hollow reese": "hollow",
+        "filtered growl": "growl",
+        "street saw": "saw",
+      };
+      const BASS_GEAR_BY_TYPE = {
+        deepSub: "deep sub",
+        silk: "silk sub",
+        "808": "short 808",
+        round: "round analog",
+        rubber: "rubber mono",
+        pluck: "plucked mono",
+        pulse: "muted pulse",
+        reese: "wide reese",
+        hollow: "hollow reese",
+        growl: "filtered growl",
+        saw: "street saw",
+      };
+      function resolveBassType(gearName, preferredType, dna, previousType) {
+        const gearType = BASS_TYPE_BY_GEAR[gearName] || "saw";
+        const preferred = preferredType || "saw";
+        const signatureChance = {
+          growl: 0.88,
+          reese: 0.82,
+          "808": 0.8,
+          pluck: 0.78,
+          saw: 0.66,
+          round: 0.62,
+          sub: 0.6,
+        }[preferred] || 0.58;
+        let type;
+        if (Math.random() < signatureChance) {
+          if (preferred === "sub")
+            type =
+              dna.warmth > 58
+                ? Math.random() < 0.58
+                  ? "deepSub"
+                  : "silk"
+                : Math.random() < 0.68
+                  ? "silk"
+                  : "deepSub";
+          else if (preferred === "reese")
+            type = gearType === "hollow" && Math.random() < 0.6 ? "hollow" : "reese";
+          else type = preferred;
+        } else type = gearType;
+
+        // Generic bass roles should not quietly become the same voice track after track.
+        // Strong genre signatures (808, growl, reese, pluck) are allowed to repeat.
+        if (
+          type === previousType &&
+          ["sub", "round", "saw"].includes(preferred) &&
+          Math.random() < 0.62
+        ) {
+          const alternatives =
+            preferred === "sub"
+              ? ["deepSub", "silk", "round", "pulse"]
+              : preferred === "round"
+                ? ["round", "rubber", "silk", "pulse"]
+                : ["saw", "pulse", "round", "rubber"];
+          type = pick(alternatives.filter((v) => v !== previousType));
+        }
+        return type;
+      }
+
       function chooseGear(dna, genre, subStyle) {
         const intensity = (dna.energy + dna.chaos) / 2;
         const drumPool =
@@ -3366,13 +3642,7 @@
           bass: "saw",
           pad: "keys",
           ext: true,
-          progs: [
-            [0, 3],
-            [0, 5, 3, 4],
-            [0, 6, 3, 4],
-            [0, 2, 5],
-            [0, 3, 4, 0],
-          ],
+          progs: [[0, 3], [0, 5, 3, 4], [0, 6, 3, 4], [0, 2, 5], [0, 3, 4, 0]],
           kd: { f0: 130, f1: 48, d: 0.2 },
         },
         trap: {
@@ -3418,12 +3688,7 @@
           bass: "sub",
           pad: "saw",
           ext: false,
-          progs: [
-            [0, 5],
-            [0, 6],
-            [0, 3, 4],
-            [0, 5, 3, 4],
-          ],
+          progs: [[0, 5], [0, 6], [0, 3, 4], [0, 5, 3, 4]],
           kd: { f0: 140, f1: 50, d: 0.14 },
         },
         "2000s rnb": {
@@ -3437,12 +3702,7 @@
           bass: "round",
           pad: "keys",
           ext: true,
-          progs: [
-            [0, 5, 3, 4],
-            [0, 3, 4],
-            [0, 4, 5, 3],
-            [0, 6, 2, 5],
-          ],
+          progs: [[0, 5, 3, 4], [0, 3, 4], [0, 4, 5, 3], [0, 6, 2, 5]],
           kd: { f0: 120, f1: 44, d: 0.22 },
         },
         house: {
@@ -3458,12 +3718,7 @@
           pad: "stab",
           ext: false,
           cowbell: true,
-          progs: [
-            [0, 5, 3, 4],
-            [0, 3],
-            [0, 4, 5],
-            [0, 6, 4, 5],
-          ],
+          progs: [[0, 5, 3, 4], [0, 3], [0, 4, 5], [0, 6, 4, 5]],
           kd: { f0: 150, f1: 52, d: 0.16 },
         },
         "uk garage": {
@@ -3478,12 +3733,7 @@
           bass: "sub",
           pad: "stab",
           ext: true,
-          progs: [
-            [0, 5, 3, 4],
-            [0, 3],
-            [0, 6, 4, 5],
-            [0, 4, 5, 3],
-          ],
+          progs: [[0, 5, 3, 4], [0, 3], [0, 6, 4, 5], [0, 4, 5, 3]],
           kd: { f0: 155, f1: 52, d: 0.16 },
         },
         "lo-fi": {
@@ -3497,12 +3747,7 @@
           bass: "round",
           pad: "keys",
           ext: true,
-          progs: [
-            [0, 3],
-            [0, 5, 3, 4],
-            [0, 2, 5],
-            [0, 6, 3, 4],
-          ],
+          progs: [[0, 3], [0, 5, 3, 4], [0, 2, 5], [0, 6, 3, 4]],
           kd: { f0: 120, f1: 46, d: 0.22 },
         },
         afrobeats: {
@@ -3517,12 +3762,7 @@
           pad: "keys",
           ext: true,
           cowbell: true,
-          progs: [
-            [0, 5, 3, 4],
-            [0, 4, 5, 3],
-            [0, 3, 4],
-            [0, 5],
-          ],
+          progs: [[0, 5, 3, 4], [0, 4, 5, 3], [0, 3, 4], [0, 5]],
           kd: { f0: 135, f1: 50, d: 0.2 },
         },
         dubstep: {
@@ -3550,12 +3790,7 @@
           bass: "round",
           pad: "strings",
           ext: true,
-          progs: [
-            [0, 5, 3, 4],
-            [0, 3],
-            [0, 6, 3, 4],
-            [0, 4, 5, 3],
-          ],
+          progs: [[0, 5, 3, 4], [0, 3], [0, 6, 3, 4], [0, 4, 5, 3]],
           kd: { f0: 125, f1: 48, d: 0.24 },
         },
       };
@@ -3681,435 +3916,61 @@
    snare, ghost (optional), hats (optional — omit to keep the genre's own hat generator, e.g.
    trap rolls), plus optional swing/bpm/pad/bass/scale/late/hatP/hatMode/clap/bassPat. */
       const BOOMBAP_STYLES = {
-        classic: {
-          bpm: [88, 94],
-          swing: [0.12, 0.18],
-          kickA: [0, 10],
-          kickB: [0, 3, 10],
-          snare: [4, 12],
-          ghost: [7, 14],
-          hats: [0, 3, 4, 7, 8, 11, 12, 15],
-          pad: "keys",
-        },
-        dusty: {
-          bpm: [86, 92],
-          swing: [0.14, 0.2],
-          kickA: [0, 6, 10],
-          kickB: [0, 6, 10, 14],
-          snare: [4, 12],
-          ghost: [15],
-          hats: [0, 3, 6, 10, 14],
-          pad: "keys",
-        },
-        jazzy: {
-          bpm: [88, 96],
-          swing: [0.1, 0.15],
-          kickA: [0, 10],
-          kickB: [0, 7, 10],
-          snare: [4, 12],
-          ghost: [2, 7, 15],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-        },
-        headnod: {
-          bpm: [86, 92],
-          swing: [0.12, 0.16],
-          kickA: [0, 8],
-          kickB: [0, 8, 11],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "keys",
-        },
-        "east coast": {
-          bpm: [90, 96],
-          swing: [0.08, 0.12],
-          kickA: [0, 10],
-          kickB: [0, 3, 6, 10],
-          snare: [4, 12],
-          ghost: [14],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-        },
+        classic: { bpm: [88, 94], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 3, 10], snare: [4, 12], ghost: [7, 14], hats: [0, 3, 4, 7, 8, 11, 12, 15], pad: "keys" },
+        dusty: { bpm: [86, 92], swing: [0.14, 0.2], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [15], hats: [0, 3, 6, 10, 14], pad: "keys" },
+        jazzy: { bpm: [88, 96], swing: [0.1, 0.15], kickA: [0, 10], kickB: [0, 7, 10], snare: [4, 12], ghost: [2, 7, 15], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+        headnod: { bpm: [86, 92], swing: [0.12, 0.16], kickA: [0, 8], kickB: [0, 8, 11], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "keys" },
+        "east coast": { bpm: [90, 96], swing: [0.08, 0.12], kickA: [0, 10], kickB: [0, 3, 6, 10], snare: [4, 12], ghost: [14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
       };
       const TRAP_STYLES = {
-        modern: {
-          bpm: [136, 148],
-          swing: [0, 0.02],
-          kickA: [0],
-          kickB: [0, 10],
-          snare: [8],
-          hatP: [0.85, 0.95],
-        },
-        drill: {
-          bpm: [140, 146],
-          swing: [0.02, 0.05],
-          kickA: [0, 6],
-          kickB: [0, 6, 11],
-          snare: [8],
-          hatP: [0.8, 0.92],
-          scale: "phryg",
-          bass: "808",
-        },
-        triplet: {
-          bpm: [140, 150],
-          swing: [0, 0.02],
-          kickA: [0, 10],
-          kickB: [0, 7, 10],
-          snare: [8],
-          hatP: [0.88, 0.96],
-        },
-        "trap soul": {
-          bpm: [132, 140],
-          swing: [0.02, 0.04],
-          kickA: [0, 11],
-          kickB: [0, 7, 11],
-          snare: [8],
-          hatP: [0.6, 0.8],
-          pad: "keys",
-        },
-        heavy: {
-          bpm: [138, 150],
-          swing: [0, 0.02],
-          kickA: [0, 10],
-          kickB: [0, 3, 10],
-          snare: [8],
-          hatP: [0.85, 0.95],
-          scale: "phryg",
-        },
+        modern: { bpm: [136, 148], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], hatP: [0.85, 0.95] },
+        drill: { bpm: [140, 146], swing: [0.02, 0.05], kickA: [0, 6], kickB: [0, 6, 11], snare: [8], hatP: [0.8, 0.92], scale: "phryg", bass: "808" },
+        triplet: { bpm: [140, 150], swing: [0, 0.02], kickA: [0, 10], kickB: [0, 7, 10], snare: [8], hatP: [0.88, 0.96] },
+        "trap soul": { bpm: [132, 140], swing: [0.02, 0.04], kickA: [0, 11], kickB: [0, 7, 11], snare: [8], hatP: [0.6, 0.8], pad: "keys" },
+        heavy: { bpm: [138, 150], swing: [0, 0.02], kickA: [0, 10], kickB: [0, 3, 10], snare: [8], hatP: [0.85, 0.95], scale: "phryg" },
       };
       const JERK_STYLES = {
-        bounce: {
-          bpm: [98, 106],
-          swing: [0.02, 0.05],
-          kickA: [0, 7],
-          kickB: [0, 7, 10, 11],
-          snare: [4, 12],
-          ghost: [14],
-          hats: [2, 6, 10, 14],
-          pad: "keys",
-        },
-        hyphy: {
-          bpm: [100, 106],
-          swing: [0, 0.03],
-          kickA: [0, 6, 10],
-          kickB: [0, 6, 10, 11],
-          snare: [4, 12],
-          ghost: [],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "stab",
-        },
-        "west coast": {
-          bpm: [92, 100],
-          swing: [0.04, 0.07],
-          kickA: [0, 7],
-          kickB: [0, 7, 10],
-          snare: [4, 12],
-          ghost: [15],
-          hats: [2, 6, 10, 14],
-          pad: "keys",
-        },
-        ratchet: {
-          bpm: [98, 104],
-          swing: [0.02, 0.04],
-          kickA: [0, 10, 11],
-          kickB: [0, 7, 10, 11],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "stab",
-          bass: "808",
-        },
+        bounce: { bpm: [98, 106], swing: [0.02, 0.05], kickA: [0, 7], kickB: [0, 7, 10, 11], snare: [4, 12], ghost: [14], hats: [2, 6, 10, 14], pad: "keys" },
+        hyphy: { bpm: [100, 106], swing: [0, 0.03], kickA: [0, 6, 10], kickB: [0, 6, 10, 11], snare: [4, 12], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "stab" },
+        "west coast": { bpm: [92, 100], swing: [0.04, 0.07], kickA: [0, 7], kickB: [0, 7, 10], snare: [4, 12], ghost: [15], hats: [2, 6, 10, 14], pad: "keys" },
+        ratchet: { bpm: [98, 104], swing: [0.02, 0.04], kickA: [0, 10, 11], kickB: [0, 7, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "stab", bass: "808" },
       };
       const RNB_STYLES = {
-        neptunes: {
-          bpm: [90, 100],
-          swing: [0.06, 0.1],
-          kickA: [0, 7],
-          kickB: [0, 7, 10],
-          snare: [4, 12],
-          ghost: [],
-          hats: [0, 4, 8, 12],
-          pad: "keys",
-        },
-        timbaland: {
-          bpm: [92, 100],
-          swing: [0.08, 0.12],
-          kickA: [0, 3, 7],
-          kickB: [0, 3, 7, 10],
-          snare: [4, 12],
-          ghost: [14, 15],
-          hats: [2, 6, 10, 14],
-          pad: "keys",
-        },
-        "slow jam": {
-          bpm: [66, 76],
-          swing: [0.06, 0.1],
-          kickA: [0, 10],
-          kickB: [0, 10, 14],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "strings",
-          bass: "round",
-        },
-        "crunk&b": {
-          bpm: [96, 104],
-          swing: [0.03, 0.06],
-          kickA: [0, 7],
-          kickB: [0, 7, 11],
-          snare: [4, 12],
-          ghost: [],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-          bass: "808",
-        },
-        bounce: {
-          bpm: [92, 100],
-          swing: [0.06, 0.1],
-          kickA: [0, 6, 10],
-          kickB: [0, 6, 10, 14],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-        },
+        neptunes: { bpm: [90, 100], swing: [0.06, 0.1], kickA: [0, 7], kickB: [0, 7, 10], snare: [4, 12], ghost: [], hats: [0, 4, 8, 12], pad: "keys" },
+        timbaland: { bpm: [92, 100], swing: [0.08, 0.12], kickA: [0, 3, 7], kickB: [0, 3, 7, 10], snare: [4, 12], ghost: [14, 15], hats: [2, 6, 10, 14], pad: "keys" },
+        "slow jam": { bpm: [66, 76], swing: [0.06, 0.1], kickA: [0, 10], kickB: [0, 10, 14], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "strings", bass: "round" },
+        "crunk&b": { bpm: [96, 104], swing: [0.03, 0.06], kickA: [0, 7], kickB: [0, 7, 11], snare: [4, 12], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "808" },
+        bounce: { bpm: [92, 100], swing: [0.06, 0.1], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
       };
       const GARAGE_STYLES = {
-        "2-step": {
-          bpm: [130, 136],
-          swing: [0.12, 0.18],
-          kickA: [0, 10],
-          kickB: [0, 6, 10],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "stab",
-          bass: "sub",
-          bassPat: { b: [2, 6, 10, 14], c: [0], p: 0.4 },
-        },
-        "4x4": {
-          bpm: [128, 134],
-          swing: [0.06, 0.1],
-          kickA: [0, 4, 8, 12],
-          kickB: [0, 4, 8, 12],
-          snare: [4, 12],
-          ghost: [],
-          hats: [2, 6, 10, 14],
-          pad: "stab",
-          bass: "sub",
-          bassPat: { b: [2, 6, 10, 14], c: [], p: 0 },
-        },
-        "speed garage": {
-          bpm: [132, 136],
-          swing: [0.04, 0.08],
-          kickA: [0, 4, 8, 12],
-          kickB: [0, 4, 8, 12],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "stab",
-          bass: "reese",
-          bassPat: { b: [0, 3, 6, 10, 14], c: [], p: 0 },
-        },
-        future: {
-          bpm: [128, 132],
-          swing: [0.14, 0.18],
-          kickA: [0, 10],
-          kickB: [0, 10, 14],
-          snare: [4, 12],
-          ghost: [7, 15],
-          hats: [2, 6, 10, 14],
-          pad: "glass",
-          bass: "sub",
-        },
+        "2-step": { bpm: [130, 136], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 6, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "sub", bassPat: { b: [2, 6, 10, 14], c: [0], p: 0.4 } },
+        "4x4": { bpm: [128, 134], swing: [0.06, 0.1], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [], hats: [2, 6, 10, 14], pad: "stab", bass: "sub", bassPat: { b: [2, 6, 10, 14], c: [], p: 0 } },
+        "speed garage": { bpm: [132, 136], swing: [0.04, 0.08], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "reese", bassPat: { b: [0, 3, 6, 10, 14], c: [], p: 0 } },
+        future: { bpm: [128, 132], swing: [0.14, 0.18], kickA: [0, 10], kickB: [0, 10, 14], snare: [4, 12], ghost: [7, 15], hats: [2, 6, 10, 14], pad: "glass", bass: "sub" },
       };
       const LOFI_STYLES = {
-        sleepy: {
-          bpm: [70, 80],
-          swing: [0.14, 0.2],
-          kickA: [0, 10],
-          kickB: [0, 10, 11],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [0, 4, 8, 12],
-          pad: "keys",
-        },
-        jazzy: {
-          bpm: [78, 88],
-          swing: [0.12, 0.18],
-          kickA: [0, 10],
-          kickB: [0, 7, 10],
-          snare: [4, 12],
-          ghost: [2, 7, 14],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-        },
-        tape: {
-          bpm: [72, 82],
-          swing: [0.14, 0.2],
-          kickA: [0, 8, 10],
-          kickB: [0, 8, 10, 14],
-          snare: [4, 12],
-          ghost: [15],
-          hats: [0, 3, 6, 10, 14],
-          pad: "keys",
-        },
-        study: {
-          bpm: [80, 90],
-          swing: [0.1, 0.16],
-          kickA: [0, 10],
-          kickB: [0, 6, 10],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "chorus",
-        },
+        sleepy: { bpm: [70, 80], swing: [0.14, 0.2], kickA: [0, 10], kickB: [0, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 4, 8, 12], pad: "keys" },
+        jazzy: { bpm: [78, 88], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 7, 10], snare: [4, 12], ghost: [2, 7, 14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+        tape: { bpm: [72, 82], swing: [0.14, 0.2], kickA: [0, 8, 10], kickB: [0, 8, 10, 14], snare: [4, 12], ghost: [15], hats: [0, 3, 6, 10, 14], pad: "keys" },
+        study: { bpm: [80, 90], swing: [0.1, 0.16], kickA: [0, 10], kickB: [0, 6, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "chorus" },
       };
       const AFRO_STYLES = {
-        afrobeats: {
-          bpm: [102, 110],
-          swing: [0.02, 0.05],
-          kickA: [0, 6, 10],
-          kickB: [0, 6, 10, 14],
-          snare: [4, 12],
-          ghost: [3, 11],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-          bass: "round",
-        },
-        amapiano: {
-          bpm: [110, 116],
-          swing: [0.04, 0.08],
-          kickA: [0, 6, 10, 12],
-          kickB: [0, 6, 10, 12],
-          snare: [8],
-          ghost: [3, 11, 14],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "glass",
-          bass: "pluck",
-          bassPat: { b: [0, 6, 10, 14], c: [3], p: 0.3 },
-        },
-        "afro house": {
-          bpm: [116, 124],
-          swing: [0.02, 0.05],
-          kickA: [0, 4, 8, 12],
-          kickB: [0, 4, 8, 12],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "stab",
-          bass: "sub",
-        },
-        afroswing: {
-          bpm: [102, 108],
-          swing: [0.04, 0.07],
-          kickA: [0, 7, 10],
-          kickB: [0, 7, 10, 14],
-          snare: [4, 12],
-          ghost: [3],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "keys",
-          bass: "808",
-        },
+        afrobeats: { bpm: [102, 110], swing: [0.02, 0.05], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [3, 11], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "round" },
+        amapiano: { bpm: [110, 116], swing: [0.04, 0.08], kickA: [0, 6, 10, 12], kickB: [0, 6, 10, 12], snare: [8], ghost: [3, 11, 14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "glass", bass: "pluck", bassPat: { b: [0, 6, 10, 14], c: [3], p: 0.3 } },
+        "afro house": { bpm: [116, 124], swing: [0.02, 0.05], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "sub" },
+        afroswing: { bpm: [102, 108], swing: [0.04, 0.07], kickA: [0, 7, 10], kickB: [0, 7, 10, 14], snare: [4, 12], ghost: [3], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "808" },
       };
       const DUBSTEP_STYLES = {
-        halftime: {
-          bpm: [138, 142],
-          swing: [0, 0.02],
-          kickA: [0],
-          kickB: [0, 10],
-          snare: [8],
-          ghost: [],
-          hats: [2, 6, 10, 14],
-          pad: "saw",
-          bass: "growl",
-          scale: "phryg",
-          bassPat: { b: [0, 8], c: [11, 14], p: 0.4 },
-        },
-        riddim: {
-          bpm: [140, 142],
-          swing: [0, 0.02],
-          kickA: [0],
-          kickB: [0, 8],
-          snare: [8],
-          ghost: [],
-          hats: [0, 4, 8, 12],
-          pad: "saw",
-          bass: "growl",
-          scale: "phryg",
-          bassPat: { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [], p: 0 },
-        },
-        melodic: {
-          bpm: [140, 142],
-          swing: [0, 0.02],
-          kickA: [0],
-          kickB: [0, 10],
-          snare: [8],
-          ghost: [],
-          hats: [2, 6, 10, 14],
-          pad: "glass",
-          bass: "reese",
-          bassPat: { b: [0, 8], c: [11], p: 0.3 },
-        },
-        brostep: {
-          bpm: [140, 142],
-          swing: [0, 0.02],
-          kickA: [0, 8],
-          kickB: [0, 6, 8],
-          snare: [8],
-          ghost: [],
-          hats: [0, 2, 4, 6, 8, 10, 12, 14],
-          pad: "saw",
-          bass: "growl",
-          scale: "phryg",
-        },
+        halftime: { bpm: [138, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "saw", bass: "growl", scale: "phryg", bassPat: { b: [0, 8], c: [11, 14], p: 0.4 } },
+        riddim: { bpm: [140, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 8], snare: [8], ghost: [], hats: [0, 4, 8, 12], pad: "saw", bass: "growl", scale: "phryg", bassPat: { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [], p: 0 } },
+        melodic: { bpm: [140, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "glass", bass: "reese", bassPat: { b: [0, 8], c: [11], p: 0.3 } },
+        brostep: { bpm: [140, 142], swing: [0, 0.02], kickA: [0, 8], kickB: [0, 6, 8], snare: [8], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "saw", bass: "growl", scale: "phryg" },
       };
       const DOWNTEMPO_STYLES = {
-        "trip-hop": {
-          bpm: [80, 90],
-          swing: [0.08, 0.14],
-          kickA: [0, 10],
-          kickB: [0, 10, 11],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [0, 4, 8, 12],
-          pad: "strings",
-          bass: "round",
-        },
-        ambient: {
-          bpm: [70, 80],
-          swing: [0.04, 0.08],
-          kickA: [0],
-          kickB: [0, 10],
-          snare: [12],
-          ghost: [],
-          hats: [8],
-          pad: "air",
-          bass: "sub",
-        },
-        cinematic: {
-          bpm: [76, 86],
-          swing: [0.05, 0.1],
-          kickA: [0, 8],
-          kickB: [0, 8, 10],
-          snare: [4, 12],
-          ghost: [7],
-          hats: [2, 6, 10, 14],
-          pad: "strings",
-          bass: "round",
-        },
-        dub: {
-          bpm: [72, 82],
-          swing: [0.06, 0.1],
-          kickA: [0, 10],
-          kickB: [0, 10, 14],
-          snare: [8],
-          ghost: [],
-          hats: [2, 6, 10, 14],
-          pad: "stab",
-          bass: "sub",
-        },
+        "trip-hop": { bpm: [80, 90], swing: [0.08, 0.14], kickA: [0, 10], kickB: [0, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 4, 8, 12], pad: "strings", bass: "round" },
+        ambient: { bpm: [70, 80], swing: [0.04, 0.08], kickA: [0], kickB: [0, 10], snare: [12], ghost: [], hats: [8], pad: "air", bass: "sub" },
+        cinematic: { bpm: [76, 86], swing: [0.05, 0.1], kickA: [0, 8], kickB: [0, 8, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "strings", bass: "round" },
+        dub: { bpm: [72, 82], swing: [0.06, 0.1], kickA: [0, 10], kickB: [0, 10, 14], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "stab", bass: "sub" },
       };
       /* which sub-style bank each genre draws from (house intentionally omitted — it keeps its
    own signature four-on-the-floor). */
@@ -4270,6 +4131,737 @@
           if (Math.random() < p) a[i] = 1;
         });
         return a;
+      }
+
+      /* ---------- phrase-aware drum arrangement ----------
+         A strong groove repeats, but it rarely pastes the exact same one-bar grid from
+         intro to outro. Each track now grows a small family of related patterns. The
+         scheduler chooses between them in four-bar phrases, so variation is intentional
+         and repeatable rather than a new random accident on every pass. */
+      const DRUM_EMPTY = () => new Array(16).fill(0);
+      const drumCopy = (a) =>
+        Array.isArray(a) ? a.slice(0, 16) : DRUM_EMPTY();
+      const drumSteps = (a) => {
+        const out = [];
+        for (let i = 0; i < 16; i++) if (a && a[i]) out.push(i);
+        return out;
+      };
+      function drumPickMany(list, count) {
+        const pool = list.slice(),
+          out = [];
+        while (pool.length && out.length < count) {
+          const i = RI(0, pool.length - 1);
+          out.push(pool.splice(i, 1)[0]);
+        }
+        return out;
+      }
+      function drumAdd(base, candidates, count) {
+        const out = drumCopy(base);
+        drumPickMany(
+          candidates.filter((i) => !out[i]),
+          count,
+        ).forEach((i) => (out[i] = 1));
+        return out;
+      }
+      function drumRemove(base, protectedSteps, count) {
+        const out = drumCopy(base),
+          keep = new Set(protectedSteps || []),
+          removable = drumSteps(out).filter((i) => !keep.has(i));
+        drumPickMany(removable, count).forEach((i) => (out[i] = 0));
+        return out;
+      }
+      function drumMerge(a, b) {
+        const out = drumCopy(a);
+        for (let i = 0; i < 16; i++) if (b && b[i]) out[i] = 1;
+        return out;
+      }
+      function drumPatternFromSteps(steps) {
+        const out = DRUM_EMPTY();
+        (steps || []).forEach((i) => {
+          if (i >= 0 && i < 16) out[i] = 1;
+        });
+        return out;
+      }
+      function drumBarRand(tag, barNo) {
+        if (!track) return Math.random();
+        return mulberry32(hashSeed(`${track.seed}|drum|${tag}|${barNo}`))();
+      }
+      function isFourFloorDrums(genre, subStyle, kick) {
+        if (genre === "house") return true;
+        if (genre === "uk garage" && /4x4|speed garage/.test(subStyle || ""))
+          return true;
+        if (genre === "afrobeats" && subStyle === "afro house") return true;
+        return [0, 4, 8, 12].every((i) => kick && kick[i]);
+      }
+      function drumGrammar(genre, subStyle) {
+        const four = /house/.test(genre) || subStyle === "4x4" || subStyle === "speed garage";
+        if (genre === "drum n bass")
+          return {
+            kick: [2, 3, 6, 7, 10, 11, 13, 14, 15],
+            ghost: [2, 3, 6, 7, 10, 11, 13, 14, 15],
+            fill: [12, 13, 14, 15],
+          };
+        if (genre === "trap" || genre === "jerk")
+          return {
+            kick: [3, 6, 7, 10, 11, 14, 15],
+            ghost: [6, 7, 14, 15],
+            fill: [12, 14, 15],
+          };
+        if (genre === "dubstep")
+          return {
+            kick: [3, 6, 10, 11, 14, 15],
+            ghost: [6, 7, 14, 15],
+            fill: [12, 14, 15],
+          };
+        if (genre === "uk garage")
+          return {
+            kick: [2, 3, 6, 7, 10, 11, 14, 15],
+            ghost: [3, 7, 11, 15],
+            fill: [12, 14, 15],
+          };
+        if (genre === "afrobeats")
+          return {
+            kick: [2, 3, 6, 7, 10, 11, 14, 15],
+            ghost: [3, 7, 11, 14],
+            fill: [12, 14, 15],
+          };
+        if (four)
+          return {
+            kick: [2, 6, 10, 14, 15],
+            ghost: [3, 7, 11, 15],
+            fill: [12, 14, 15],
+          };
+        return {
+          kick: [2, 3, 6, 7, 10, 11, 14, 15],
+          ghost: [2, 3, 6, 7, 10, 11, 14, 15],
+          fill: [12, 14, 15],
+        };
+      }
+      function buildDrumFamily({
+        kick,
+        kickB,
+        snare,
+        ghost,
+        hats,
+        genre,
+        subStyle,
+        dna,
+      }) {
+        const grammar = drumGrammar(genre, subStyle),
+          fourFloor = isFourFloorDrums(genre, subStyle, kick),
+          complexity = (dna?.complexity || 50) / 100,
+          chaos = (dna?.chaos || 35) / 100,
+          energy = (dna?.energy || 50) / 100,
+          repetitive =
+            genre === "house" ||
+            (genre === "dubstep" && subStyle === "riddim") ||
+            (genre === "uk garage" && subStyle === "4x4"),
+          variation = Math.max(
+            0.24,
+            Math.min(
+              0.82,
+              0.22 + complexity * 0.36 + chaos * 0.2 + energy * 0.1 -
+                (repetitive ? 0.12 : 0),
+            ),
+          ),
+          baseKick = drumCopy(kick),
+          baseSnare = drumCopy(snare),
+          baseGhost = drumCopy(ghost),
+          baseHats = Array.isArray(hats) ? drumCopy(hats) : null,
+          kickAnchors = fourFloor
+            ? [0, 4, 8, 12]
+            : baseKick[0]
+              ? [0]
+              : drumSteps(baseKick).slice(0, 1),
+          kickLocked = fourFloor || repetitive,
+          addSmall = kickLocked
+            ? 0
+            : variation > 0.48
+              ? 1
+              : Math.random() < variation
+                ? 1
+                : 0,
+          addLift = kickLocked ? 0 : variation > 0.66 ? 2 : 1;
+
+        let altKick = kickB ? drumCopy(kickB) : drumAdd(baseKick, grammar.kick, addSmall);
+        if (
+          !kickB &&
+          !kickLocked &&
+          variation > 0.55 &&
+          drumSteps(baseKick).length > 2
+        )
+          altKick = drumRemove(altKick, kickAnchors, 1);
+        const liftKick = drumAdd(altKick, grammar.kick, addLift);
+        let sparseKick = fourFloor
+          ? drumPatternFromSteps([0, 8].filter((i) => baseKick[i] || i === 0))
+          : drumRemove(
+              baseKick,
+              kickAnchors,
+              Math.max(1, Math.ceil(drumSteps(baseKick).length * 0.55)),
+            );
+        if (!drumSteps(sparseKick).length && baseKick[0]) sparseKick[0] = 1;
+        const breakKick = fourFloor
+          ? drumPatternFromSteps([0, 8].filter((i) => baseKick[i] || i === 0))
+          : drumRemove(
+              sparseKick,
+              kickAnchors.slice(0, 1),
+              Math.max(0, drumSteps(sparseKick).length - 1),
+            );
+        let turnKick = drumAdd(altKick, grammar.kick.filter((i) => i >= 10), 1);
+        if (!fourFloor && turnKick[15] && turnKick[14]) turnKick[14] = 0;
+
+        const snareAnchors = drumSteps(baseSnare),
+          sparseSnare = drumCopy(baseSnare),
+          breakSnare = drumCopy(baseSnare);
+        if (snareAnchors.length > 1) {
+          sparseSnare[snareAnchors[0]] = 0;
+          if (!fourFloor && Math.random() < 0.5)
+            breakSnare[snareAnchors[0]] = 0;
+        }
+        const activeGhost = drumAdd(
+            baseGhost,
+            grammar.ghost.filter((i) => !baseSnare[i]),
+            variation > 0.58 ? 1 : 0,
+          ),
+          turnGhost = drumAdd(
+            activeGhost,
+            grammar.ghost.filter((i) => i >= 10 && !baseSnare[i]),
+            variation > 0.7 ? 1 : 0,
+          );
+
+        let sparseHats = baseHats,
+          altHats = baseHats,
+          liftHats = baseHats,
+          turnHats = baseHats;
+        if (baseHats) {
+          const hatCandidates = [0, 2, 4, 6, 8, 10, 12, 14, 15];
+          sparseHats = drumRemove(
+            baseHats,
+            drumSteps(baseHats).filter((i) => i % 4 === 2).slice(0, 2),
+            Math.max(1, Math.floor(drumSteps(baseHats).length * 0.45)),
+          );
+          altHats = drumAdd(baseHats, hatCandidates, variation > 0.48 ? 1 : 0);
+          if (variation > 0.52)
+            altHats = drumRemove(altHats, [2, 6, 10, 14], 1);
+          liftHats = drumAdd(altHats, hatCandidates, variation > 0.62 ? 2 : 1);
+          turnHats = drumAdd(liftHats, [14, 15], 1);
+        }
+
+        const fillSnare = drumPatternFromSteps(grammar.fill),
+          fillHat = drumPatternFromSteps(
+            genre === "trap" || genre === "jerk"
+              ? [13, 14, 15]
+              : genre === "drum n bass"
+                ? [12, 14, 15]
+                : [14, 15],
+          );
+        const make = (role, k, s, gh, h, hatMul) => ({
+          role,
+          kick: drumCopy(k),
+          snare: drumCopy(s),
+          ghost: drumCopy(gh),
+          hats: h ? drumCopy(h) : null,
+          hatMul,
+        });
+        return {
+          variation,
+          fillSnare,
+          fillHat,
+          base: make("base", baseKick, baseSnare, baseGhost, baseHats, 1),
+          alt: make("alternate", altKick, baseSnare, activeGhost, altHats, 0.96),
+          lift: make("lift", liftKick, baseSnare, activeGhost, liftHats, 1.12),
+          sparse: make("sparse", sparseKick, sparseSnare, baseGhost, sparseHats, 0.5),
+          break: make("breakdown", breakKick, breakSnare, baseGhost, sparseHats, 0.18),
+          turn: make("turnaround", turnKick, baseSnare, turnGhost, turnHats, 1.18),
+        };
+      }
+
+      /* ---------- A.R.I. sequence drum brain ----------
+         The phrase family above is the long-term arranger. This layer works one
+         bar lower: it remembers recent bars, recalls motifs from four/eight bars
+         ago and lets the groove move through a small rhythmic latent space.
+         The result is deliberately "neural-ish", not a fake claim that an LSTM is
+         running in the browser: weighted memory + controlled prediction + hard
+         musical constraints give us the useful behaviour at a tiny CPU cost. */
+      const DRUM_SECTION_TEMPERATURE = {
+        intro: 0.22,
+        main: 0.38,
+        break: 0.66,
+        main2: 0.58,
+        outro: 0.28,
+      };
+      const drumClamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
+      const drumCount = (a) => drumSteps(a).length;
+      function drumSeededRng(t, tag, barNo) {
+        return mulberry32(hashSeed(`${t.seed}|brain|${tag}|${barNo}`));
+      }
+      function drumPickManyRng(list, count, rng) {
+        const pool = list.slice(),
+          out = [];
+        while (pool.length && out.length < count) {
+          const i = Math.floor(rng() * pool.length);
+          out.push(pool.splice(i, 1)[0]);
+        }
+        return out;
+      }
+      function drumSectionInfoFrom(sections, barNo) {
+        for (let i = 0; i < (sections || []).length; i++) {
+          const s = sections[i];
+          if (barNo >= s.start && barNo < s.end)
+            return {
+              ...s,
+              index: i,
+              pos: barNo - s.start,
+              len: s.end - s.start,
+              left: s.end - barNo,
+            };
+        }
+        return {
+          name: "main",
+          start: 0,
+          end: 999,
+          index: 0,
+          pos: barNo,
+          len: 999,
+          left: 999 - barNo,
+        };
+      }
+      function drumRoleForInfo(info) {
+        const phrase = info.pos % 4;
+        if (info.name === "intro")
+          return info.pos === 0
+            ? "sparse"
+            : info.left === 1
+              ? "turn"
+              : phrase % 2
+                ? "base"
+                : "alt";
+        if (info.name === "break")
+          return info.left === 1 ? "turn" : phrase % 2 ? "break" : "sparse";
+        if (info.name === "main2")
+          return phrase === 0 || phrase === 2
+            ? "lift"
+            : phrase === 1
+              ? "alt"
+              : "turn";
+        if (info.name === "outro")
+          return info.left === 1 ? "break" : info.pos === 0 ? "alt" : "sparse";
+        return phrase === 0 || phrase === 2
+          ? "base"
+          : phrase === 1
+            ? "alt"
+            : "turn";
+      }
+      function drumPatternDistance(a, b) {
+        if (!a || !b) return 0;
+        let d = 0;
+        for (let i = 0; i < 16; i++) if (!!a[i] !== !!b[i]) d++;
+        return d / 16;
+      }
+      function drumBrainDNA(t) {
+        const d = t.guestDNA || {},
+          complexity = (d.complexity || 50) / 100,
+          chaos = (d.chaos || 35) / 100,
+          energy = (d.energy || 50) / 100,
+          curiosity = (d.curiosity || 50) / 100,
+          confidence = (d.confidence || 50) / 100;
+        let machine = 0.58;
+        if (/house|trap|jerk|dubstep/.test(t.genre)) machine += 0.18;
+        if (/afrobeats|hip.?hop|funk/.test(t.genre)) machine -= 0.12;
+        if (t.genre === "drum n bass") machine += 0.08;
+        if (/riddim|4x4/.test(t.subStyle || "")) machine += 0.1;
+        return {
+          syncopation: drumClamp(
+            0.2 + complexity * 0.3 + chaos * 0.2 + curiosity * 0.17 +
+              (/garage|afro|drum n bass/.test(`${t.genre} ${t.subStyle || ""}`)
+                ? 0.12
+                : 0),
+          ),
+          density: drumClamp(
+            0.22 + energy * 0.38 + complexity * 0.24 -
+              (/riddim/.test(t.subStyle || "") ? 0.08 : 0),
+          ),
+          machine: drumClamp(machine),
+          strangeness: drumClamp(
+            0.08 + chaos * 0.42 + curiosity * 0.29 + complexity * 0.12,
+          ),
+          memory: drumClamp(0.58 + confidence * 0.2 - chaos * 0.17),
+          confidence,
+          phases: [
+            (hashSeed(`${t.seed}|phase|a`) % 628) / 100,
+            (hashSeed(`${t.seed}|phase|b`) % 628) / 100,
+            (hashSeed(`${t.seed}|phase|c`) % 628) / 100,
+          ],
+        };
+      }
+      function drumLatentAt(t, dna, info, barNo, rng) {
+        const progress = barNo / Math.max(1, t.bars - 1),
+          waveA = Math.sin(progress * Math.PI * 2.2 + dna.phases[0]),
+          waveB = Math.sin(progress * Math.PI * 3.1 + dna.phases[1]),
+          waveC = Math.sin(progress * Math.PI * 1.35 + dna.phases[2]);
+        const mods = {
+          intro: { density: -0.22, syncopation: -0.08, strangeness: -0.11 },
+          main: { density: 0, syncopation: 0, strangeness: 0 },
+          break: { density: -0.2, syncopation: 0.08, strangeness: 0.15 },
+          main2: { density: 0.1, syncopation: 0.05, strangeness: 0.08 },
+          outro: { density: -0.18, syncopation: -0.05, strangeness: -0.08 },
+        }[info.name] || { density: 0, syncopation: 0, strangeness: 0 };
+        return {
+          density: drumClamp(dna.density + mods.density + waveA * 0.045),
+          syncopation: drumClamp(
+            dna.syncopation + mods.syncopation + waveB * 0.04,
+          ),
+          machine: drumClamp(dna.machine + waveC * 0.035),
+          strangeness: drumClamp(
+            dna.strangeness + mods.strangeness + waveA * 0.03 + (rng() - 0.5) * 0.025,
+          ),
+          memory: drumClamp(
+            dna.memory + (info.pos % 4 === 0 ? 0.1 : 0) -
+              (info.name === "break" ? 0.08 : 0),
+          ),
+        };
+      }
+      function drumTemperatureAt(dna, latent, info, rng) {
+        const base = DRUM_SECTION_TEMPERATURE[info.name] ?? 0.4;
+        return drumClamp(
+          base + latent.strangeness * 0.18 + (1 - latent.memory) * 0.1 +
+            (rng() - 0.5) * 0.045,
+          0.14,
+          0.88,
+        );
+      }
+      function drumHatSeed(t, source, latent, role, rng) {
+        if (source) return drumCopy(source);
+        const out = DRUM_EMPTY(),
+          mode = t.hatMode || t.g.hat,
+          density = drumClamp(
+            latent.density * (role === "break" ? 0.45 : role === "sparse" ? 0.66 : 1),
+          );
+        if (mode === "offbeat") {
+          [2, 6, 10, 14].forEach((i) => (out[i] = 1));
+          if (density > 0.55)
+            [0, 4, 8, 12].forEach((i) => {
+              if (rng() < 0.3 + density * 0.28) out[i] = 1;
+            });
+        } else if (mode === "eights") {
+          for (let i = 0; i < 16; i += 2)
+            if (rng() < 0.58 + density * 0.48) out[i] = 1;
+        } else if (mode === "rolls") {
+          for (let i = 0; i < 16; i++)
+            if (rng() < (i % 2 === 0 ? 0.48 : 0.18) + density * 0.34)
+              out[i] = 1;
+        } else {
+          for (let i = 0; i < 16; i++)
+            if (rng() < (i % 2 === 0 ? 0.42 : 0.12) + density * 0.38)
+              out[i] = 1;
+        }
+        return out;
+      }
+      function drumBlendMemory(anchor, prev, recall, memory, rng, protectedSteps) {
+        const out = drumCopy(anchor),
+          keep = new Set(protectedSteps || []);
+        for (let i = 0; i < 16; i++) {
+          if (keep.has(i)) continue;
+          if (prev && rng() < memory * 0.25) out[i] = prev[i] ? 1 : 0;
+          if (recall && rng() < memory * 0.16) out[i] = recall[i] ? 1 : 0;
+        }
+        return out;
+      }
+      function drumAddRng(base, candidates, count, rng) {
+        const out = drumCopy(base);
+        drumPickManyRng(
+          candidates.filter((i) => !out[i]),
+          count,
+          rng,
+        ).forEach((i) => (out[i] = 1));
+        return out;
+      }
+      function drumRemoveRng(base, protectedSteps, count, rng) {
+        const out = drumCopy(base),
+          keep = new Set(protectedSteps || []);
+        drumPickManyRng(
+          drumSteps(out).filter((i) => !keep.has(i)),
+          count,
+          rng,
+        ).forEach((i) => (out[i] = 0));
+        return out;
+      }
+      function drumLimitHits(base, maxHits, protectedSteps, rng) {
+        const out = drumCopy(base),
+          keep = new Set(protectedSteps || []);
+        if (drumCount(out) <= maxHits) return out;
+        return drumRemoveRng(out, [...keep], drumCount(out) - maxHits, rng);
+      }
+      function drumEnsureHits(base, minHits, candidates, rng) {
+        let out = drumCopy(base);
+        if (drumCount(out) < minHits)
+          out = drumAddRng(out, candidates, minHits - drumCount(out), rng);
+        return out;
+      }
+      function drumCapRun(base, allowRuns, protectedSteps, rng) {
+        const out = drumCopy(base),
+          keep = new Set(protectedSteps || []);
+        if (allowRuns) return out;
+        for (let i = 2; i < 16; i++) {
+          if (out[i - 2] && out[i - 1] && out[i]) {
+            const removable = [i - 1, i].filter((x) => !keep.has(x));
+            if (removable.length)
+              out[removable[Math.floor(rng() * removable.length)]] = 0;
+          }
+        }
+        return out;
+      }
+      function drumCapNovelty(base, prev, maxChanges, protectedSteps, rng) {
+        if (!prev) return drumCopy(base);
+        const out = drumCopy(base),
+          keep = new Set(protectedSteps || []),
+          diff = [];
+        for (let i = 0; i < 16; i++)
+          if (!!out[i] !== !!prev[i] && !keep.has(i)) diff.push(i);
+        if (diff.length > maxChanges)
+          drumPickManyRng(diff, diff.length - maxChanges, rng).forEach(
+            (i) => (out[i] = prev[i] ? 1 : 0),
+          );
+        return out;
+      }
+      function drumVelocityMap(pattern, base, latent, rng, accentSteps) {
+        const out = new Array(16).fill(0),
+          human = 1 - latent.machine,
+          accents = new Set(accentSteps || []);
+        for (let i = 0; i < 16; i++) {
+          if (!pattern?.[i]) continue;
+          const accent = accents.has(i) ? 0.1 : 0;
+          out[i] = drumClamp(
+            base + accent + (rng() - 0.5) * (0.08 + human * 0.22),
+            0.18,
+            1.15,
+          );
+        }
+        return out;
+      }
+      function drumMicroMap(pattern, latent, rng, anchors) {
+        const out = new Array(16).fill(0),
+          keep = new Set(anchors || []),
+          human = 1 - latent.machine;
+        for (let i = 0; i < 16; i++) {
+          if (!pattern?.[i] || keep.has(i)) continue;
+          out[i] = (rng() - 0.48) * human * 0.105;
+        }
+        return out;
+      }
+      function drumFillForBar(family, genre, temperature, rng) {
+        let sn = drumCopy(family.fillSnare),
+          hh = drumCopy(family.fillHat);
+        if (temperature > 0.55 && rng() < temperature) {
+          const extra = genre === "drum n bass" ? [11, 13] : [13, 15];
+          sn = drumAddRng(sn, extra, 1, rng);
+        }
+        if (temperature < 0.35 && drumCount(sn) > 2)
+          sn = drumRemoveRng(sn, [15], 1, rng);
+        if (temperature > 0.62 && rng() < 0.55)
+          hh = drumAddRng(hh, [12, 13, 14, 15], 1, rng);
+        return { snare: sn, hats: hh };
+      }
+      function buildDrumBrain(t) {
+        const family = t.drumFamily,
+          grammar = drumGrammar(t.genre, t.subStyle),
+          dna = drumBrainDNA(t),
+          plan = [],
+          fourFloor = isFourFloorDrums(t.genre, t.subStyle, t.kick);
+        for (let barNo = 0; barNo < t.bars; barNo++) {
+          const info = drumSectionInfoFrom(t.sections, barNo),
+            phrase = info.pos % 4,
+            role = drumRoleForInfo(info),
+            source = family[role] || family.base,
+            rng = drumSeededRng(t, "bar", barNo),
+            latent = drumLatentAt(t, dna, info, barNo, rng),
+            temperature = drumTemperatureAt(dna, latent, info, rng),
+            prev = plan[barNo - 1] || null,
+            recall = plan[barNo - (phrase === 0 && barNo >= 8 ? 8 : 4)] || null,
+            activeFour = fourFloor && !/break|sparse/.test(role),
+            kickAnchors = activeFour
+              ? [0, 4, 8, 12]
+              : source.kick[0]
+                ? [0]
+                : drumSteps(source.kick).slice(0, 1),
+            snareAnchors = drumSteps(source.snare),
+            memory = drumClamp(latent.memory + (phrase === 0 ? 0.08 : 0)),
+            allowKickRuns =
+              /trap|jerk|drum n bass/.test(t.genre) || latent.strangeness > 0.72;
+
+          let kick = drumBlendMemory(
+            source.kick,
+            prev?.kick,
+            recall?.kick,
+            memory,
+            rng,
+            kickAnchors,
+          );
+          const kickAddChance =
+              temperature * (0.16 + latent.syncopation * 0.5),
+            kickDropChance =
+              temperature * (0.1 + (1 - latent.density) * 0.34),
+            kickAdds = rng() < kickAddChance ? 1 + (rng() < temperature * 0.22 ? 1 : 0) : 0,
+            kickDrops = rng() < kickDropChance ? 1 : 0;
+          kick = drumAddRng(kick, grammar.kick, kickAdds, rng);
+          kick = drumRemoveRng(kick, kickAnchors, kickDrops, rng);
+          const minKick = activeFour ? 4 : role === "break" ? 1 : role === "sparse" ? 1 : 2,
+            maxKick = activeFour
+              ? 6
+              : Math.round(
+                  (/trap|jerk|drum n bass/.test(t.genre) ? 4 : 3) +
+                    latent.density * 3,
+                );
+          kick = drumEnsureHits(kick, minKick, drumSteps(source.kick).concat(grammar.kick), rng);
+          kick = drumLimitHits(kick, maxKick, kickAnchors, rng);
+          kick = drumCapRun(kick, allowKickRuns, kickAnchors, rng);
+          kick = drumCapNovelty(
+            kick,
+            prev?.kick,
+            Math.max(1, Math.round(1 + temperature * 3.2)),
+            kickAnchors,
+            rng,
+          );
+
+          // The primary backbeat is the skeleton. The brain expresses itself around
+          // it with ghost notes rather than casually deleting the song's pulse.
+          let snare = drumCopy(source.snare);
+          if (
+            role === "break" &&
+            snareAnchors.length > 1 &&
+            latent.strangeness > 0.68 &&
+            rng() < temperature * 0.25
+          )
+            snare = drumRemoveRng(snare, snareAnchors.slice(-1), 1, rng);
+
+          let ghost = drumBlendMemory(
+            source.ghost,
+            prev?.ghost,
+            recall?.ghost,
+            memory * 0.82,
+            rng,
+            [],
+          );
+          const ghostAdds =
+              rng() < temperature * (0.18 + latent.syncopation * 0.55)
+                ? 1 + (rng() < latent.strangeness * temperature * 0.32 ? 1 : 0)
+                : 0,
+            ghostDrops = rng() < temperature * (1 - latent.density) * 0.28 ? 1 : 0;
+          ghost = drumAddRng(
+            ghost,
+            grammar.ghost.filter((i) => !snare[i]),
+            ghostAdds,
+            rng,
+          );
+          ghost = drumRemoveRng(ghost, [], ghostDrops, rng);
+          ghost = drumLimitHits(
+            ghost,
+            Math.max(2, Math.round(2 + latent.density * 3)),
+            [],
+            rng,
+          );
+          ghost = drumCapNovelty(
+            ghost,
+            prev?.ghost,
+            Math.max(1, Math.round(1 + temperature * 4)),
+            [],
+            rng,
+          );
+
+          const sourceHats = drumHatSeed(t, source.hats, latent, role, rng),
+            hatAnchors = (t.hatMode || t.g.hat) === "offbeat" ? [2, 6, 10, 14] : [],
+            hatMemory = role === "break" ? memory * 0.55 : memory * 0.76;
+          let hats = drumBlendMemory(
+            sourceHats,
+            prev?.hats,
+            recall?.hats,
+            hatMemory,
+            rng,
+            hatAnchors,
+          );
+          const hatCandidates = Array.from({ length: 16 }, (_, i) => i),
+            hatAdds = rng() < temperature * (0.18 + latent.density * 0.42) ? 1 + (rng() < temperature * 0.35 ? 1 : 0) : 0,
+            hatDrops = rng() < temperature * (0.1 + (1 - latent.density) * 0.48) ? 1 + (rng() < 0.22 ? 1 : 0) : 0;
+          hats = drumAddRng(hats, hatCandidates, hatAdds, rng);
+          hats = drumRemoveRng(hats, hatAnchors, hatDrops, rng);
+          const minHats = info.name === "break" ? 1 : role === "sparse" ? 2 : 3,
+            maxHats = Math.max(minHats, Math.round(5 + latent.density * 9));
+          hats = drumEnsureHits(hats, minHats, drumSteps(sourceHats), rng);
+          hats = drumLimitHits(hats, maxHats, hatAnchors, rng);
+          hats = drumCapNovelty(
+            hats,
+            prev?.hats,
+            Math.max(2, Math.round(2 + temperature * 6)),
+            hatAnchors,
+            rng,
+          );
+
+          const phraseEnd = phrase === 3,
+            sectionEnd = info.left === 1,
+            fillChance =
+              0.06 + family.variation * 0.2 + temperature * 0.18,
+            useFill =
+              sectionEnd ||
+              (phraseEnd &&
+                info.name !== "intro" &&
+                info.name !== "outro" &&
+                rng() < fillChance),
+            fill = drumFillForBar(family, t.genre, temperature, rng),
+            novelty = prev
+              ? (drumPatternDistance(kick, prev.kick) * 0.42 +
+                  drumPatternDistance(ghost, prev.ghost) * 0.2 +
+                  drumPatternDistance(hats, prev.hats) * 0.38)
+              : 0,
+            recallMatch = recall
+              ? 1 -
+                (drumPatternDistance(kick, recall.kick) * 0.5 +
+                  drumPatternDistance(hats, recall.hats) * 0.5)
+              : 0;
+
+          plan.push({
+            role: source.role,
+            brainRole: role,
+            model: "sequence-memory",
+            kick,
+            snare,
+            ghost,
+            hats,
+            hatMul: source.hatMul,
+            section: info.name,
+            sectionIndex: info.index,
+            sectionPos: info.pos,
+            sectionLen: info.len,
+            phrase,
+            phraseEnd,
+            sectionEnd,
+            useFill,
+            fillSnare: fill.snare,
+            fillHat: fill.hats,
+            temperature,
+            latent,
+            novelty,
+            recallMatch,
+            memorySource: recall ? (barNo >= 8 && phrase === 0 ? "8-bar motif" : "4-bar motif") : "seed groove",
+            velocity: {
+              snare: drumVelocityMap(snare, 0.88, latent, rng, snareAnchors),
+              ghost: drumVelocityMap(ghost, 0.34, latent, rng, []),
+              hats: drumVelocityMap(hats, 0.62, latent, rng, hatAnchors),
+            },
+            micro: {
+              kick: drumMicroMap(kick, latent, rng, kickAnchors),
+              snare: drumMicroMap(snare, latent, rng, snareAnchors),
+              ghost: drumMicroMap(ghost, latent, rng, []),
+              hats: drumMicroMap(hats, latent, rng, hatAnchors),
+            },
+          });
+        }
+        return {
+          version: 1,
+          model: "sequence memory + latent walk",
+          dna,
+          plan,
+          memoryBars: 8,
+        };
       }
 
       /* ---------- generative album art: canvas-drawn per track, no images, no samples ----------
@@ -4600,11 +5192,74 @@
         secs[secs.length - 1].end = bars;
         return secs;
       }
-      function sectionAt(bar) {
-        const s = track.sections;
-        for (let i = 0; i < s.length; i++)
-          if (bar >= s[i].start && bar < s[i].end) return s[i].name;
-        return "main";
+      function sectionInfoAt(barNo) {
+        const sections = track?.sections || [];
+        for (let i = 0; i < sections.length; i++) {
+          const s = sections[i];
+          if (barNo >= s.start && barNo < s.end)
+            return {
+              ...s,
+              index: i,
+              pos: barNo - s.start,
+              len: s.end - s.start,
+              left: s.end - barNo,
+            };
+        }
+        return { name: "main", start: 0, end: 999, index: 0, pos: barNo, len: 999, left: 999 - barNo };
+      }
+      function sectionAt(barNo) {
+        return sectionInfoAt(barNo).name;
+      }
+      function drumStateAt(barNo) {
+        if (!track?.drumFamily) return null;
+        if (track._drumStateBar === barNo && track._drumState)
+          return track._drumState;
+
+        // The sequence brain pre-composes a deterministic bar plan when the
+        // track is born. Scheduling can therefore look ahead safely, and a bar
+        // sounds identical after pause/resume or background recovery.
+        const planned = track.drumBrain?.plan?.[barNo];
+        if (planned) {
+          track._drumStateBar = barNo;
+          track._drumState = planned;
+          return planned;
+        }
+
+        // Backward-compatible fallback for old saved tracks / echoes.
+        const info = sectionInfoAt(barNo),
+          phrase = info.pos % 4,
+          family = track.drumFamily,
+          role = drumRoleForInfo(info),
+          phraseEnd = phrase === 3,
+          sectionEnd = info.left === 1,
+          phraseFillChance = 0.1 + family.variation * 0.3,
+          useFill =
+            sectionEnd ||
+            (phraseEnd &&
+              info.name !== "intro" &&
+              info.name !== "outro" &&
+              drumBarRand("phrase-fill", barNo) < phraseFillChance),
+          source = family[role] || family.base;
+        track._drumStateBar = barNo;
+        track._drumState = {
+          ...source,
+          section: info.name,
+          sectionIndex: info.index,
+          sectionPos: info.pos,
+          sectionLen: info.len,
+          phrase,
+          phraseEnd,
+          sectionEnd,
+          useFill,
+          fillSnare: family.fillSnare,
+          fillHat: family.fillHat,
+          temperature: DRUM_SECTION_TEMPERATURE[info.name] || 0.4,
+          latent: track.drumBrain?.dna || null,
+          novelty: 0,
+          recallMatch: 0,
+          memorySource: "phrase family",
+        };
+        return track._drumState;
       }
       // density/intensity per section — everything downstream reads these
       const SECT = {
@@ -4676,17 +5331,16 @@
                     [0, 5, 3, 4],
                   ],
                 );
-          const bassMap = {
-            "deep sub": "sub",
-            "clean sine": "sub",
-            "short 808": "808",
-            "round analog": "round",
-            "rubber mono": "rubber",
-            "plucked mono": "pluck",
-            "wide reese": "reese",
-            "hollow reese": "hollow",
-            "filtered growl": "growl",
-          };
+          const preferredBassType = (st && st.bass) || g.bass || "saw";
+          const bassType = resolveBassType(
+            gear.bassSynth,
+            preferredBassType,
+            dna,
+            track && track.bassType,
+          );
+          // The inspector should describe the engine that is actually playing,
+          // rather than a disconnected cosmetic gear label.
+          gear.bassSynth = BASS_GEAR_BY_TYPE[bassType] || gear.bassSynth;
           const padMap = {
             "tape keys": "keys",
             "chorus poly": "chorus",
@@ -4698,10 +5352,32 @@
             "fm mist": "fm",
             "neon poly": "neon",
           };
+          const kick = st
+              ? genPattern(st.kickA, [], 0)
+              : genPattern(g.kick.b, g.kick.c, g.kick.p),
+            kickB = st && st.kickB ? genPattern(st.kickB, [], 0) : null,
+            snare = st
+              ? genPattern(st.snare, [], 0)
+              : genPattern(g.snare.b, g.snare.c, g.snare.p),
+            ghost =
+              st && st.ghost && st.ghost.length
+                ? genPattern(st.ghost, [], 0)
+                : null,
+            hatSteps = st && st.hats ? genPattern(st.hats, [], 0) : null,
+            drumFamily = buildDrumFamily({
+              kick,
+              kickB,
+              snare,
+              ghost,
+              hats: hatSteps,
+              genre,
+              subStyle,
+              dna,
+            });
           return {
             trackId: seed,
             seed,
-            generatorVersion: 90,
+            generatorVersion: 93,
             g,
             genre,
             bpm,
@@ -4716,18 +5392,13 @@
             scale: SCALES[scaleName],
             scaleName,
             sections: buildArrangement(bars),
-            kick: st
-              ? genPattern(st.kickA, [], 0)
-              : genPattern(g.kick.b, g.kick.c, g.kick.p),
-            kickB: st && st.kickB ? genPattern(st.kickB, [], 0) : null,
-            snare: st
-              ? genPattern(st.snare, [], 0)
-              : genPattern(g.snare.b, g.snare.c, g.snare.p),
-            ghost:
-              st && st.ghost && st.ghost.length
-                ? genPattern(st.ghost, [], 0)
-                : null,
-            hatSteps: st && st.hats ? genPattern(st.hats, [], 0) : null,
+            kick,
+            kickB,
+            snare,
+            ghost,
+            hatSteps,
+            drumFamily,
+            drumVariation: drumFamily.variation,
             hatMode: (st && st.hatMode) || g.hat,
             useClap: st && st.clap != null ? st.clap : !!g.clap,
             tickHats:
@@ -4736,8 +5407,7 @@
               Math.random() < 0.35,
             subStyle,
             padType: padMap[gear.padSynth] || (st && st.pad ? st.pad : g.pad),
-            bassType:
-              bassMap[gear.bassSynth] || (st && st.bass ? st.bass : g.bass),
+            bassType,
             lateSnare: !!(st && st.late),
             hatP:
               R(
@@ -4746,22 +5416,16 @@
               ) * (dna.energy > 70 ? 1 : 0.92),
             bassP:
               st && st.bassPat
-                ? genPattern(
-                    st.bassPat.b,
-                    st.bassPat.c || [],
-                    st.bassPat.p || 0,
-                  )
+                ? genPattern(st.bassPat.b, st.bassPat.c || [], st.bassPat.p || 0)
                 : genPattern(g.bassPat.b, g.bassPat.c, g.bassPat.p),
-            swing: R(
-              (st ? st.swing : g.swing)[0],
-              (st ? st.swing : g.swing)[1],
-            ),
+            swing: R((st ? st.swing : g.swing)[0], (st ? st.swing : g.swing)[1]),
             name: nextTrackName(),
             keyName: KEYS[root % 12] + " " + scaleName,
             voiceLead: null,
             lastBass: null,
           };
         });
+        built.drumBrain = buildDrumBrain(built);
         track = built;
         leadEchoA.bar = leadEchoV.bar = -1;
         leadEchoA.notes = [];
@@ -4795,11 +5459,14 @@
       function updateMeta(sec) {
         const m = Math.floor(sec / 60),
           ss = String(Math.floor(sec % 60)).padStart(2, "0");
-        const sc = playing && track.sections ? " · " + sectionAt(bar) : "";
+        const sc =
+          playing && track.sections
+            ? ` · <span class="tnSect">${sectionAt(bar)}</span>`
+            : "";
         document.getElementById("trackNumTime").innerHTML =
-          `<span class="tnNum">track ${String(trackNo).padStart(3, "0")}</span> · <span class="tnTime">${m}:${ss}</span>`;
+          `<span class="tnNum">track ${String(trackNo).padStart(3, "0")}</span> · <span class="tnTime">${m}:${ss}</span>${sc}`;
         document.getElementById("trackmeta").textContent =
-          `${displayGenre(track.genre)}${track.subStyle ? " · " + track.subStyle : ""} · ${track.keyName} · ${track.bpm} bpm${sc}`;
+          `${displayGenre(track.genre)}${track.subStyle ? " · " + track.subStyle : ""} · ${track.keyName} · ${track.bpm} bpm`;
       }
 
       /* ---------- instruments ---------- */
@@ -4827,6 +5494,37 @@
         return b;
       }
       let NB = null;
+      let BASS_SAT_CURVE = null;
+      let SILK_WAVE = null;
+      function bassMidi(midi, min = 24, max = 43) {
+        let m = midi;
+        while (m < min) m += 12;
+        while (m > max) m -= 12;
+        return m;
+      }
+      function bassSatCurve() {
+        if (BASS_SAT_CURVE) return BASS_SAT_CURVE;
+        const curve = new Float32Array(1024);
+        const amount = 1.65;
+        const norm = Math.tanh(amount);
+        for (let i = 0; i < curve.length; i++) {
+          const x = (i / (curve.length - 1)) * 2 - 1;
+          curve[i] = Math.tanh(x * amount) / norm;
+        }
+        BASS_SAT_CURVE = curve;
+        return curve;
+      }
+      function silkWave() {
+        if (SILK_WAVE) return SILK_WAVE;
+        // Fundamental plus restrained upper harmonics: warm and readable,
+        // but still unmistakably a sub rather than a lead oscillator.
+        SILK_WAVE = ctx.createPeriodicWave(
+          new Float32Array([0, 0, 0, 0, 0, 0]),
+          new Float32Array([0, 1, 0.19, 0.075, 0.028, 0.012]),
+          { disableNormalization: false },
+        );
+        return SILK_WAVE;
+      }
       function playSnare(t, vol) {
         NB = NB || noiseBuf();
         const v = vol == null ? 1 : vol,
@@ -4892,6 +5590,7 @@
         n.stop(t + (open ? 0.25 : 0.07));
       }
       function playBass(t, midi, dur) {
+        midi = bassMidi(midi);
         const o = ctx.createOscillator();
         o.type = "sawtooth";
         o.frequency.value = mtof(midi);
@@ -4908,6 +5607,7 @@
         o.stop(t + dur + 0.1);
       }
       function playReese(t, midi, dur, hollow) {
+        midi = bassMidi(midi);
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
         f.frequency.value = hollow ? 520 : 850;
@@ -4927,6 +5627,7 @@
         });
       }
       function playRubber(t, midi, dur) {
+        midi = bassMidi(midi);
         const o = ctx.createOscillator();
         o.type = "square";
         o.frequency.value = mtof(midi);
@@ -4943,6 +5644,7 @@
         o.stop(t + dur + 0.1);
       }
       function playGrowl(t, midi, dur) {
+        midi = bassMidi(midi);
         const o = ctx.createOscillator();
         o.type = "triangle";
         o.frequency.value = mtof(midi);
@@ -4967,6 +5669,7 @@
         o.stop(t + dur + 0.1);
       }
       function playPluckBass(t, midi, dur) {
+        midi = bassMidi(midi, 26, 45);
         const o = ctx.createOscillator();
         o.type = "triangle";
         o.frequency.value = mtof(midi);
@@ -4978,17 +5681,46 @@
         o.stop(t + 0.35);
       }
       function play808(t, midi, dur) {
-        const o = ctx.createOscillator();
-        o.type = "sine";
+        midi = bassMidi(midi, 24, 40);
         const fr = mtof(midi);
-        o.frequency.setValueAtTime(fr * 2.2, t);
-        o.frequency.exponentialRampToValueAtTime(fr, t + 0.045);
+        const bus = ctx.createGain();
+        bus.gain.value = 0.78;
+        const sat = ctx.createWaveShaper();
+        sat.curve = bassSatCurve();
+        sat.oversample = "2x";
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 720;
+        lp.Q.value = 0.45;
         const g = ctx.createGain();
-        env(t, 0.005, dur, 0.55, g);
-        o.connect(g);
+        env(t, 0.004, dur, 0.5, g);
+        bus.connect(sat);
+        sat.connect(lp);
+        lp.connect(g);
         g.connect(master);
-        o.start(t);
-        o.stop(t + dur + 0.15);
+
+        const body = ctx.createOscillator();
+        body.type = "sine";
+        body.frequency.setValueAtTime(fr * 2.15, t);
+        body.frequency.exponentialRampToValueAtTime(fr, t + 0.052);
+        body.connect(bus);
+
+        // A very quiet triangle layer makes the note survive phone/laptop speakers
+        // without turning the 808 into a buzzy synth bass.
+        const edge = ctx.createOscillator();
+        edge.type = "triangle";
+        edge.frequency.setValueAtTime(fr * 2.08, t);
+        edge.frequency.exponentialRampToValueAtTime(fr, t + 0.048);
+        const edgeGain = ctx.createGain();
+        edgeGain.gain.setValueAtTime(0.11, t);
+        edgeGain.gain.exponentialRampToValueAtTime(0.025, t + Math.min(0.22, dur));
+        edge.connect(edgeGain);
+        edgeGain.connect(bus);
+
+        body.start(t);
+        edge.start(t);
+        body.stop(t + dur + 0.15);
+        edge.stop(t + dur + 0.15);
       }
       /* ---------- TR-808 kit (the real thing, not just the sub) ---------- */
       // classic 808 bass drum with the decay knob turned up: a pitch-swept sine with a
@@ -5058,31 +5790,149 @@
         n.start(t);
         n.stop(t + 0.03);
       }
-      function playSub(t, midi, dur) {
-        const o = ctx.createOscillator();
-        o.type = "sine";
-        o.frequency.value = mtof(midi);
+      function playDeepSub(t, midi, dur) {
+        midi = bassMidi(midi, 24, 40);
+        const fr = mtof(midi);
+        const bus = ctx.createGain();
+        bus.gain.value = 0.82;
+        const sat = ctx.createWaveShaper();
+        sat.curve = bassSatCurve();
+        sat.oversample = "2x";
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 430;
+        lp.Q.value = 0.55;
         const g = ctx.createGain();
-        env(t, 0.01, dur, 0.5, g);
-        o.connect(g);
+        env(t, 0.012, dur, 0.39, g);
+        bus.connect(sat);
+        sat.connect(lp);
+        lp.connect(g);
         g.connect(master);
-        o.start(t);
-        o.stop(t + dur + 0.1);
+
+        const fundamental = ctx.createOscillator();
+        fundamental.type = "sine";
+        fundamental.frequency.setValueAtTime(fr * 1.025, t);
+        fundamental.frequency.exponentialRampToValueAtTime(fr, t + 0.05);
+        const fundamentalGain = ctx.createGain();
+        fundamentalGain.gain.value = 0.88;
+        fundamental.connect(fundamentalGain);
+        fundamentalGain.connect(bus);
+
+        const body = ctx.createOscillator();
+        body.type = "triangle";
+        body.frequency.value = fr;
+        body.detune.value = -3;
+        const bodyGain = ctx.createGain();
+        bodyGain.gain.value = 0.12;
+        body.connect(bodyGain);
+        bodyGain.connect(bus);
+
+        fundamental.start(t);
+        body.start(t);
+        fundamental.stop(t + dur + 0.12);
+        body.stop(t + dur + 0.12);
       }
-      function playRound(t, midi, dur) {
-        const o = ctx.createOscillator();
-        o.type = "triangle";
-        o.frequency.value = mtof(midi);
+      function playSilkSub(t, midi, dur) {
+        midi = bassMidi(midi, 26, 42);
+        const fr = mtof(midi);
+        const bus = ctx.createGain();
+        bus.gain.value = 0.75;
+        const sat = ctx.createWaveShaper();
+        sat.curve = bassSatCurve();
+        sat.oversample = "2x";
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.Q.value = 0.72;
+        lp.frequency.setValueAtTime(820, t);
+        lp.frequency.exponentialRampToValueAtTime(
+          310,
+          t + Math.min(0.42, Math.max(0.12, dur * 0.45)),
+        );
+        const g = ctx.createGain();
+        env(t, 0.014, dur, 0.36, g);
+        bus.connect(sat);
+        sat.connect(lp);
+        lp.connect(g);
+        g.connect(master);
+
+        const sub = ctx.createOscillator();
+        sub.type = "sine";
+        sub.frequency.setValueAtTime(fr * 1.018, t);
+        sub.frequency.exponentialRampToValueAtTime(fr, t + 0.055);
+        const subGain = ctx.createGain();
+        subGain.gain.value = 0.7;
+        sub.connect(subGain);
+        subGain.connect(bus);
+
+        const silk = ctx.createOscillator();
+        silk.setPeriodicWave(silkWave());
+        silk.frequency.value = fr;
+        silk.detune.value = 4;
+        const silkGain = ctx.createGain();
+        silkGain.gain.value = 0.26;
+        silk.connect(silkGain);
+        silkGain.connect(bus);
+
+        sub.start(t);
+        silk.start(t);
+        sub.stop(t + dur + 0.12);
+        silk.stop(t + dur + 0.12);
+      }
+      function playPulseBass(t, midi, dur) {
+        midi = bassMidi(midi, 27, 44);
+        const fr = mtof(midi);
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.value = 520;
+        f.Q.value = 1.05;
+        f.frequency.setValueAtTime(980, t);
+        f.frequency.exponentialRampToValueAtTime(
+          235,
+          t + Math.min(0.28, Math.max(0.08, dur * 0.45)),
+        );
         const g = ctx.createGain();
-        env(t, 0.015, dur, 0.42, g);
-        o.connect(f);
+        env(t, 0.006, Math.min(dur, 0.72), 0.27, g);
         f.connect(g);
         g.connect(master);
+        const o = ctx.createOscillator();
+        o.type = "square";
+        o.frequency.setValueAtTime(fr * 1.012, t);
+        o.frequency.exponentialRampToValueAtTime(fr, t + 0.035);
+        o.connect(f);
         o.start(t);
-        o.stop(t + dur + 0.1);
+        o.stop(t + Math.min(dur, 0.72) + 0.1);
+      }
+      // Backward-compatible alias for any old/generated state that still says "sub".
+      function playSub(t, midi, dur) {
+        playDeepSub(t, midi, dur);
+      }
+      function playRound(t, midi, dur) {
+        midi = bassMidi(midi, 25, 42);
+        const fr = mtof(midi);
+        const f = ctx.createBiquadFilter();
+        f.type = "lowpass";
+        f.Q.value = 0.5;
+        f.frequency.setValueAtTime(620, t);
+        f.frequency.exponentialRampToValueAtTime(360, t + Math.min(0.3, dur));
+        const g = ctx.createGain();
+        env(t, 0.015, dur, 0.37, g);
+        f.connect(g);
+        g.connect(master);
+        const tri = ctx.createOscillator();
+        tri.type = "triangle";
+        tri.frequency.value = fr;
+        const sine = ctx.createOscillator();
+        sine.type = "sine";
+        sine.frequency.value = fr;
+        sine.detune.value = 3;
+        const sg = ctx.createGain();
+        sg.gain.value = 0.28;
+        tri.connect(f);
+        sine.connect(sg);
+        sg.connect(f);
+        tri.start(t);
+        sine.start(t);
+        tri.stop(t + dur + 0.1);
+        sine.stop(t + dur + 0.1);
       }
       function playKeys(t, midis, dur) {
         const f = ctx.createBiquadFilter();
@@ -5677,21 +6527,25 @@
         const tt = t + (sIdx % 2 === 1 ? track.swing * s16 : 0);
         const deg = track.prog[Math.floor(bar / 2) % track.prog.length];
         const rootDeg = ((deg % 7) + 7) % 7;
-        const sect = sectionAt(bar);
-        const D = SECT[sect] || SECT.main;
-        const barsLeftInSect = (() => {
-          const s = track.sections.find((x) => x.name === sect);
-          return s ? s.end - bar : 99;
-        })();
-        const fillBar = barsLeftInSect === 1; // last bar of a section → little fill
+        const sect = sectionAt(bar),
+          D = SECT[sect] || SECT.main,
+          drumState = drumStateAt(bar),
+          kp = drumState?.kick || track.kick,
+          sp = drumState?.snare || track.snare,
+          gp = drumState?.ghost || track.ghost,
+          hp = drumState?.hats || track.hatSteps;
 
-        /* drums (scaled by section). dnb runs a 2-bar loop: bar B varies the kicks and
-     every 4th bar thins them, so the break keeps moving (Studio Brootle) */
-        const kp = track.kickB && bar % 2 === 1 ? track.kickB : track.kick;
-        const kickThin = track.kickB && bar % 4 === 3 && sIdx !== 0;
-        if (kp[sIdx] && Math.random() < D.drums * (kickThin ? 0.5 : 1)) {
-          g.kick808 ? play808Kick(tt) : playKick(tt);
-          visQ.push({ t: tt, type: "kick" });
+        /* The drum brain has already predicted this complete bar. Do not roll
+           another coin here: the remembered motif, mutation and safety pass should
+           survive pause/resume exactly as composed. Microtiming is stored as a
+           fraction of one sixteenth note, so human feel scales with tempo. */
+        const ktt = tt + (drumState?.micro?.kick?.[sIdx] || 0) * s16,
+          sntt = tt + (drumState?.micro?.snare?.[sIdx] || 0) * s16,
+          gtt = tt + (drumState?.micro?.ghost?.[sIdx] || 0) * s16,
+          htt = tt + (drumState?.micro?.hats?.[sIdx] || 0) * s16;
+        if (kp[sIdx]) {
+          g.kick808 ? play808Kick(ktt) : playKick(ktt);
+          visQ.push({ t: ktt, type: "kick" });
         }
         /* occasional 808 cowbell accent — kept incidental so it stays a spice, not a staple */
         if (
@@ -5703,36 +6557,43 @@
           play808Cowbell(tt, R(0.4, 0.7));
           visQ.push({ t: tt, type: "hat" });
         }
-        if (track.snare[sIdx] && Math.random() < Math.max(D.drums, D.hats)) {
+        if (sp[sIdx]) {
           const stt =
             track.lateSnare && bar % 4 === 2 && sIdx === 12
-              ? tt + s16 * 0.55
-              : tt; // the late-snare stumble
-          track.useClap ? playClap(stt) : playSnare(stt);
+              ? sntt + s16 * 0.55
+              : sntt; // the late-snare stumble
+          track.useClap
+            ? playClap(stt)
+            : playSnare(stt, drumState?.velocity?.snare?.[sIdx] || 0.92);
           visQ.push({ t: stt, type: "snare" });
         }
-        /* ghost snares — the quiet in-between hits that give dnb its shuffle */
-        if (
-          track.ghost &&
-          track.ghost[sIdx] &&
-          D.drums > 0 &&
-          Math.random() < 0.75
-        )
-          playSnare(tt, 0.32);
+        /* Ghosts are now predicted events with stored velocity and timing, not a
+           fresh random layer on every scheduler pass. */
+        if (gp && gp[sIdx] && D.drums > 0)
+          playSnare(gtt, drumState?.velocity?.ghost?.[sIdx] || 0.34);
         /* hats per genre, gated by section density */
-        const hatGate = D.hats;
+        const hatGate = Math.min(1.25, D.hats * (drumState?.hatMul || 1));
         const hatMode = track.hatMode || g.hat;
         if (hatGate > 0) {
-          if (track.hatSteps) {
-            // fixed dnb hat placements, velocity-humanised
-            if (track.hatSteps[sIdx] && Math.random() < 0.92 * hatGate) {
-              playHat(tt, false, R(0.45, 1));
-              if (sIdx % 4 === 2) visQ.push({ t: tt, type: "hat" });
+          if (hp) {
+            // Every brain-generated bar has a concrete hat grid. Accent and open
+            // state remain genre-aware, while velocity comes from the human/machine
+            // axis of the current latent position.
+            if (hp[sIdx]) {
+              const open =
+                (hatMode === "offbeat" && sIdx % 4 === 2) ||
+                ((drumState?.brainRole === "lift" ||
+                  drumState?.brainRole === "turn") &&
+                  sIdx === 14 &&
+                  (drumState?.temperature || 0) > 0.5);
+              const hv = Math.min(
+                1.15,
+                (drumState?.velocity?.hats?.[sIdx] || 0.62) *
+                  Math.min(1, hatGate),
+              );
+              playHat(htt, open, hv);
+              if (sIdx % 4 === 2) visQ.push({ t: htt, type: "hat" });
             }
-            if (sIdx === 15 && Math.random() < 0.2 * hatGate) {
-              playHat(tt, false, 0.5);
-              playHat(tt + s16 / 2, false, 0.8);
-            } // doubled hat pushing into the next bar
           } else if (hatMode === "eights") {
             if (sIdx % 2 === 0 && Math.random() < track.hatP * hatGate) {
               playHat(tt, sIdx % 8 === 6 && Math.random() < 0.4);
@@ -5760,30 +6621,45 @@
             }
           }
         }
-        /* section-transition fill: a couple of snare taps on the final bar */
+        /* Phrase/section fill. The whole fill decision is made once for the bar,
+           so we never get the old half-random "maybe one tap, maybe three" result. */
         if (
-          fillBar &&
-          D.drums > 0 &&
-          sIdx >= 12 &&
-          sIdx % 2 === 0 &&
-          Math.random() < 0.5
+          drumState?.useFill &&
+          drumState.fillSnare?.[sIdx] &&
+          !sp[sIdx]
         ) {
-          playSnare(tt);
+          const fillVol = sIdx === 15 ? 0.78 : sIdx === 14 ? 0.6 : 0.42;
+          playSnare(tt, fillVol);
           visQ.push({ t: tt, type: "snare" });
+        }
+        if (
+          drumState?.useFill &&
+          drumState.fillHat?.[sIdx] &&
+          !hp?.[sIdx]
+        ) {
+          playHat(tt, sIdx === 15, sIdx === 15 ? 0.9 : 0.58);
+          if (sIdx === 15 && (track.genre === "trap" || track.genre === "jerk")) {
+            playHat(tt + s16 / 3, false, 0.5);
+            playHat(tt + (2 * s16) / 3, false, 0.68);
+          }
         }
         /* bass follows the chord root of the moment */
         if (track.bassP[sIdx] && D.bass > 0 && Math.random() < D.bass + 0.2) {
           const bm = track.root - 12 + (track.scale || MINOR)[rootDeg];
           const bassType = track.bassType || g.bass;
-          if (bassType === "808") play808(tt, bm - 12, spb * R(0.8, 1.6));
-          else if (bassType === "sub") playSub(tt, bm - 12, s16 * R(2, 4));
+          // bm already lives in the bass register (roughly MIDI 24–36).
+          // The old sub path subtracted another octave, pushing pure sine notes
+          // into near-infrasonic territory. Each engine now manages its own safe register.
+          if (bassType === "808") play808(tt, bm, spb * R(0.7, 1.35));
+          else if (bassType === "deepSub" || bassType === "sub")
+            playDeepSub(tt, bm, s16 * R(2.1, 4));
+          else if (bassType === "silk") playSilkSub(tt, bm, s16 * R(1.8, 3.5));
+          else if (bassType === "pulse") playPulseBass(tt, bm, s16 * R(1.2, 2.5));
           else if (bassType === "round") playRound(tt, bm, s16 * R(2, 3.5));
-          else if (bassType === "reese")
-            playReese(tt, bm, s16 * R(2, 4), false);
-          else if (bassType === "hollow")
-            playReese(tt, bm, s16 * R(2, 4), true);
+          else if (bassType === "reese") playReese(tt, bm, s16 * R(2, 4), false);
+          else if (bassType === "hollow") playReese(tt, bm, s16 * R(2, 4), true);
           else if (bassType === "rubber") playRubber(tt, bm, s16 * R(1.5, 3));
-          else if (bassType === "growl") playGrowl(tt, bm - 12, s16 * R(2, 4));
+          else if (bassType === "growl") playGrowl(tt, bm, s16 * R(2, 4));
           else if (bassType === "pluck") playPluckBass(tt, bm, s16 * R(1, 2));
           else playBass(tt, bm, s16 * R(1.5, 3));
           track.lastBass = bm;
@@ -5980,7 +6856,7 @@
         return {
           trackId: t.trackId,
           seed: t.seed,
-          generatorVersion: 90,
+          generatorVersion: t.generatorVersion || 92,
           trackNo,
           name: t.name,
           genre: t.genre,
@@ -6345,7 +7221,9 @@
         sleepZBurstTimers.forEach(clearTimeout);
         sleepZBurstTimers = [];
         [0, 280, 560].forEach((delay) => {
-          sleepZBurstTimers.push(setTimeout(() => spawnSleepZ("ari"), delay));
+          sleepZBurstTimers.push(
+            setTimeout(() => spawnSleepZ("ari"), delay),
+          );
           if (visitor && vis1?.headAnchor) {
             sleepZBurstTimers.push(
               setTimeout(() => spawnSleepZ("guest"), delay + 140),
@@ -6432,7 +7310,10 @@
         showFollowBubble(vis1.headAnchor, bubbleText, vis1.color);
 
         clearTimeout(visitorTimer);
-        visitorTimer = setTimeout(doLeave, Math.max(3600, said * 1000 + 700));
+        visitorTimer = setTimeout(
+          doLeave,
+          Math.max(3600, said * 1000 + 700),
+        );
       }
       let pendingReq = null;
       function guestGoesLive(req) {
@@ -6504,7 +7385,8 @@
                 if (!playing) return;
                 if (ariSing) {
                   pendingReq = req; // honored at the track boundary (see tick)
-                  vl.textContent = "guest vibes along";
+                  vl.textContent =
+                    "guest vibes along";
                   return;
                 }
                 guestGoesLive(req);
@@ -6639,10 +7521,14 @@
       function relativeLuminance(hex) {
         const channels = hexToRgb(hex).map((v) => {
           const c = v / 255;
-          return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+          return c <= 0.04045
+            ? c / 12.92
+            : Math.pow((c + 0.055) / 1.055, 2.4);
         });
         return (
-          0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+          0.2126 * channels[0] +
+          0.7152 * channels[1] +
+          0.0722 * channels[2]
         );
       }
 
@@ -6680,7 +7566,14 @@
 
       function makeRole(hue, saturation, darkL = 68, lightL = 34) {
         return {
-          dark: contrastSafeHsl(hue, saturation, darkL, ARI_DARK_BG, 4.5, true),
+          dark: contrastSafeHsl(
+            hue,
+            saturation,
+            darkL,
+            ARI_DARK_BG,
+            4.5,
+            true,
+          ),
           light: contrastSafeHsl(
             hue,
             saturation,
@@ -7594,17 +8487,20 @@
           cachedMicHolds.some((el) => !el.isConnected)
         ) {
           cachedMicState = state;
-          cachedMicHolds =
-            visitor || visitor2
-              ? Array.from(document.querySelectorAll(".gMicHold"))
-              : [];
+          cachedMicHolds = visitor || visitor2
+            ? Array.from(document.querySelectorAll(".gMicHold"))
+            : [];
         }
         return cachedMicHolds;
       }
 
       function getGuestMotionParts(group) {
         let parts = guestMotionCache.get(group);
-        if (!parts || !parts.legA?.isConnected || !parts.legB?.isConnected) {
+        if (
+          !parts ||
+          !parts.legA?.isConnected ||
+          !parts.legB?.isConnected
+        ) {
           parts = {
             legA: group.querySelector(".wlegA"),
             legB: group.querySelector(".wlegB"),
@@ -7824,7 +8720,11 @@
           faderEls[i].style.transform =
             `translate(${(-faderPos[i] * IA * 0.28).toFixed(1)}px,${(-faderPos[i] * IB * 0.28).toFixed(1)}px)`;
         }
-        if (playing && track && frameNow - lastMetaUpdate >= 250) {
+        if (
+          playing &&
+          track &&
+          frameNow - lastMetaUpdate >= 250
+        ) {
           lastMetaUpdate = frameNow;
           updateMeta(Math.max(0, now - trackStart));
         }
@@ -7947,6 +8847,262 @@
           started ? (playing ? stop() : resume()) : start();
         }
       });
+
+      /* ============================================================
+   DEV INSPECTOR — click/tap the track title to open/close.
+   A read-only view of every choice the generator made for the
+   current track: identity, arrangement, drum/bass patterns (as
+   16-step grids with a live playhead), harmony, gear and Guest
+   DNA. It reads globals and mutates nothing, so it can't affect
+   the music. Also togglable from the console: toggleDevPanel().
+   ============================================================ */
+      (function devInspector() {
+        const panel = document.createElement("div");
+        panel.id = "devPanel";
+        panel.className = "devpanel";
+        panel.setAttribute("aria-hidden", "true");
+        document.body.appendChild(panel);
+
+        let devOpen = false,
+          devSeed = null,
+          devStep = -1,
+          devBar = -1,
+          devRAF = 0;
+
+        const esc = (s) =>
+          String(s).replace(
+            /[&<>]/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c],
+          );
+        const pct = (x) => Math.round((x || 0) * 100) + "%";
+
+        function grid(arr, cls) {
+          if (!arr) return '<span class="devnone">— none —</span>';
+          let h = '<span class="dgrid">';
+          for (let i = 0; i < 16; i++)
+            h += `<i class="dstep ${cls}${arr[i] ? " on" : ""}${i % 4 === 0 ? " beat" : ""}" data-c="${i}"></i>`;
+          return h + "</span>";
+        }
+        function dnaBar(label, val) {
+          const v = Math.max(0, Math.min(100, Math.round(val || 0)));
+          return `<div class="dnarow"><span class="dnalab">${label}</span><span class="dnabar"><span style="width:${v}%"></span></span><span class="dnaval">${v}</span></div>`;
+        }
+        function noteFor(deg) {
+          const sc = (track && track.scale) || SCALES.minor;
+          const d = ((deg % 7) + 7) % 7;
+          return KEYS[(track.root + sc[d]) % 12];
+        }
+
+        function brainLiveHTML(t, state) {
+          const latent = state?.latent || t.drumBrain?.dna || {},
+            temp = Math.round((state?.temperature || 0) * 100),
+            novelty = Math.round((state?.novelty || 0) * 100),
+            recall = Math.round((state?.recallMatch || 0) * 100),
+            brainDNAHTML = [
+              "syncopation",
+              "density",
+              "machine",
+              "strangeness",
+              "memory",
+            ]
+              .map((k) => dnaBar(k, (latent[k] || 0) * 100))
+              .join("");
+          return `
+              <div class="krow"><span>now</span><b>${esc(state?.brainRole || state?.role || "base")}</b><span class="kdim">phrase ${(state?.phrase ?? 0) + 1}/4 · temp ${temp}%</span></div>
+              <div class="krow"><span>change</span><b>${novelty}%</b><span class="kdim">motif recall ${recall}%</span></div>
+              <div class="prow"><span class="plab">kick</span>${grid(state?.kick || t.kick, "k")}</div>
+              <div class="prow"><span class="plab">snare</span>${grid(state?.snare || t.snare, "s")}</div>
+              <div class="prow"><span class="plab">ghost</span>${grid(state?.ghost, "g")}</div>
+              <div class="prow"><span class="plab">hats</span>${grid(state?.hats, "h")}</div>
+              <div class="dflags">${esc(t.drumBrain?.model || "phrase family")} · memory ${t.drumBrain?.memoryBars || 4} bars · predicts from ${esc(state?.memorySource || "seed groove")}</div>
+              <div class="devh" style="margin-top:7px">RHYTHM DNA <span class="devh2">current latent position</span></div>
+              ${brainDNAHTML}
+          `;
+        }
+
+        function render() {
+          if (!track) {
+            panel.innerHTML =
+              '<div class="devhead"><span>DEV · waiting for a track…</span></div>';
+            return;
+          }
+          const t = track,
+            g = t.g,
+            gear = t.gear || {},
+            dna = t.guestDNA || {};
+          const arrHTML = (t.sections || [])
+            .map((s) => {
+              const now = playing && bar >= s.start && bar < s.end;
+              return `<div class="arrow${now ? " now" : ""}" data-s="${s.start}" data-e="${s.end}"><span class="arrnm">${s.name}</span><span class="arrbars">${s.start}–${s.end}</span><span class="arrnow">${now ? "◄ bar " + bar : ""}</span></div>`;
+            })
+            .join("");
+          const progHTML = (t.prog || [])
+            .map((d) => `${d}<span class="pdim">·${noteFor(d)}</span>`)
+            .join("&nbsp;&nbsp;");
+          const dnaHTML = [
+            "energy",
+            "warmth",
+            "darkness",
+            "complexity",
+            "curiosity",
+            "chaos",
+            "space",
+            "confidence",
+          ]
+            .map((k) => dnaBar(k, dna[k]))
+            .join("");
+          const currentDrums = typeof drumStateAt === "function" ? drumStateAt(bar) : null,
+            df = t.drumFamily || {};
+          const perf =
+            typeof visitor !== "undefined" &&
+            visitor &&
+            visitorPhase === "performing" &&
+            vis1;
+          const guestHTML = perf
+            ? `<div class="devsec"><div class="devh">GUEST ON STAGE</div><div class="krow"><span>plays</span><b>${esc(displayInstr(vis1.instr))}</b>${vis2 ? '<span class="kdim">+ duo</span>' : ""}</div><div class="kdim">the Guest DNA above belongs to this guest</div></div>`
+            : "";
+
+          panel.innerHTML = `
+            <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span></div>
+            <div class="devname">“${esc(t.name)}”</div>
+            <div class="devsec">
+              <div class="krow"><span>genre</span><b>${esc(displayGenre(t.genre))}${t.subStyle ? " · " + esc(t.subStyle) : ""}</b></div>
+              <div class="krow"><span>key</span><b>${esc(t.keyName)}</b><span class="kdim">root ${t.root}</span></div>
+              <div class="krow"><span>tempo</span><b>${t.bpm} bpm</b><span class="kdim">swing ${pct(t.swing)}</span></div>
+              <div class="krow"><span>length</span><b>${t.bars} bars</b><span class="kdim">seed ${esc(String(t.seed))}</span></div>
+              <div class="krow"><span>origin</span><b>${t.echoOrigin ? "echo of " + esc(String(t.echoOrigin)) : "fresh"}</b><span class="kdim">gen v${t.generatorVersion}</span></div>
+            </div>
+            <div class="devsec"><div class="devh">ARRANGEMENT</div>${arrHTML}</div>
+            <div class="devsec"><div class="devh">DRUM BRAIN <span class="devh2">${esc(gear.drumMachine || "")}</span></div>
+              <div id="devBrainLive">${brainLiveHTML(t, currentDrums)}</div>
+            </div>
+            <div class="devsec"><div class="devh">PATTERN FAMILY <span class="devh2">long-term anchors</span></div>
+              <div class="prow"><span class="plab">base</span>${grid(df.base?.kick || t.kick, "k")}</div>
+              <div class="prow"><span class="plab">alt</span>${grid(df.alt?.kick || t.kickB || t.kick, "k")}</div>
+              <div class="prow"><span class="plab">lift</span>${grid(df.lift?.kick || t.kick, "k")}</div>
+              <div class="prow"><span class="plab">turn</span>${grid(df.turn?.kick || t.kick, "k")}</div>
+              <div class="dflags">variation ${pct(t.drumVariation)} · clap ${t.useClap ? "yes" : "no"} · late-snare ${t.lateSnare ? "yes" : "no"} · 808-kick ${g.kick808 ? "yes" : "no"} · cowbell ${g.cowbell ? "yes" : "no"}</div>
+            </div>
+            <div class="devsec"><div class="devh">BASS <span class="devh2">${esc(t.bassType)}</span></div>
+              <div class="prow"><span class="plab">patt</span>${grid(t.bassP, "b")}</div>
+            </div>
+            <div class="devsec"><div class="devh">HARMONY <span class="devh2">pad ${esc(t.padType)} · ${g.ext ? "7th chords" : "triads"}</span></div>
+              <div class="krow"><span>prog</span><b class="prog">${progHTML}</b></div>
+              <div class="krow"><span>lead</span><b>${esc(t.leadWave || "—")}</b><span class="kdim">A.R.I. sings ${t.ariSings ? "yes" : "no"}</span></div>
+            </div>
+            <div class="devsec"><div class="devh">GEAR</div>
+              <div class="krow"><span>bass</span><b>${esc(gear.bassSynth || "")}</b></div>
+              <div class="krow"><span>pad</span><b>${esc(gear.padSynth || "")}</b></div>
+              <div class="krow"><span>lead</span><b>${esc(gear.leadSynth || "")}</b></div>
+              <div class="krow"><span>fx</span><b>${esc(gear.fxRack || "")}</b></div>
+            </div>
+            <div class="devsec"><div class="devh">GUEST DNA</div>${dnaHTML}</div>
+            ${guestHTML}
+          `;
+          devSeed = t.seed;
+          devStep = -1;
+          devBar = -1;
+        }
+
+        function tickLive() {
+          if (!devOpen) return;
+          devRAF = requestAnimationFrame(tickLive);
+          if (!track) return;
+          if (track.seed !== devSeed) {
+            render();
+            return;
+          }
+          if (!playing || !ctx) return;
+          const stepDur = 60 / track.bpm / 4;
+          const gStep = Math.floor((ctx.currentTime - audioStart) / stepDur);
+          const cur = ((gStep % 16) + 16) % 16;
+          if (cur !== devStep) {
+            devStep = cur;
+            const prev = panel.querySelectorAll(".dstep.play");
+            for (let i = 0; i < prev.length; i++) prev[i].classList.remove("play");
+            const now = panel.querySelectorAll('.dstep[data-c="' + cur + '"]');
+            for (let i = 0; i < now.length; i++) now[i].classList.add("play");
+          }
+          if (bar !== devBar) {
+            devBar = bar;
+            const brainLive = panel.querySelector("#devBrainLive");
+            if (brainLive) {
+              brainLive.innerHTML = brainLiveHTML(track, drumStateAt(bar));
+              devStep = -1; // the grids were replaced; repaint the playhead
+            }
+            const rows = panel.querySelectorAll(".arrow");
+            for (let i = 0; i < rows.length; i++) {
+              const r = rows[i],
+                s = +r.dataset.s,
+                e = +r.dataset.e;
+              const on = bar >= s && bar < e;
+              r.classList.toggle("now", on);
+              const n = r.querySelector(".arrnow");
+              if (n) n.textContent = on ? "◄ bar " + bar : "";
+            }
+          }
+        }
+
+        function openDev() {
+          devOpen = true;
+          panel.classList.add("show");
+          panel.setAttribute("aria-hidden", "false");
+          if (title) title.setAttribute("aria-expanded", "true");
+          render();
+          cancelAnimationFrame(devRAF);
+          devRAF = requestAnimationFrame(tickLive);
+        }
+        function closeDev() {
+          devOpen = false;
+          panel.classList.remove("show");
+          panel.setAttribute("aria-hidden", "true");
+          if (title) title.setAttribute("aria-expanded", "false");
+          cancelAnimationFrame(devRAF);
+        }
+        function toggleDev() {
+          devOpen ? closeDev() : openDev();
+        }
+
+        // activation: one click/tap on the track title toggles the inspector.
+        // Once open, any click or tap elsewhere closes it immediately.
+        // There is deliberately no close button.
+        const title = document.getElementById("trackname");
+        if (title) {
+          title.style.cursor = "pointer";
+          title.style.userSelect = "none";
+          title.style.webkitUserSelect = "none";
+          title.setAttribute("role", "button");
+          title.setAttribute("tabindex", "0");
+          title.setAttribute("aria-label", "toggle track inspector");
+          title.setAttribute("aria-expanded", "false");
+          const activate = (e) => {
+            e.stopPropagation();
+            toggleDev();
+          };
+          title.addEventListener("click", activate);
+          title.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              activate(e);
+            }
+          });
+        }
+
+        // Use the capture phase so this still works when another control calls
+        // stopPropagation(). The title is excluded because it already toggles
+        // the panel itself: open on the first click, closed on the next.
+        document.addEventListener(
+          "pointerdown",
+          (e) => {
+            if (!devOpen) return;
+            if (title && (e.target === title || title.contains(e.target))) return;
+            closeDev();
+          },
+          true,
+        );
+
+        window.toggleDevPanel = toggleDev;
+      })();
 
       /* ---------- keeping audio alive across backgrounding ----------
    The problem: when the page is hidden, the browser throttles setInterval to
@@ -8347,6 +9503,15 @@
         return `rgb(${c[0]},${c[1]},${c[2]})`;
       }
       let wxWeatherHTML = "";
+      const NYC_TIME_FORMATTER = new Intl.DateTimeFormat("en-GB", {
+        timeZone: "America/New_York",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
+      function nycTime() {
+        return NYC_TIME_FORMATTER.format(new Date());
+      }
       function renderWxLine() {
         const el = document.getElementById("wxText");
         let battHTML;
@@ -8362,7 +9527,8 @@
         } else {
           battHTML = `rig battery: <span style="color:${battColor(100)}">100%</span>`;
         }
-        el.innerHTML = (wxWeatherHTML ? wxWeatherHTML + "<br>" : "") + battHTML;
+        const nycLine = `nyc ${nycTime()}${wxWeatherHTML ? " · " + wxWeatherHTML : ""}`;
+        el.innerHTML = nycLine + "<br>" + battHTML;
         el.classList.add("show");
       }
       async function loadWeather() {
@@ -8379,7 +9545,7 @@
           const c = Math.round(cur.temperature_2m);
           const f = Math.round((c * 9) / 5 + 32);
           const color = WX_COLOR[label] || "inherit";
-          wxWeatherHTML = `nyc ${f}°f / ${c}°c · <span class="wxCond" style="text-decoration-color:${color}">${label}</span>`;
+          wxWeatherHTML = `${f}°f / ${c}°c · <span class="wxCond" style="text-decoration-color:${color}">${label}</span>`;
           renderWxLine();
         } catch (e) {
           /* offline, blocked, or unavailable — weather part just stays empty */
@@ -8390,7 +9556,7 @@
 
       /* battery level ticks down smoothly as bars pass, so you can watch the swap approach */
       renderWxLine(); // show immediately, even before weather loads
-      setInterval(renderWxLine, 4000);
+      setInterval(renderWxLine, 1000); // keep the NYC clock current
 
       /* ---------- PWA: service worker registration ---------- */
       if ("serviceWorker" in navigator && location.protocol === "https:") {
