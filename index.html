@@ -3366,6 +3366,7 @@
           bass: "saw",
           pad: "keys",
           ext: true,
+          progs: [[0, 3], [0, 5, 3, 4], [0, 6, 3, 4], [0, 2, 5], [0, 3, 4, 0]],
           kd: { f0: 130, f1: 48, d: 0.2 },
         },
         trap: {
@@ -3411,6 +3412,7 @@
           bass: "sub",
           pad: "saw",
           ext: false,
+          progs: [[0, 5], [0, 6], [0, 3, 4], [0, 5, 3, 4]],
           kd: { f0: 140, f1: 50, d: 0.14 },
         },
         "2000s rnb": {
@@ -3424,6 +3426,7 @@
           bass: "round",
           pad: "keys",
           ext: true,
+          progs: [[0, 5, 3, 4], [0, 3, 4], [0, 4, 5, 3], [0, 6, 2, 5]],
           kd: { f0: 120, f1: 44, d: 0.22 },
         },
         house: {
@@ -3439,7 +3442,80 @@
           pad: "stab",
           ext: false,
           cowbell: true,
+          progs: [[0, 5, 3, 4], [0, 3], [0, 4, 5], [0, 6, 4, 5]],
           kd: { f0: 150, f1: 52, d: 0.16 },
+        },
+        "uk garage": {
+          bpm: [128, 136],
+          swing: [0.09, 0.16],
+          kick: { b: [0, 10], c: [6], p: 0.4 },
+          snare: { b: [4, 12], c: [], p: 0 },
+          clap: true,
+          hat: "offbeat",
+          hatP: [0.6, 0.85],
+          bassPat: { b: [2, 6, 10, 14], c: [0], p: 0.3 },
+          bass: "sub",
+          pad: "stab",
+          ext: true,
+          progs: [[0, 5, 3, 4], [0, 3], [0, 6, 4, 5], [0, 4, 5, 3]],
+          kd: { f0: 155, f1: 52, d: 0.16 },
+        },
+        "lo-fi": {
+          bpm: [70, 90],
+          swing: [0.1, 0.18],
+          kick: { b: [0, 10], c: [8], p: 0.3 },
+          snare: { b: [4, 12], c: [], p: 0 },
+          hat: "eights",
+          hatP: [0.55, 0.8],
+          bassPat: { b: [0, 10], c: [6, 7], p: 0.3 },
+          bass: "round",
+          pad: "keys",
+          ext: true,
+          progs: [[0, 3], [0, 5, 3, 4], [0, 2, 5], [0, 6, 3, 4]],
+          kd: { f0: 120, f1: 46, d: 0.22 },
+        },
+        afrobeats: {
+          bpm: [102, 116],
+          swing: [0.02, 0.06],
+          kick: { b: [0, 6, 10], c: [14], p: 0.3 },
+          snare: { b: [4, 12], c: [], p: 0 },
+          hat: "eights",
+          hatP: [0.7, 0.95],
+          bassPat: { b: [0, 6, 10], c: [3], p: 0.3 },
+          bass: "round",
+          pad: "keys",
+          ext: true,
+          cowbell: true,
+          progs: [[0, 5, 3, 4], [0, 4, 5, 3], [0, 3, 4], [0, 5]],
+          kd: { f0: 135, f1: 50, d: 0.2 },
+        },
+        dubstep: {
+          bpm: [138, 142],
+          swing: [0, 0.02],
+          kick: { b: [0], c: [10], p: 0.3 },
+          snare: { b: [8], c: [], p: 0 },
+          hat: "offbeat",
+          hatP: [0.5, 0.75],
+          bassPat: { b: [0, 8], c: [11, 14], p: 0.4 },
+          bass: "growl",
+          pad: "saw",
+          ext: false,
+          progs: [[0], [0, 5], [0, 6], [0, 3, 4]],
+          kd: { f0: 145, f1: 46, d: 0.3 },
+        },
+        downtempo: {
+          bpm: [72, 92],
+          swing: [0.05, 0.12],
+          kick: { b: [0, 10], c: [7], p: 0.3 },
+          snare: { b: [4, 12], c: [], p: 0 },
+          hat: "eights",
+          hatP: [0.5, 0.75],
+          bassPat: { b: [0, 10], c: [6], p: 0.3 },
+          bass: "round",
+          pad: "strings",
+          ext: true,
+          progs: [[0, 5, 3, 4], [0, 3], [0, 6, 3, 4], [0, 4, 5, 3]],
+          kd: { f0: 125, f1: 48, d: 0.24 },
         },
       };
 
@@ -3557,6 +3633,82 @@
           pad: "saw",
           bass: "808",
         },
+      };
+
+      /* step grid = 16ths: 0='1' 2='1+' 4='2' 6='2+' 7='2a' 8='3' 10='3+' 12='4' 14='4+' 15='4a'.
+   Same shape as DNB_STYLES: kickA = bar-A kicks, kickB = bar-B kicks (2-bar loop, optional),
+   snare, ghost (optional), hats (optional — omit to keep the genre's own hat generator, e.g.
+   trap rolls), plus optional swing/bpm/pad/bass/scale/late/hatP/hatMode/clap/bassPat. */
+      const BOOMBAP_STYLES = {
+        classic: { bpm: [88, 94], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 3, 10], snare: [4, 12], ghost: [7, 14], hats: [0, 3, 4, 7, 8, 11, 12, 15], pad: "keys" },
+        dusty: { bpm: [86, 92], swing: [0.14, 0.2], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [15], hats: [0, 3, 6, 10, 14], pad: "keys" },
+        jazzy: { bpm: [88, 96], swing: [0.1, 0.15], kickA: [0, 10], kickB: [0, 7, 10], snare: [4, 12], ghost: [2, 7, 15], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+        headnod: { bpm: [86, 92], swing: [0.12, 0.16], kickA: [0, 8], kickB: [0, 8, 11], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "keys" },
+        "east coast": { bpm: [90, 96], swing: [0.08, 0.12], kickA: [0, 10], kickB: [0, 3, 6, 10], snare: [4, 12], ghost: [14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+      };
+      const TRAP_STYLES = {
+        modern: { bpm: [136, 148], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], hatP: [0.85, 0.95] },
+        drill: { bpm: [140, 146], swing: [0.02, 0.05], kickA: [0, 6], kickB: [0, 6, 11], snare: [8], hatP: [0.8, 0.92], scale: "phryg", bass: "808" },
+        triplet: { bpm: [140, 150], swing: [0, 0.02], kickA: [0, 10], kickB: [0, 7, 10], snare: [8], hatP: [0.88, 0.96] },
+        "trap soul": { bpm: [132, 140], swing: [0.02, 0.04], kickA: [0, 11], kickB: [0, 7, 11], snare: [8], hatP: [0.6, 0.8], pad: "keys" },
+        heavy: { bpm: [138, 150], swing: [0, 0.02], kickA: [0, 10], kickB: [0, 3, 10], snare: [8], hatP: [0.85, 0.95], scale: "phryg" },
+      };
+      const JERK_STYLES = {
+        bounce: { bpm: [98, 106], swing: [0.02, 0.05], kickA: [0, 7], kickB: [0, 7, 10, 11], snare: [4, 12], ghost: [14], hats: [2, 6, 10, 14], pad: "keys" },
+        hyphy: { bpm: [100, 106], swing: [0, 0.03], kickA: [0, 6, 10], kickB: [0, 6, 10, 11], snare: [4, 12], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "stab" },
+        "west coast": { bpm: [92, 100], swing: [0.04, 0.07], kickA: [0, 7], kickB: [0, 7, 10], snare: [4, 12], ghost: [15], hats: [2, 6, 10, 14], pad: "keys" },
+        ratchet: { bpm: [98, 104], swing: [0.02, 0.04], kickA: [0, 10, 11], kickB: [0, 7, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "stab", bass: "808" },
+      };
+      const RNB_STYLES = {
+        neptunes: { bpm: [90, 100], swing: [0.06, 0.1], kickA: [0, 7], kickB: [0, 7, 10], snare: [4, 12], ghost: [], hats: [0, 4, 8, 12], pad: "keys" },
+        timbaland: { bpm: [92, 100], swing: [0.08, 0.12], kickA: [0, 3, 7], kickB: [0, 3, 7, 10], snare: [4, 12], ghost: [14, 15], hats: [2, 6, 10, 14], pad: "keys" },
+        "slow jam": { bpm: [66, 76], swing: [0.06, 0.1], kickA: [0, 10], kickB: [0, 10, 14], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "strings", bass: "round" },
+        "crunk&b": { bpm: [96, 104], swing: [0.03, 0.06], kickA: [0, 7], kickB: [0, 7, 11], snare: [4, 12], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "808" },
+        bounce: { bpm: [92, 100], swing: [0.06, 0.1], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [7], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+      };
+      const GARAGE_STYLES = {
+        "2-step": { bpm: [130, 136], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 6, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "sub", bassPat: { b: [2, 6, 10, 14], c: [0], p: 0.4 } },
+        "4x4": { bpm: [128, 134], swing: [0.06, 0.1], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [], hats: [2, 6, 10, 14], pad: "stab", bass: "sub", bassPat: { b: [2, 6, 10, 14], c: [], p: 0 } },
+        "speed garage": { bpm: [132, 136], swing: [0.04, 0.08], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "reese", bassPat: { b: [0, 3, 6, 10, 14], c: [], p: 0 } },
+        future: { bpm: [128, 132], swing: [0.14, 0.18], kickA: [0, 10], kickB: [0, 10, 14], snare: [4, 12], ghost: [7, 15], hats: [2, 6, 10, 14], pad: "glass", bass: "sub" },
+      };
+      const LOFI_STYLES = {
+        sleepy: { bpm: [70, 80], swing: [0.14, 0.2], kickA: [0, 10], kickB: [0, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 4, 8, 12], pad: "keys" },
+        jazzy: { bpm: [78, 88], swing: [0.12, 0.18], kickA: [0, 10], kickB: [0, 7, 10], snare: [4, 12], ghost: [2, 7, 14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys" },
+        tape: { bpm: [72, 82], swing: [0.14, 0.2], kickA: [0, 8, 10], kickB: [0, 8, 10, 14], snare: [4, 12], ghost: [15], hats: [0, 3, 6, 10, 14], pad: "keys" },
+        study: { bpm: [80, 90], swing: [0.1, 0.16], kickA: [0, 10], kickB: [0, 6, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "chorus" },
+      };
+      const AFRO_STYLES = {
+        afrobeats: { bpm: [102, 110], swing: [0.02, 0.05], kickA: [0, 6, 10], kickB: [0, 6, 10, 14], snare: [4, 12], ghost: [3, 11], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "round" },
+        amapiano: { bpm: [110, 116], swing: [0.04, 0.08], kickA: [0, 6, 10, 12], kickB: [0, 6, 10, 12], snare: [8], ghost: [3, 11, 14], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "glass", bass: "pluck", bassPat: { b: [0, 6, 10, 14], c: [3], p: 0.3 } },
+        "afro house": { bpm: [116, 124], swing: [0.02, 0.05], kickA: [0, 4, 8, 12], kickB: [0, 4, 8, 12], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "stab", bass: "sub" },
+        afroswing: { bpm: [102, 108], swing: [0.04, 0.07], kickA: [0, 7, 10], kickB: [0, 7, 10, 14], snare: [4, 12], ghost: [3], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "keys", bass: "808" },
+      };
+      const DUBSTEP_STYLES = {
+        halftime: { bpm: [138, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "saw", bass: "growl", scale: "phryg", bassPat: { b: [0, 8], c: [11, 14], p: 0.4 } },
+        riddim: { bpm: [140, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 8], snare: [8], ghost: [], hats: [0, 4, 8, 12], pad: "saw", bass: "growl", scale: "phryg", bassPat: { b: [0, 2, 4, 6, 8, 10, 12, 14], c: [], p: 0 } },
+        melodic: { bpm: [140, 142], swing: [0, 0.02], kickA: [0], kickB: [0, 10], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "glass", bass: "reese", bassPat: { b: [0, 8], c: [11], p: 0.3 } },
+        brostep: { bpm: [140, 142], swing: [0, 0.02], kickA: [0, 8], kickB: [0, 6, 8], snare: [8], ghost: [], hats: [0, 2, 4, 6, 8, 10, 12, 14], pad: "saw", bass: "growl", scale: "phryg" },
+      };
+      const DOWNTEMPO_STYLES = {
+        "trip-hop": { bpm: [80, 90], swing: [0.08, 0.14], kickA: [0, 10], kickB: [0, 10, 11], snare: [4, 12], ghost: [7], hats: [0, 4, 8, 12], pad: "strings", bass: "round" },
+        ambient: { bpm: [70, 80], swing: [0.04, 0.08], kickA: [0], kickB: [0, 10], snare: [12], ghost: [], hats: [8], pad: "air", bass: "sub" },
+        cinematic: { bpm: [76, 86], swing: [0.05, 0.1], kickA: [0, 8], kickB: [0, 8, 10], snare: [4, 12], ghost: [7], hats: [2, 6, 10, 14], pad: "strings", bass: "round" },
+        dub: { bpm: [72, 82], swing: [0.06, 0.1], kickA: [0, 10], kickB: [0, 10, 14], snare: [8], ghost: [], hats: [2, 6, 10, 14], pad: "stab", bass: "sub" },
+      };
+      /* which sub-style bank each genre draws from (house intentionally omitted — it keeps its
+   own signature four-on-the-floor). */
+      const SUBSTYLES = {
+        "boom bap": BOOMBAP_STYLES,
+        trap: TRAP_STYLES,
+        jerk: JERK_STYLES,
+        "drum n bass": DNB_STYLES,
+        "2000s rnb": RNB_STYLES,
+        "uk garage": GARAGE_STYLES,
+        "lo-fi": LOFI_STYLES,
+        afrobeats: AFRO_STYLES,
+        dubstep: DUBSTEP_STYLES,
+        downtempo: DOWNTEMPO_STYLES,
       };
 
       let ctx = null,
@@ -4053,13 +4205,13 @@
           const genre = forced || pick(Object.keys(GENRES));
           const g = GENRES[genre];
           const echo = chooseEchoForGenre(genre);
-          const subStyle =
-            genre === "drum n bass"
-              ? echo?.subStyle && Math.random() < 0.86
-                ? echo.subStyle
-                : pick(Object.keys(DNB_STYLES))
-              : null;
-          const st = subStyle ? DNB_STYLES[subStyle] : null;
+          const styleBank = SUBSTYLES[genre] || null;
+          const subStyle = styleBank
+            ? echo?.subStyle && styleBank[echo.subStyle] && Math.random() < 0.86
+              ? echo.subStyle
+              : pick(Object.keys(styleBank))
+            : null;
+          const st = subStyle ? styleBank[subStyle] : null;
           const freshDNA = visitor && vis1 && vis1.dna ? vis1.dna : guestDNA();
           const dna = echo ? mutateEchoDNA(echo.guestDNA) : freshDNA;
           const gear = echo
@@ -4152,12 +4304,17 @@
             kick: st
               ? genPattern(st.kickA, [], 0)
               : genPattern(g.kick.b, g.kick.c, g.kick.p),
-            kickB: st ? genPattern(st.kickB, [], 0) : null,
+            kickB: st && st.kickB ? genPattern(st.kickB, [], 0) : null,
             snare: st
               ? genPattern(st.snare, [], 0)
               : genPattern(g.snare.b, g.snare.c, g.snare.p),
-            ghost: st && st.ghost.length ? genPattern(st.ghost, [], 0) : null,
-            hatSteps: st ? genPattern(st.hats, [], 0) : null,
+            ghost:
+              st && st.ghost && st.ghost.length
+                ? genPattern(st.ghost, [], 0)
+                : null,
+            hatSteps: st && st.hats ? genPattern(st.hats, [], 0) : null,
+            hatMode: (st && st.hatMode) || g.hat,
+            useClap: st && st.clap != null ? st.clap : !!g.clap,
             tickHats:
               (genre === "trap" || genre === "jerk") &&
               gear.drumMachine === "tight digital" &&
@@ -4167,12 +4324,16 @@
             bassType:
               bassMap[gear.bassSynth] || (st && st.bass ? st.bass : g.bass),
             lateSnare: !!(st && st.late),
-            hatP: R(g.hatP[0], g.hatP[1]) * (dna.energy > 70 ? 1 : 0.92),
-            bassP: genPattern(g.bassPat.b, g.bassPat.c, g.bassPat.p),
-            swing: R(
-              (st ? st.swing : g.swing)[0],
-              (st ? st.swing : g.swing)[1],
-            ),
+            hatP:
+              R(
+                (st && st.hatP ? st.hatP : g.hatP)[0],
+                (st && st.hatP ? st.hatP : g.hatP)[1],
+              ) * (dna.energy > 70 ? 1 : 0.92),
+            bassP:
+              st && st.bassPat
+                ? genPattern(st.bassPat.b, st.bassPat.c || [], st.bassPat.p || 0)
+                : genPattern(g.bassPat.b, g.bassPat.c, g.bassPat.p),
+            swing: R((st ? st.swing : g.swing)[0], (st ? st.swing : g.swing)[1]),
             name: nextTrackName(),
             keyName: KEYS[root % 12] + " " + scaleName,
             voiceLead: null,
@@ -5125,7 +5286,7 @@
             track.lateSnare && bar % 4 === 2 && sIdx === 12
               ? tt + s16 * 0.55
               : tt; // the late-snare stumble
-          g.clap ? playClap(stt) : playSnare(stt);
+          track.useClap ? playClap(stt) : playSnare(stt);
           visQ.push({ t: stt, type: "snare" });
         }
         /* ghost snares — the quiet in-between hits that give dnb its shuffle */
@@ -5138,6 +5299,7 @@
           playSnare(tt, 0.32);
         /* hats per genre, gated by section density */
         const hatGate = D.hats;
+        const hatMode = track.hatMode || g.hat;
         if (hatGate > 0) {
           if (track.hatSteps) {
             // fixed dnb hat placements, velocity-humanised
@@ -5149,18 +5311,18 @@
               playHat(tt, false, 0.5);
               playHat(tt + s16 / 2, false, 0.8);
             } // doubled hat pushing into the next bar
-          } else if (g.hat === "eights") {
+          } else if (hatMode === "eights") {
             if (sIdx % 2 === 0 && Math.random() < track.hatP * hatGate) {
               playHat(tt, sIdx % 8 === 6 && Math.random() < 0.4);
               visQ.push({ t: tt, type: "hat" });
             }
-          } else if (g.hat === "offbeat") {
+          } else if (hatMode === "offbeat") {
             if (sIdx % 4 === 2 && Math.random() < hatGate + 0.2) {
               playHat(tt, true);
               visQ.push({ t: tt, type: "hat" });
             } else if (sIdx % 2 === 0 && Math.random() < 0.4 * hatGate)
               playHat(tt, false);
-          } else if (g.hat === "rolls") {
+          } else if (hatMode === "rolls") {
             if (Math.random() < track.hatP * hatGate) {
               playHat(tt, false);
               if (sIdx % 4 === 0) visQ.push({ t: tt, type: "hat" });
@@ -5169,7 +5331,7 @@
               playHat(tt + s16 / 3, false);
               playHat(tt + (2 * s16) / 3, false);
             }
-          } else if (g.hat === "fast") {
+          } else if (hatMode === "fast") {
             if (Math.random() < track.hatP * hatGate) {
               playHat(tt, sIdx % 8 === 6 && Math.random() < 0.3);
               if (sIdx % 4 === 2) visQ.push({ t: tt, type: "hat" });
@@ -5194,6 +5356,11 @@
           if (bassType === "808") play808(tt, bm - 12, spb * R(0.8, 1.6));
           else if (bassType === "sub") playSub(tt, bm - 12, s16 * R(2, 4));
           else if (bassType === "round") playRound(tt, bm, s16 * R(2, 3.5));
+          else if (bassType === "reese") playReese(tt, bm, s16 * R(2, 4), false);
+          else if (bassType === "hollow") playReese(tt, bm, s16 * R(2, 4), true);
+          else if (bassType === "rubber") playRubber(tt, bm, s16 * R(1.5, 3));
+          else if (bassType === "growl") playGrowl(tt, bm - 12, s16 * R(2, 4));
+          else if (bassType === "pluck") playPluckBass(tt, bm, s16 * R(1, 2));
           else playBass(tt, bm, s16 * R(1.5, 3));
           track.lastBass = bm;
         }
@@ -5617,6 +5784,11 @@
         "drum n bass": "drum and base",
         "2000s rnb": "are and be",
         house: "house",
+        "uk garage": "you kay garage",
+        "lo-fi": "low fye",
+        afrobeats: "afro beats",
+        dubstep: "dub step",
+        downtempo: "down tempo",
       };
       const REQ_LINES = [
         "can i get a X beat",
