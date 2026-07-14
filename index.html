@@ -5714,22 +5714,27 @@
       function spawnSleepZ(target = "ari") {
         if (playing || !started) return;
 
-        let hx;
-        let hy;
+        let x;
+        let y;
 
         if (target === "guest") {
-          if (!visitor || !vis1?.headAnchor) return;
-          [hx, hy] = vis1.headAnchor;
+          if (!visitor || !vis1?.notePos) return;
+          const [nx, ny] = iso(...vis1.notePos);
+          // Match the guest music-note start position and horizontal spread.
+          x = nx + R(-8, 10);
+          y = ny;
         } else {
-          [hx, hy] = iso(6.68, -0.56, 8.44);
+          const [hx, hy] = iso(6.68, -0.56, 8.44);
+          x = hx + R(2, 12);
+          y = hy - R(14, 26);
         }
 
         const t = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "text",
         );
-        t.setAttribute("x", hx + R(2, 12));
-        t.setAttribute("y", hy - R(14, 26));
+        t.setAttribute("x", x);
+        t.setAttribute("y", y);
         t.setAttribute("class", "note sleepz go");
         t.setAttribute("aria-hidden", "true");
         t.style.pointerEvents = "none";
