@@ -48,16 +48,24 @@ the music notes.
 Every track is generated from scratch with the Web Audio API. There are no
 samples or prerecorded loops.
 
-A track chooses a genre — **boom bap, trap, jerk, drum n bass, 2000s rnb, or
-house** — plus its own BPM, root, scale, chord progression, arrangement, drum
-patterns, swing, bass behavior, harmony, lead voice and effects. Tracks usually
-run for roughly one to three minutes and use several arrangement shapes rather
-than repeating one fixed intro → verse → breakdown template.
+A track chooses a genre — **boom bap, trap, jerk, drum n bass, 2000s rnb, house,
+UK garage, lo-fi, afrobeats, dubstep, or downtempo** — plus its own BPM, root,
+scale, chord progression, arrangement, drum patterns, swing, bass behavior,
+harmony, lead voice and effects. Tracks usually run for roughly one to three
+minutes and use several arrangement shapes rather than repeating one fixed
+intro → verse → breakdown template.
 
-Drum n bass has its own family of substyles, including **classic, rolling, jump
-up, liquid, techstep, early snare, jungle, dotted, minimal, and halftime**.
-Those styles change the kick/snare relationship, ghost notes, hats, swing, bass,
-harmony and timing rather than only changing the label.
+**Every genre now has its own family of substyles**, not just drum n bass. Drum
+n bass still has ten (classic, rolling, jump up, liquid, techstep, early snare,
+jungle, dotted, minimal, halftime); boom bap, trap, jerk and 2000s rnb each get
+four or five of their own — dusty and jazzy boom bap, drill and triplet trap,
+hyphy and ratchet jerk, Neptunes- and Timbaland-flavored rnb, and more. The
+newer genres bring theirs too: UK garage (2-step, 4×4, speed garage, future),
+lo-fi, afrobeats (including amapiano and afro house), dubstep (halftime, riddim,
+brostep) and downtempo (trip-hop, ambient, dub). Each substyle changes the
+kick/snare relationship, ghost notes, hats, swing, bass, harmony and timing —
+and a two-bar loop keeps the pattern moving from one bar to the next — rather
+than only changing the label.
 
 The scheduler runs from an absolute audio clock. While the tab is hidden, A.R.I.
 pre-schedules a larger window directly onto the Web Audio thread, so the groove
@@ -192,6 +200,23 @@ Keep these files together in the same directory:
 - `favicon-16.png`
 
 ## Current version
+
+### Version 97 — more genres, substyles for everyone, fuller bass
+
+- Extended the substyle system from drum n bass to **every genre**. Boom bap,
+  trap, jerk and 2000s rnb now each have their own family of substyles with
+  two-bar variation, ghost notes and swing, so their tracks develop from bar to
+  bar instead of repeating one static pattern.
+- Added five new genres — **UK garage, lo-fi, afrobeats, dubstep and
+  downtempo** — each with its own substyle family, tempo range, drum
+  programming, bass and harmony.
+- Wired up bass voices that were defined but previously never triggered
+  (reese, hollow reese, rubber, growl and plucked / “log-drum” bass), so the
+  full bass palette is now audible across all genres.
+- Gave each genre its own chord-progression pool and let substyles define their
+  own bass-line rhythm, so harmony and groove are no longer one-size-fits-all.
+- House was left deliberately untouched; its signature four-on-the-floor already
+  did its job.
 
 ### Version 96
 
