@@ -1296,6 +1296,30 @@
         text-align: right;
         color: #dfeef0;
       }
+      #devChatBuffer {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 0;
+      }
+      .devChatMsg {
+        display: block;
+        min-width: 0;
+        line-height: 1.48;
+        overflow-wrap: anywhere;
+        word-break: normal;
+      }
+      .devChatName {
+        display: inline;
+        margin-right: 7px;
+        font-weight: 500;
+        white-space: normal;
+      }
+      .devChatText {
+        display: inline;
+        color: #dfeef0;
+        font-weight: 400;
+      }
       .devnone {
         color: #5b6b73;
       }
@@ -10201,7 +10225,6 @@
             <div class="devsec"><div class="devh">AUDIENCE BRAIN <span class="devh2">simulated live community</span></div>
               <div id="devAudienceLive">${typeof audienceDevHTML === "function" ? audienceDevHTML(t) : '<div class="devnone">waiting for chat…</div>'}</div>
             </div>
-            <div class="devsec"><div class="devh">LIVE CHAT <span class="devh2">latest reactions</span></div><div id="devChatBuffer">${typeof audienceBufferHTML === "function" ? audienceBufferHTML(18) : '<div class="devnone">no reactions yet</div>'}</div></div>
             <div class="devsec"><div class="devh">GEAR</div>
               <div class="krow"><span>bass</span><b>${esc(gear.bassSynth || "")}</b></div>
               <div class="krow"><span>pad</span><b>${esc(gear.padSynth || "")}</b></div>
@@ -10210,6 +10233,7 @@
             </div>
             <div class="devsec"><div class="devh">GUEST DNA</div>${dnaHTML}</div>
             ${guestHTML}
+            <div class="devsec"><div class="devh">LIVE CHAT <span class="devh2">latest reactions</span></div><div id="devChatBuffer">${typeof audienceBufferHTML === "function" ? audienceBufferHTML(18) : '<div class="devnone">no reactions yet</div>'}</div></div>
           `;
           devSeed = t.seed;
           devStep = -1;
@@ -10635,11 +10659,23 @@
       function audienceBufferHTML(max = 18) {
         const rows = audienceBuffer.slice(-max);
         if (!rows.length) return '<div class="devnone">no reactions yet</div>';
+        const safe = (value) =>
+          String(value ?? "").replace(
+            /[&<>"']/g,
+            (c) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              })[c],
+          );
         return rows
-          .map(
-            (m) =>
-              `<div class="krow"><span style="width:86px;color:${visPalette()[m.ci % visPalette().length]}">${String(m.nick).replace(/[&<>]/g, "")}</span><b style="font-weight:400;color:#dfeef0">${String(m.txt).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c])}</b></div>`,
-          )
+          .map((m) => {
+            const color = visPalette()[m.ci % visPalette().length];
+            return `<div class="devChatMsg"><span class="devChatName" style="color:${color}">${safe(m.nick)}:</span><span class="devChatText">${safe(m.txt)}</span></div>`;
+          })
           .join("");
       }
       let focusTimer = null,
