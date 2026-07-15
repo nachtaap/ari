@@ -672,9 +672,12 @@
         color: var(--text);
         font-size: 13px;
         letter-spacing: 0.22em;
-        /* Display-only: opening details is handled by the drawer tab. */
-        pointer-events: none;
-        cursor: default;
+        pointer-events: auto;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      #trackname:hover {
+        opacity: 0.82;
       }
       #trackmeta {
         color: var(--trackcyan);
@@ -1081,151 +1084,43 @@
         }
       }
 
-      /* ---------- pull-out details service drawer ---------- */
-      :root {
-        --drawer-progress: 0;
-        --drawer-shift: 0px;
-        --drawer-dim: 0;
-      }
-      body::after {
-        content: "";
-        position: fixed;
-        inset: 0;
-        z-index: 58;
-        pointer-events: none;
-        background: #000;
-        opacity: var(--drawer-dim);
-        transition: none;
-      }
-      #stage,
-      header,
-      footer,
-      #trackinfo,
-      #memoryControl,
-      #hint,
-      #chat {
-        translate: var(--drawer-shift) 0;
-        transition: none;
-        will-change: translate;
-      }
-      #detailsTab {
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 62;
-        transform: translate3d(0, 0, 0);
-        width: 34px;
-        height: 100vh;
-        height: 100svh;
-        padding: 0;
-        border: 0;
-        border-radius: 0;
-        background: transparent !important;
-        color: transparent;
-        font-size: 0;
-        display: block;
-        cursor: ew-resize;
-        touch-action: none;
-        box-shadow: none !important;
-        text-shadow: none !important;
-        filter: none !important;
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        outline: none;
-        will-change: transform;
-      }
-      #detailsTab::before {
-        content: "DETAILS";
-        position: absolute;
-        right: 0;
-        top: 50%;
-        width: 27px;
-        height: 104px;
-        transform: translateY(-50%);
-        border: 1px solid var(--cyan);
-        border-right: 0;
-        border-radius: 7px 0 0 7px;
-        background: transparent;
-        color: var(--cyan);
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 8px;
-        letter-spacing: 0.14em;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        pointer-events: none;
-      }
-      #detailsTab:hover,
-      #detailsTab:active,
-      #detailsTab:focus,
-      #detailsTab:focus-visible,
-      #detailsTab.dragging {
-        background: transparent !important;
-        box-shadow: none !important;
-        text-shadow: none !important;
-        filter: none !important;
-        outline: none;
-      }
+      /* ---------- dev inspector panel ---------- */
       .devpanel {
         position: fixed;
         top: 12px;
-        right: 0;
-        bottom: 12px;
+        right: 12px;
         z-index: 60;
-        width: 360px;
-        max-width: min(92vw, 420px);
+        width: 344px;
+        max-width: 92vw;
+        max-height: calc(100vh - 24px);
+        max-height: calc(100svh - 24px);
         overflow: auto;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         background: rgba(4, 5, 10, 0.96);
         border: 1px solid rgba(62, 232, 222, 0.35);
-        border-right: 0;
-        border-radius: 12px 0 0 12px;
+        border-radius: 10px;
         padding: 12px 14px 14px;
         font-family: "IBM Plex Mono", monospace;
         font-size: 11px;
         line-height: 1.5;
         color: #dfeef0;
         letter-spacing: 0.02em;
-        box-shadow: none;
+        box-shadow: 0 10px 44px rgba(0, 0, 0, 0.6);
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
-        transform: translate3d(100%, 0, 0);
+        opacity: 0;
+        transform: translateY(-6px);
         pointer-events: none;
-        visibility: visible;
-        transition: none;
-        touch-action: pan-y;
-        will-change: transform;
+        visibility: hidden;
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
       }
       .devpanel.show {
+        opacity: 1;
+        transform: none;
         pointer-events: auto;
-      }
-      .devpanel.dragging {
-        user-select: none;
-        -webkit-user-select: none;
-      }
-      .devpanel.settling,
-      #detailsTab.settling {
-        transition: transform 0.3s cubic-bezier(.2,.8,.25,1);
-      }
-      body.drawer-settling::after {
-        transition: opacity 0.3s cubic-bezier(.2,.8,.25,1);
-      }
-      body.drawer-settling #stage,
-      body.drawer-settling header,
-      body.drawer-settling footer,
-      body.drawer-settling #trackinfo,
-      body.drawer-settling #memoryControl,
-      body.drawer-settling #hint,
-      body.drawer-settling #chat {
-        transition: translate 0.3s cubic-bezier(.2,.8,.25,1);
+        visibility: visible;
+        transition-delay: 0s;
       }
       .devpanel::-webkit-scrollbar {
         width: 8px;
@@ -1240,26 +1135,33 @@
         padding: 0 0 8px;
         background: transparent;
         border-bottom: 1px solid #1a2230;
-        box-shadow: none;
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
+      }
+      #devClose {
+        flex: 0 0 auto;
+        border: 0;
+        background: transparent;
+        color: #8fa3a8;
+        font: inherit;
+        font-size: 18px;
+        line-height: 1;
+        padding: 2px 0 2px 8px;
+        cursor: pointer;
+      }
+      #devClose:hover {
+        color: #ff5fd2;
+      }
+      #devClose:focus-visible {
+        outline: 2px solid #a78bff;
+        outline-offset: 3px;
       }
       @media (max-width: 640px) {
-        #detailsTab {
-          width: 32px;
-        }
-        #detailsTab::before {
-          width: 25px;
-          height: 92px;
-          font-size: 7.5px;
-        }
         .devpanel {
-          top: 0;
-          bottom: 0;
-          width: min(92vw, 390px);
-          max-width: 92vw;
-          border-radius: 12px 0 0 12px;
-          padding-top: max(14px, env(safe-area-inset-top));
+          top: 10px;
+          right: 10px;
+          width: calc(100vw - 20px);
+          max-width: none;
+          max-height: calc(100svh - 20px);
+          padding-top: max(12px, env(safe-area-inset-top));
           padding-bottom: max(14px, env(safe-area-inset-bottom));
         }
       }
@@ -9365,7 +9267,7 @@
       });
 
       /* ============================================================
-   DEV INSPECTOR — right-side details drawer.
+   DEV INSPECTOR — click the track title to open; close with ×.
    A read-only view of every choice the generator made for the
    current track: identity, arrangement, drum/bass patterns (as
    16-step grids with a live playhead), harmony, gear and Guest
@@ -9379,21 +9281,12 @@
         panel.setAttribute("aria-hidden", "true");
         document.body.appendChild(panel);
 
-        const detailsTab = document.createElement("button");
-        detailsTab.id = "detailsTab";
-        detailsTab.type = "button";
-        detailsTab.textContent = "DETAILS";
-        detailsTab.setAttribute("aria-label", "open track details");
-        detailsTab.setAttribute("aria-controls", "devPanel");
-        detailsTab.setAttribute("aria-expanded", "false");
-        document.body.appendChild(detailsTab);
 
         let devOpen = false,
           devSeed = null,
           devStep = -1,
           devBar = -1,
-          devRAF = 0,
-          devChatHTML = "";
+          devRAF = 0;
 
         const esc = (s) =>
           String(s).replace(
@@ -9449,7 +9342,7 @@
         function render() {
           if (!track) {
             panel.innerHTML =
-              '<div class="devsticky"><div class="devhead"><span>DEV · waiting for a track…</span></div></div>';
+              '<div class="devsticky"><div class="devhead"><span>DEV · waiting for a track…</span><button id="devClose" type="button" aria-label="close details">×</button></div></div>';
             return;
           }
           const t = track,
@@ -9490,7 +9383,7 @@
 
           panel.innerHTML = `
             <div class="devsticky">
-              <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span></div>
+              <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span><button id="devClose" type="button" aria-label="close details">×</button></div>
               <div class="devname">“${esc(t.name)}”</div>
             </div>
             <div class="devsec">
@@ -9538,14 +9431,10 @@
             </div>
             <div class="devsec"><div class="devh">GUEST DNA</div>${dnaHTML}</div>
             ${guestHTML}
-            <div class="devsec"><div class="devh">LIVE CHAT <span class="devh2">latest reactions</span></div><div id="devChatBuffer">${typeof audienceBufferHTML==='function'?audienceBufferHTML(18):'<div class="devnone">no reactions yet</div>'}</div></div>
           `;
           devSeed = t.seed;
           devStep = -1;
           devBar = -1;
-          const initialChat = panel.querySelector("#devChatBuffer");
-          devChatHTML = initialChat ? initialChat.innerHTML : "";
-          if (initialChat) initialChat.scrollTop = initialChat.scrollHeight;
         }
 
         function tickLive() {
@@ -9564,17 +9453,6 @@
             devStep = cur;
             const audLive = panel.querySelector("#devAudienceLive");
             if (audLive && typeof audienceDevHTML === "function") audLive.innerHTML = audienceDevHTML(track);
-            const audBuf = panel.querySelector("#devChatBuffer");
-            if (audBuf && typeof audienceBufferHTML === "function") {
-              const nextChatHTML = audienceBufferHTML(18);
-              if (nextChatHTML !== devChatHTML) {
-                devChatHTML = nextChatHTML;
-                audBuf.innerHTML = nextChatHTML;
-                requestAnimationFrame(() => {
-                  audBuf.scrollTop = audBuf.scrollHeight;
-                });
-              }
-            }
             const prev = panel.querySelectorAll(".dstep.play");
             for (let i = 0; i < prev.length; i++) prev[i].classList.remove("play");
             const now = panel.querySelectorAll('.dstep[data-c="' + cur + '"]');
@@ -9600,171 +9478,46 @@
           }
         }
 
-        let drawerProgress = 0;
-        let drag = null;
-        let settleTimer = 0;
-
-        function drawerWidth() {
-          return panel.getBoundingClientRect().width || Math.min(window.innerWidth * 0.92, 360);
-        }
-
-        function ensureDevRunning() {
+        function openDev() {
           if (devOpen) return;
           devOpen = true;
           render();
+          panel.classList.add("show");
+          panel.setAttribute("aria-hidden", "false");
           cancelAnimationFrame(devRAF);
           devRAF = requestAnimationFrame(tickLive);
         }
 
-        function stopDevRunning() {
+        function closeDev() {
           if (!devOpen) return;
           devOpen = false;
+          panel.classList.remove("show");
+          panel.setAttribute("aria-hidden", "true");
           cancelAnimationFrame(devRAF);
         }
 
-        function applyDrawerProgress(rawValue, settling = false) {
-          const logical = Math.max(0, Math.min(1, rawValue));
-          let visual = rawValue;
-          if (visual < 0) visual *= 0.18;
-          if (visual > 1) visual = 1 + (visual - 1) * 0.18;
-
-          drawerProgress = logical;
-          const width = drawerWidth();
-          const panelX = width * (1 - visual);
-          const tabX = -width * visual;
-
-          panel.classList.toggle("settling", settling);
-          detailsTab.classList.toggle("settling", settling);
-          document.body.classList.toggle("drawer-settling", settling);
-          panel.style.transform = `translate3d(${panelX}px,0,0)`;
-          detailsTab.style.transform = `translate3d(${tabX}px,0,0)`;
-          panel.classList.toggle("show", logical > 0.015);
-          panel.setAttribute("aria-hidden", logical > 0.01 ? "false" : "true");
-          detailsTab.setAttribute("aria-expanded", logical > 0.5 ? "true" : "false");
-
-          document.documentElement.style.setProperty("--drawer-progress", logical.toFixed(4));
-          document.documentElement.style.setProperty("--drawer-shift", `${(-14 * logical).toFixed(2)}px`);
-          document.documentElement.style.setProperty("--drawer-dim", (0.08 * logical).toFixed(4));
-
-          if (logical > 0.015) ensureDevRunning();
+        function toggleDev() {
+          devOpen ? closeDev() : openDev();
         }
 
-        function settleDrawer(target) {
-          clearTimeout(settleTimer);
-          applyDrawerProgress(target, true);
-          settleTimer = setTimeout(() => {
-            panel.classList.remove("settling");
-            detailsTab.classList.remove("settling");
-            document.body.classList.remove("drawer-settling");
-            if (target === 0) stopDevRunning();
-          }, 330);
-        }
-
-        function openDev() { settleDrawer(1); }
-        function closeDev() { settleDrawer(0); }
-        function toggleDev() { drawerProgress > 0.5 ? closeDev() : openDev(); }
-
-        function startCommittedDrag(e, source) {
-          drag.committed = true;
-          drag.startProgress = drawerProgress;
-          drag.startX = e.clientX;
-          drag.lastX = e.clientX;
-          drag.lastTime = performance.now();
-          panel.classList.remove("settling");
-          detailsTab.classList.remove("settling");
-          document.body.classList.remove("drawer-settling");
-          panel.classList.add("dragging");
-          detailsTab.classList.add("dragging");
-          const captureTarget = source === "panel" ? panel : detailsTab;
-          try { captureTarget.setPointerCapture(e.pointerId); } catch (_) {}
-        }
-
-        function beginDrag(e, source) {
-          if (e.pointerType === "mouse" && e.button !== 0) return;
-          const fromRightEdge = window.innerWidth - e.clientX <= 24;
-          if (source === "edge" && drawerProgress <= 0.001 && !fromRightEdge) return;
-          drag = {
-            id: e.pointerId,
-            source,
-            originX: e.clientX,
-            originY: e.clientY,
-            startX: e.clientX,
-            startY: e.clientY,
-            startProgress: drawerProgress,
-            lastX: e.clientX,
-            lastTime: performance.now(),
-            velocity: 0,
-            committed: source !== "panel",
-          };
-          if (drag.committed) {
-            startCommittedDrag(e, source);
+        const trackNameEl = document.getElementById("trackname");
+        trackNameEl.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openDev();
+        });
+        trackNameEl.setAttribute("role", "button");
+        trackNameEl.setAttribute("tabindex", "0");
+        trackNameEl.setAttribute("aria-label", "open track details");
+        trackNameEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
+            openDev();
           }
-        }
-
-        detailsTab.addEventListener("pointerdown", (e) => beginDrag(e, "tab"));
-        panel.addEventListener("pointerdown", (e) => beginDrag(e, "panel"));
-        document.addEventListener("pointerdown", (e) => {
-          if (e.target === detailsTab || detailsTab.contains(e.target) || panel.contains(e.target)) return;
-          if (drawerProgress <= 0.001 && window.innerWidth - e.clientX <= 24) beginDrag(e, "edge");
         });
 
-        document.addEventListener("pointermove", (e) => {
-          if (!drag || e.pointerId !== drag.id) return;
-
-          if (!drag.committed) {
-            const totalX = e.clientX - drag.originX;
-            const totalY = e.clientY - drag.originY;
-            if (Math.abs(totalY) > 7 && Math.abs(totalY) > Math.abs(totalX) * 1.15) {
-              drag = null; // normal vertical panel scrolling
-              return;
-            }
-            if (Math.abs(totalX) < 7 || Math.abs(totalX) <= Math.abs(totalY) * 1.05) return;
-            startCommittedDrag(e, "panel");
-          }
-
-          const now = performance.now();
-          const dx = e.clientX - drag.startX;
-          const rawNext = drag.startProgress - dx / drawerWidth();
-          const dt = Math.max(1, now - drag.lastTime);
-          drag.velocity = (e.clientX - drag.lastX) / dt;
-          drag.lastX = e.clientX;
-          drag.lastTime = now;
-          applyDrawerProgress(rawNext, false);
-          e.preventDefault();
-        }, { passive: false });
-
-        function finishDrag(e) {
-          if (!drag || e.pointerId !== drag.id) return;
-          const wasCommitted = drag.committed;
-          const totalDx = e.clientX - drag.startX;
-          const totalDy = Math.abs(e.clientY - drag.startY);
-          let target = drawerProgress >= 0.5 ? 1 : 0;
-
-          if (wasCommitted) {
-            const mostlyHorizontal = Math.abs(totalDx) > totalDy * 0.65;
-            if (mostlyHorizontal && Math.abs(drag.velocity) > 0.28) {
-              target = drag.velocity < 0 ? 1 : 0;
-            }
-          }
-
-          panel.classList.remove("dragging");
-          detailsTab.classList.remove("dragging");
-          drag = null;
-          if (wasCommitted) settleDrawer(target);
-        }
-        document.addEventListener("pointerup", finishDrag);
-        document.addEventListener("pointercancel", (e) => {
-          if (!drag || e.pointerId !== drag.id) return;
-          const wasCommitted = drag.committed;
-          panel.classList.remove("dragging");
-          detailsTab.classList.remove("dragging");
-          drag = null;
-          if (wasCommitted) settleDrawer(drawerProgress >= 0.5 ? 1 : 0);
+        panel.addEventListener("click", (e) => {
+          if (e.target.closest("#devClose")) closeDev();
         });
-
-        window.addEventListener("resize", () => applyDrawerProgress(drawerProgress, false));
-        applyDrawerProgress(0, false);
 
         window.toggleDevPanel = toggleDev;
       })();
