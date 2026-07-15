@@ -1083,43 +1083,42 @@
         }
       }
 
-      /* ---------- details drawer ---------- */
+      /* ---------- pull-out details drawer ---------- */
       #detailsTab {
         position: fixed;
         right: 0;
         top: 50%;
-        z-index: 61;
-        transform: translateY(-50%);
+        z-index: 62;
+        transform: translate3d(0, -50%, 0);
         width: 28px;
         min-height: 92px;
         padding: 10px 5px;
-        border: 1px solid rgba(62, 232, 222, 0.42);
+        border: 1px solid currentColor;
         border-right: 0;
         border-radius: 9px 0 0 9px;
-        background: rgba(4, 5, 10, 0.9);
+        background: transparent !important;
         color: var(--cyan);
         font-family: "IBM Plex Mono", monospace;
         font-size: 9px;
         letter-spacing: 0.16em;
         writing-mode: vertical-rl;
         text-orientation: mixed;
-        cursor: pointer;
-        touch-action: manipulation;
-        box-shadow: -5px 0 22px rgba(0, 0, 0, 0.38);
-        -webkit-backdrop-filter: blur(6px);
-        backdrop-filter: blur(6px);
-        transition: opacity 0.2s ease, transform 0.2s ease;
+        cursor: ew-resize;
+        touch-action: none;
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        user-select: none;
+        -webkit-user-select: none;
+        will-change: transform;
       }
       #detailsTab:hover,
       #detailsTab:focus-visible {
         color: var(--magenta);
-        border-color: rgba(255, 95, 210, 0.55);
         outline: none;
       }
-      #detailsTab.hidden {
-        opacity: 0;
-        pointer-events: none;
-        transform: translate(8px, -50%);
+      #detailsTab.dragging {
+        color: var(--magenta);
       }
       .devpanel {
         position: fixed;
@@ -1145,17 +1144,21 @@
         box-shadow: -12px 0 44px rgba(0, 0, 0, 0.58);
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
-        transform: translateX(102%);
+        transform: translate3d(100%, 0, 0);
         pointer-events: none;
-        visibility: hidden;
-        transition: transform 0.28s cubic-bezier(.22,.72,.26,1), visibility 0s linear 0.28s;
+        visibility: visible;
+        transition: none;
         will-change: transform;
       }
       .devpanel.show {
-        transform: translateX(0);
         pointer-events: auto;
-        visibility: visible;
-        transition-delay: 0s;
+      }
+      .devpanel.dragging {
+        pointer-events: none;
+      }
+      .devpanel.settling,
+      #detailsTab.settling {
+        transition: transform 0.28s cubic-bezier(.22,.72,.26,1);
       }
       .devpanel::-webkit-scrollbar {
         width: 8px;
@@ -1201,26 +1204,6 @@
       }
       .devsticky .devname {
         margin-bottom: 0;
-      }
-      #devClose {
-        flex: 0 0 auto;
-        width: 30px;
-        height: 30px;
-        margin: -6px -6px -6px 0;
-        border: 0;
-        border-radius: 50%;
-        background: transparent;
-        color: #8fa3a8;
-        font: inherit;
-        font-size: 20px;
-        line-height: 1;
-        cursor: pointer;
-        touch-action: manipulation;
-      }
-      #devClose:hover,
-      #devClose:focus-visible {
-        color: #ff5fd2;
-        outline: none;
       }
       .devname {
         color: #dfeef0;
@@ -9344,7 +9327,7 @@
         function render() {
           if (!track) {
             panel.innerHTML =
-              '<div class="devsticky"><div class="devhead"><span>DEV · waiting for a track…</span><button id="devClose" type="button" aria-label="close track inspector">×</button></div></div>';
+              '<div class="devsticky"><div class="devhead"><span>DEV · waiting for a track…</span></div></div>';
             return;
           }
           const t = track,
@@ -9385,7 +9368,7 @@
 
           panel.innerHTML = `
             <div class="devsticky">
-              <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span><button id="devClose" type="button" aria-label="close track inspector">×</button></div>
+              <div class="devhead"><span>DEV · track ${String(trackNo).padStart(3, "0")}</span></div>
               <div class="devname">“${esc(t.name)}”</div>
             </div>
             <div class="devsec">
@@ -9495,80 +9478,120 @@
           }
         }
 
-        function openDev() {
-          if (devOpen) return;
-          devOpen = true;
-          panel.classList.add("show");
-          panel.setAttribute("aria-hidden", "false");
-          detailsTab.classList.add("hidden");
-          detailsTab.setAttribute("aria-expanded", "true");
-          render();
-          cancelAnimationFrame(devRAF);
-          devRAF = requestAnimationFrame(tickLive);
-        }
-        function closeDev() {
-          if (!devOpen) return;
-          devOpen = false;
-          panel.classList.remove("show");
-          panel.setAttribute("aria-hidden", "true");
-          detailsTab.classList.remove("hidden");
-          detailsTab.setAttribute("aria-expanded", "false");
-          cancelAnimationFrame(devRAF);
-        }
-        function toggleDev() {
-          devOpen ? closeDev() : openDev();
+        let drawerProgress = 0;
+        let drag = null;
+        let settleTimer = 0;
+
+        function drawerWidth() {
+          return panel.getBoundingClientRect().width || Math.min(window.innerWidth * 0.92, 360);
         }
 
-        detailsTab.addEventListener("click", (e) => {
-          e.stopPropagation();
-          openDev();
-        });
+        function applyDrawerProgress(value, settling = false) {
+          drawerProgress = Math.max(0, Math.min(1, value));
+          const width = drawerWidth();
+          const panelX = width * (1 - drawerProgress);
+          const tabX = -width * drawerProgress;
+          panel.classList.toggle("settling", settling);
+          detailsTab.classList.toggle("settling", settling);
+          panel.style.transform = `translate3d(${panelX}px,0,0)`;
+          detailsTab.style.transform = `translate3d(${tabX}px,-50%,0)`;
+          panel.classList.toggle("show", drawerProgress > 0.985);
+          panel.setAttribute("aria-hidden", drawerProgress > 0.01 ? "false" : "true");
+          detailsTab.setAttribute("aria-expanded", drawerProgress > 0.5 ? "true" : "false");
+        }
 
-        panel.addEventListener("click", (e) => {
-          const closeButton = e.target.closest("#devClose");
-          if (!closeButton) return;
-          e.stopPropagation();
-          closeDev();
-        });
+        function settleDrawer(target) {
+          clearTimeout(settleTimer);
+          applyDrawerProgress(target, true);
+          settleTimer = setTimeout(() => {
+            panel.classList.remove("settling");
+            detailsTab.classList.remove("settling");
+          }, 300);
+          const opening = target === 1;
+          if (opening && !devOpen) {
+            devOpen = true;
+            render();
+            cancelAnimationFrame(devRAF);
+            devRAF = requestAnimationFrame(tickLive);
+          } else if (!opening && devOpen) {
+            devOpen = false;
+            cancelAnimationFrame(devRAF);
+          }
+        }
 
-        // Edge swipe from the right opens the drawer on touch and pointer devices.
-        // Swiping the open drawer back to the right closes it.
-        let swipe = null;
-        const edgeWidth = 34;
-        const minDistance = 56;
-        const maxVerticalDrift = 90;
+        function openDev() { settleDrawer(1); }
+        function closeDev() { settleDrawer(0); }
+        function toggleDev() { drawerProgress > 0.5 ? closeDev() : openDev(); }
 
-        document.addEventListener("pointerdown", (e) => {
+        function beginDrag(e, source) {
           if (e.pointerType === "mouse" && e.button !== 0) return;
-          const fromRightEdge = window.innerWidth - e.clientX <= edgeWidth;
-          const insidePanel = devOpen && panel.contains(e.target);
-          if ((!devOpen && !fromRightEdge) || (devOpen && !insidePanel)) return;
-          swipe = {
+          const fromRightEdge = window.innerWidth - e.clientX <= 24;
+          if (source !== "tab" && drawerProgress <= 0.001 && !fromRightEdge) return;
+          drag = {
             id: e.pointerId,
             startX: e.clientX,
             startY: e.clientY,
+            startProgress: drawerProgress,
             lastX: e.clientX,
-            mode: devOpen ? "close" : "open",
+            lastTime: performance.now(),
+            velocity: 0,
           };
-        }, { passive: true });
+          panel.classList.remove("settling");
+          detailsTab.classList.remove("settling");
+          panel.classList.add("dragging");
+          detailsTab.classList.add("dragging");
+          try { detailsTab.setPointerCapture(e.pointerId); } catch (_) {}
+          e.preventDefault();
+        }
+
+        detailsTab.addEventListener("pointerdown", (e) => beginDrag(e, "tab"));
+        document.addEventListener("pointerdown", (e) => {
+          if (e.target === detailsTab || detailsTab.contains(e.target)) return;
+          if (drawerProgress <= 0.001 && window.innerWidth - e.clientX <= 24) beginDrag(e, "edge");
+        });
 
         document.addEventListener("pointermove", (e) => {
-          if (!swipe || e.pointerId !== swipe.id) return;
-          swipe.lastX = e.clientX;
-        }, { passive: true });
+          if (!drag || e.pointerId !== drag.id) return;
+          const now = performance.now();
+          const dx = e.clientX - drag.startX;
+          const next = drag.startProgress - dx / drawerWidth();
+          const dt = Math.max(1, now - drag.lastTime);
+          drag.velocity = (e.clientX - drag.lastX) / dt;
+          drag.lastX = e.clientX;
+          drag.lastTime = now;
+          applyDrawerProgress(next, false);
+          e.preventDefault();
+        }, { passive: false });
 
-        const finishSwipe = (e) => {
-          if (!swipe || e.pointerId !== swipe.id) return;
-          const dx = (swipe.lastX ?? e.clientX) - swipe.startX;
-          const dy = Math.abs(e.clientY - swipe.startY);
-          if (dy <= maxVerticalDrift) {
-            if (swipe.mode === "open" && dx <= -minDistance) openDev();
-            if (swipe.mode === "close" && dx >= minDistance) closeDev();
+        function finishDrag(e) {
+          if (!drag || e.pointerId !== drag.id) return;
+          const totalDx = e.clientX - drag.startX;
+          const totalDy = Math.abs(e.clientY - drag.startY);
+          const mostlyHorizontal = Math.abs(totalDx) > totalDy * 0.65;
+          let target;
+          if (!mostlyHorizontal && Math.abs(totalDx) < 10) {
+            target = drawerProgress >= 0.5 ? 1 : 0;
+          } else if (Math.abs(drag.velocity) > 0.35) {
+            target = drag.velocity < 0 ? 1 : 0;
+          } else {
+            target = drawerProgress >= 0.5 ? 1 : 0;
           }
-          swipe = null;
-        };
-        document.addEventListener("pointerup", finishSwipe, { passive: true });
-        document.addEventListener("pointercancel", () => { swipe = null; }, { passive: true });
+          panel.classList.remove("dragging");
+          detailsTab.classList.remove("dragging");
+          drag = null;
+          settleDrawer(target);
+        }
+        document.addEventListener("pointerup", finishDrag);
+        document.addEventListener("pointercancel", (e) => {
+          if (!drag || e.pointerId !== drag.id) return;
+          panel.classList.remove("dragging");
+          detailsTab.classList.remove("dragging");
+          drag = null;
+          settleDrawer(drawerProgress >= 0.5 ? 1 : 0);
+        });
+
+        window.addEventListener("resize", () => applyDrawerProgress(drawerProgress, false));
+        applyDrawerProgress(0, false);
 
         window.toggleDevPanel = toggleDev;
       })();
