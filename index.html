@@ -1115,23 +1115,16 @@
         bottom: 0;
         z-index: 62;
         transform: translate3d(0, 0, 0);
-        width: 32px;
+        width: 34px;
         height: 100vh;
         height: 100svh;
         padding: 0;
-        border: 1px solid currentColor;
-        border-right: 0;
+        border: 0;
         border-radius: 0;
         background: transparent !important;
-        color: var(--cyan);
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 9px;
-        letter-spacing: 0.16em;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        color: transparent;
+        font-size: 0;
+        display: block;
         cursor: ew-resize;
         touch-action: none;
         box-shadow: none !important;
@@ -1145,12 +1138,35 @@
         outline: none;
         will-change: transform;
       }
+      #detailsTab::before {
+        content: "DETAILS";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: 27px;
+        height: 104px;
+        transform: translateY(-50%);
+        border: 1px solid var(--cyan);
+        border-right: 0;
+        border-radius: 7px 0 0 7px;
+        background: transparent;
+        color: var(--cyan);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        pointer-events: none;
+      }
       #detailsTab:hover,
       #detailsTab:active,
       #detailsTab:focus,
       #detailsTab:focus-visible,
       #detailsTab.dragging {
-        color: var(--cyan);
         background: transparent !important;
         box-shadow: none !important;
         text-shadow: none !important;
@@ -1230,8 +1246,12 @@
       }
       @media (max-width: 640px) {
         #detailsTab {
-          width: 30px;
-          font-size: 8px;
+          width: 32px;
+        }
+        #detailsTab::before {
+          width: 25px;
+          height: 92px;
+          font-size: 7.5px;
         }
         .devpanel {
           top: 0;
