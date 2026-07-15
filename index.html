@@ -1083,19 +1083,47 @@
         }
       }
 
-      /* ---------- pull-out details drawer ---------- */
+      /* ---------- pull-out details service drawer ---------- */
+      :root {
+        --drawer-progress: 0;
+        --drawer-shift: 0px;
+        --drawer-dim: 0;
+      }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 58;
+        pointer-events: none;
+        background: #000;
+        opacity: var(--drawer-dim);
+        transition: none;
+      }
+      #stage,
+      header,
+      footer,
+      #trackinfo,
+      #memoryControl,
+      #hint,
+      #chat {
+        translate: var(--drawer-shift) 0;
+        transition: none;
+        will-change: translate;
+      }
       #detailsTab {
         position: fixed;
         right: 0;
-        top: 50%;
+        top: 0;
+        bottom: 0;
         z-index: 62;
-        transform: translate3d(0, -50%, 0);
-        width: 28px;
-        min-height: 92px;
-        padding: 10px 5px;
+        transform: translate3d(0, 0, 0);
+        width: 32px;
+        height: 100vh;
+        height: 100svh;
+        padding: 0;
         border: 1px solid currentColor;
         border-right: 0;
-        border-radius: 9px 0 0 9px;
+        border-radius: 0;
         background: transparent !important;
         color: var(--cyan);
         font-family: "IBM Plex Mono", monospace;
@@ -1103,22 +1131,33 @@
         letter-spacing: 0.16em;
         writing-mode: vertical-rl;
         text-orientation: mixed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         cursor: ew-resize;
         touch-action: none;
-        box-shadow: none;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
         will-change: transform;
       }
       #detailsTab:hover,
-      #detailsTab:focus-visible {
-        color: var(--magenta);
-        outline: none;
-      }
+      #detailsTab:active,
+      #detailsTab:focus,
+      #detailsTab:focus-visible,
       #detailsTab.dragging {
-        color: var(--magenta);
+        color: var(--cyan);
+        background: transparent !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+        filter: none !important;
+        outline: none;
       }
       .devpanel {
         position: fixed;
@@ -1141,24 +1180,38 @@
         line-height: 1.5;
         color: #dfeef0;
         letter-spacing: 0.02em;
-        box-shadow: -12px 0 44px rgba(0, 0, 0, 0.58);
+        box-shadow: none;
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         transform: translate3d(100%, 0, 0);
         pointer-events: none;
         visibility: visible;
         transition: none;
+        touch-action: pan-y;
         will-change: transform;
       }
       .devpanel.show {
         pointer-events: auto;
       }
       .devpanel.dragging {
-        pointer-events: none;
+        user-select: none;
+        -webkit-user-select: none;
       }
       .devpanel.settling,
       #detailsTab.settling {
-        transition: transform 0.28s cubic-bezier(.22,.72,.26,1);
+        transition: transform 0.3s cubic-bezier(.2,.8,.25,1);
+      }
+      body.drawer-settling::after {
+        transition: opacity 0.3s cubic-bezier(.2,.8,.25,1);
+      }
+      body.drawer-settling #stage,
+      body.drawer-settling header,
+      body.drawer-settling footer,
+      body.drawer-settling #trackinfo,
+      body.drawer-settling #memoryControl,
+      body.drawer-settling #hint,
+      body.drawer-settling #chat {
+        transition: translate 0.3s cubic-bezier(.2,.8,.25,1);
       }
       .devpanel::-webkit-scrollbar {
         width: 8px;
@@ -1179,8 +1232,7 @@
       }
       @media (max-width: 640px) {
         #detailsTab {
-          min-height: 86px;
-          width: 27px;
+          width: 30px;
           font-size: 8px;
         }
         .devpanel {
@@ -9486,18 +9538,45 @@
           return panel.getBoundingClientRect().width || Math.min(window.innerWidth * 0.92, 360);
         }
 
-        function applyDrawerProgress(value, settling = false) {
-          drawerProgress = Math.max(0, Math.min(1, value));
+        function ensureDevRunning() {
+          if (devOpen) return;
+          devOpen = true;
+          render();
+          cancelAnimationFrame(devRAF);
+          devRAF = requestAnimationFrame(tickLive);
+        }
+
+        function stopDevRunning() {
+          if (!devOpen) return;
+          devOpen = false;
+          cancelAnimationFrame(devRAF);
+        }
+
+        function applyDrawerProgress(rawValue, settling = false) {
+          const logical = Math.max(0, Math.min(1, rawValue));
+          let visual = rawValue;
+          if (visual < 0) visual *= 0.18;
+          if (visual > 1) visual = 1 + (visual - 1) * 0.18;
+
+          drawerProgress = logical;
           const width = drawerWidth();
-          const panelX = width * (1 - drawerProgress);
-          const tabX = -width * drawerProgress;
+          const panelX = width * (1 - visual);
+          const tabX = -width * visual;
+
           panel.classList.toggle("settling", settling);
           detailsTab.classList.toggle("settling", settling);
+          document.body.classList.toggle("drawer-settling", settling);
           panel.style.transform = `translate3d(${panelX}px,0,0)`;
-          detailsTab.style.transform = `translate3d(${tabX}px,-50%,0)`;
-          panel.classList.toggle("show", drawerProgress > 0.985);
-          panel.setAttribute("aria-hidden", drawerProgress > 0.01 ? "false" : "true");
-          detailsTab.setAttribute("aria-expanded", drawerProgress > 0.5 ? "true" : "false");
+          detailsTab.style.transform = `translate3d(${tabX}px,0,0)`;
+          panel.classList.toggle("show", logical > 0.015);
+          panel.setAttribute("aria-hidden", logical > 0.01 ? "false" : "true");
+          detailsTab.setAttribute("aria-expanded", logical > 0.5 ? "true" : "false");
+
+          document.documentElement.style.setProperty("--drawer-progress", logical.toFixed(4));
+          document.documentElement.style.setProperty("--drawer-shift", `${(-14 * logical).toFixed(2)}px`);
+          document.documentElement.style.setProperty("--drawer-dim", (0.08 * logical).toFixed(4));
+
+          if (logical > 0.015) ensureDevRunning();
         }
 
         function settleDrawer(target) {
@@ -9506,88 +9585,112 @@
           settleTimer = setTimeout(() => {
             panel.classList.remove("settling");
             detailsTab.classList.remove("settling");
-          }, 300);
-          const opening = target === 1;
-          if (opening && !devOpen) {
-            devOpen = true;
-            render();
-            cancelAnimationFrame(devRAF);
-            devRAF = requestAnimationFrame(tickLive);
-          } else if (!opening && devOpen) {
-            devOpen = false;
-            cancelAnimationFrame(devRAF);
-          }
+            document.body.classList.remove("drawer-settling");
+            if (target === 0) stopDevRunning();
+          }, 330);
         }
 
         function openDev() { settleDrawer(1); }
         function closeDev() { settleDrawer(0); }
         function toggleDev() { drawerProgress > 0.5 ? closeDev() : openDev(); }
 
+        function startCommittedDrag(e, source) {
+          drag.committed = true;
+          drag.startProgress = drawerProgress;
+          drag.startX = e.clientX;
+          drag.lastX = e.clientX;
+          drag.lastTime = performance.now();
+          panel.classList.remove("settling");
+          detailsTab.classList.remove("settling");
+          document.body.classList.remove("drawer-settling");
+          panel.classList.add("dragging");
+          detailsTab.classList.add("dragging");
+          const captureTarget = source === "panel" ? panel : detailsTab;
+          try { captureTarget.setPointerCapture(e.pointerId); } catch (_) {}
+        }
+
         function beginDrag(e, source) {
           if (e.pointerType === "mouse" && e.button !== 0) return;
           const fromRightEdge = window.innerWidth - e.clientX <= 24;
-          if (source !== "tab" && drawerProgress <= 0.001 && !fromRightEdge) return;
+          if (source === "edge" && drawerProgress <= 0.001 && !fromRightEdge) return;
           drag = {
             id: e.pointerId,
+            source,
+            originX: e.clientX,
+            originY: e.clientY,
             startX: e.clientX,
             startY: e.clientY,
             startProgress: drawerProgress,
             lastX: e.clientX,
             lastTime: performance.now(),
             velocity: 0,
+            committed: source !== "panel",
           };
-          panel.classList.remove("settling");
-          detailsTab.classList.remove("settling");
-          panel.classList.add("dragging");
-          detailsTab.classList.add("dragging");
-          try { detailsTab.setPointerCapture(e.pointerId); } catch (_) {}
-          e.preventDefault();
+          if (drag.committed) {
+            startCommittedDrag(e, source);
+            e.preventDefault();
+          }
         }
 
         detailsTab.addEventListener("pointerdown", (e) => beginDrag(e, "tab"));
+        panel.addEventListener("pointerdown", (e) => beginDrag(e, "panel"));
         document.addEventListener("pointerdown", (e) => {
-          if (e.target === detailsTab || detailsTab.contains(e.target)) return;
+          if (e.target === detailsTab || detailsTab.contains(e.target) || panel.contains(e.target)) return;
           if (drawerProgress <= 0.001 && window.innerWidth - e.clientX <= 24) beginDrag(e, "edge");
         });
 
         document.addEventListener("pointermove", (e) => {
           if (!drag || e.pointerId !== drag.id) return;
+
+          if (!drag.committed) {
+            const totalX = e.clientX - drag.originX;
+            const totalY = e.clientY - drag.originY;
+            if (Math.abs(totalY) > 7 && Math.abs(totalY) > Math.abs(totalX) * 1.15) {
+              drag = null; // normal vertical panel scrolling
+              return;
+            }
+            if (Math.abs(totalX) < 7 || Math.abs(totalX) <= Math.abs(totalY) * 1.05) return;
+            startCommittedDrag(e, "panel");
+          }
+
           const now = performance.now();
           const dx = e.clientX - drag.startX;
-          const next = drag.startProgress - dx / drawerWidth();
+          const rawNext = drag.startProgress - dx / drawerWidth();
           const dt = Math.max(1, now - drag.lastTime);
           drag.velocity = (e.clientX - drag.lastX) / dt;
           drag.lastX = e.clientX;
           drag.lastTime = now;
-          applyDrawerProgress(next, false);
+          applyDrawerProgress(rawNext, false);
           e.preventDefault();
         }, { passive: false });
 
         function finishDrag(e) {
           if (!drag || e.pointerId !== drag.id) return;
+          const wasCommitted = drag.committed;
           const totalDx = e.clientX - drag.startX;
           const totalDy = Math.abs(e.clientY - drag.startY);
-          const mostlyHorizontal = Math.abs(totalDx) > totalDy * 0.65;
-          let target;
-          if (!mostlyHorizontal && Math.abs(totalDx) < 10) {
-            target = drawerProgress >= 0.5 ? 1 : 0;
-          } else if (Math.abs(drag.velocity) > 0.35) {
-            target = drag.velocity < 0 ? 1 : 0;
-          } else {
-            target = drawerProgress >= 0.5 ? 1 : 0;
+          let target = drawerProgress >= 0.5 ? 1 : 0;
+
+          if (wasCommitted) {
+            const mostlyHorizontal = Math.abs(totalDx) > totalDy * 0.65;
+            if (mostlyHorizontal && Math.abs(drag.velocity) > 0.28) {
+              target = drag.velocity < 0 ? 1 : 0;
+            }
           }
+
           panel.classList.remove("dragging");
           detailsTab.classList.remove("dragging");
           drag = null;
-          settleDrawer(target);
+          if (wasCommitted) settleDrawer(target);
         }
         document.addEventListener("pointerup", finishDrag);
         document.addEventListener("pointercancel", (e) => {
           if (!drag || e.pointerId !== drag.id) return;
+          const wasCommitted = drag.committed;
           panel.classList.remove("dragging");
           detailsTab.classList.remove("dragging");
           drag = null;
-          settleDrawer(drawerProgress >= 0.5 ? 1 : 0);
+          if (wasCommitted) settleDrawer(drawerProgress >= 0.5 ? 1 : 0);
         });
 
         window.addEventListener("resize", () => applyDrawerProgress(drawerProgress, false));
