@@ -672,11 +672,9 @@
         color: var(--text);
         font-size: 13px;
         letter-spacing: 0.22em;
-        pointer-events: auto;
-        cursor: pointer;
-        touch-action: manipulation;
-        -webkit-user-select: none;
-        user-select: none;
+        /* Display-only: opening details is handled by the drawer tab. */
+        pointer-events: none;
+        cursor: default;
       }
       #trackmeta {
         color: var(--trackcyan);
