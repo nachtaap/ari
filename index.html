@@ -1342,6 +1342,11 @@
       <div id="chatLog"></div>
     </aside>
 
+    <section id="audienceFocus" aria-hidden="true">
+      <div id="audienceFocusHead"><b>LIVE CHAT</b><span id="audienceFocusStats"></span></div>
+      <div id="audienceFocusLog"></div>
+    </section>
+
     <div id="trackinfo" style="display: none">
       <div id="tiRow">
         <img id="albumArt" alt="" width="56" height="56" />
@@ -5282,6 +5287,294 @@
         };
         return track._drumState;
       }
+      /* ---------- Melody Brain: motifs, phrases and harmonic targets ---------- */
+      const MELODY_SECTION_TENSION = {
+        intro: 0.18,
+        main: 0.42,
+        break: 0.58,
+        main2: 0.72,
+        outro: 0.24,
+      };
+      const MELODY_PERSONALITIES = {
+        robot:  { range: 7, density: 0.58, leap: 0.30, ornament: 0.16, repeat: 0.72, sync: 0.58 },
+        vocal:  { range: 5, density: 0.42, leap: 0.13, ornament: 0.10, repeat: 0.82, sync: 0.42 },
+        guitar: { range: 6, density: 0.52, leap: 0.20, ornament: 0.24, repeat: 0.68, sync: 0.52 },
+        flute:  { range: 8, density: 0.36, leap: 0.18, ornament: 0.28, repeat: 0.54, sync: 0.30 },
+        violin: { range: 9, density: 0.40, leap: 0.28, ornament: 0.34, repeat: 0.50, sync: 0.34 },
+        synth:  { range: 8, density: 0.60, leap: 0.26, ornament: 0.20, repeat: 0.64, sync: 0.62 },
+      };
+      function melodyPersonalityFor(instr, ari) {
+        if (ari) return "robot";
+        const x = String(instr || "").toLowerCase();
+        if (x.includes("guitar")) return "guitar";
+        if (x.includes("flute")) return "flute";
+        if (x.includes("violin")) return "violin";
+        if (x.includes("mic") || x.includes("vocal") || x.includes("rap")) return "vocal";
+        return "synth";
+      }
+      function seededUnit(seed, tag) {
+        let h = 2166136261 >>> 0;
+        const str = String(seed) + "|" + tag;
+        for (let i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        h += h << 13; h ^= h >>> 7; h += h << 3; h ^= h >>> 17; h += h << 5;
+        return (h >>> 0) / 4294967296;
+      }
+      function melodySectionInfo(sections, barNo) {
+        for (let i = 0; i < sections.length; i++) {
+          const x = sections[i];
+          if (barNo >= x.start && barNo < x.end)
+            return { name:x.name, pos:barNo-x.start, len:x.end-x.start, left:x.end-barNo };
+        }
+        return { name:"main", pos:barNo, len:999, left:999-barNo };
+      }
+      function chordScaleIndices(t, barNo) {
+        const deg = t.prog[barNo % t.prog.length] || 0;
+        const n = t.scale.length;
+        return [deg % n, (deg + 2) % n, (deg + 4) % n];
+      }
+      function nearestIndexOfClass(target, cls, n) {
+        let best = target, dist = 999;
+        for (let k = -2; k <= 3; k++) {
+          const v = cls + k * n, d = Math.abs(v - target);
+          if (d < dist) { best = v; dist = d; }
+        }
+        return best;
+      }
+      function melodyTransform(base, kind, shift, n) {
+        let out = base.map(x => ({...x}));
+        if (kind === "sequence") out.forEach(x => x.degree += shift);
+        else if (kind === "invert") {
+          const pivot = out[0].degree;
+          out.forEach(x => x.degree = pivot - (x.degree - pivot));
+        } else if (kind === "fragment") out = out.slice(0, Math.max(2, out.length - 1));
+        else if (kind === "answer") {
+          out.forEach((x,i) => x.degree += i === out.length-1 ? -1 : shift);
+          out[out.length-1].dur += 2;
+        } else if (kind === "augment") out.forEach(x => { x.step = Math.min(15, x.step * 2); x.dur *= 1.5; });
+        return out.map(x => ({...x, degree: Math.max(-n, Math.min(n*2, x.degree))}));
+      }
+      function buildMelodyPlan(t, personalityName) {
+        const P = MELODY_PERSONALITIES[personalityName] || MELODY_PERSONALITIES.synth;
+        const n = t.scale.length;
+        const contour = ["arch","wave","descent","pendulum","staircase"][Math.floor(seededUnit(t.seed, personalityName+"contour")*5)];
+        const rhythmCells = [
+          [0,3,6,10], [0,2,7,12], [1,5,8,14], [0,4,9,11], [2,6,10,13], [0,3,8]
+        ];
+        const steps = rhythmCells[Math.floor(seededUnit(t.seed, personalityName+"rhythm")*rhythmCells.length)].slice();
+        const count = steps.length;
+        let degrees = [0];
+        for (let i=1;i<count;i++) {
+          const u = seededUnit(t.seed, personalityName+"int"+i);
+          let d = u < P.leap ? (u < P.leap/2 ? 2 : -2) : (u < 0.58 ? 1 : -1);
+          if (contour === "arch") d = i < count/2 ? Math.abs(d) : -Math.abs(d);
+          if (contour === "descent") d = -Math.abs(d);
+          if (contour === "staircase") d = i%3===0 ? 0 : Math.abs(d);
+          if (contour === "pendulum") d = i%2 ? Math.abs(d) : -Math.abs(d);
+          degrees.push(Math.max(-2, Math.min(P.range, degrees[i-1]+d)));
+        }
+        const motif = steps.map((st,i)=>({ step:st, degree:degrees[i], dur:i===count-1?3:2, accent:i===0||i===count-1 }));
+        const variants = {
+          A: motif,
+          Aprime: melodyTransform(motif,"sequence", seededUnit(t.seed, personalityName+"seq")>.5?1:-1,n),
+          B: melodyTransform(motif, seededUnit(t.seed, personalityName+"inv")>.55?"invert":"fragment", 0,n),
+          answer: melodyTransform(motif,"answer",-1,n),
+          lift: melodyTransform(motif,"sequence",2,n),
+          sparse: motif.filter((_,i)=>i===0||i===motif.length-1).map(x=>({...x,dur:x.dur+2})),
+        };
+        const plan = Array.from({length:t.bars},()=>[]);
+        for (let b=0;b<t.bars;b++) {
+          const info = melodySectionInfo(t.sections,b), phrase = info.pos % 4;
+          let role = phrase===0?"A":phrase===1?"Aprime":phrase===2?"B":"answer";
+          if (info.name === "intro") role = phrase%2?"sparse":"A";
+          if (info.name === "break") role = phrase===3?"answer":"sparse";
+          if (info.name === "main2" && phrase===2) role = "lift";
+          if (info.name === "outro") role = phrase===0?"A":"sparse";
+          let events = variants[role].map(x=>({...x, role}));
+          const chord = chordScaleIndices(t,b), tension = MELODY_SECTION_TENSION[info.name] || .4;
+          events = events.filter((e,i)=> i===0 || seededUnit(t.seed, personalityName+"keep"+b+":"+i) < P.density + (info.name==="main2"?.12:0));
+          events.forEach((e,i)=>{
+            const strong = e.step%4===0 || e.accent;
+            if (strong) {
+              const targetClass = chord[Math.floor(seededUnit(t.seed, personalityName+"chord"+b+":"+i)*chord.length)];
+              e.degree = nearestIndexOfClass(e.degree,targetClass,n);
+              e.function = "chord tone";
+            } else if (seededUnit(t.seed, personalityName+"orn"+b+":"+i) < P.ornament*tension) {
+              e.degree += seededUnit(t.seed, personalityName+"side"+b+":"+i)>.5?1:-1;
+              e.function = "neighbor";
+            } else e.function = "passing";
+            e.velocity = e.accent ? 1 : .72 + seededUnit(t.seed, personalityName+"vel"+b+":"+i)*.18;
+          });
+          // Cadential landing: the final event of a phrase resolves to a chord tone,
+          // and section endings prefer the tonic class.
+          if (events.length) {
+            const last = events[events.length-1];
+            if (phrase===3 || info.left===1) {
+              const targetClass = info.left===1 ? 0 : chord[0];
+              last.degree = nearestIndexOfClass(last.degree,targetClass,n);
+              last.dur = Math.max(last.dur,4);
+              last.function = info.left===1 ? "tonic landing" : "cadence";
+            }
+          }
+          plan[b]=events;
+        }
+        return { personality:personalityName, dna:{ contour, range:P.range, density:P.density, leap:P.leap, ornament:P.ornament, repetition:P.repeat, syncopation:P.sync }, motif, variants, plan };
+      }
+      function buildMelodyBrain(t) {
+        const plans={};
+        ["robot","vocal","guitar","flute","violin","synth"].forEach(k=>plans[k]=buildMelodyPlan(t,k));
+        return { plans, version:1 };
+      }
+      function melodyEventAt(t, personality, barNo, stepNo) {
+        const p=t?.melodyBrain?.plans?.[personality] || t?.melodyBrain?.plans?.synth;
+        return p?.plan?.[barNo]?.find(e=>e.step===stepNo) || null;
+      }
+      function melodyMidi(t, ev, personality, secondVoice) {
+        const P=MELODY_PERSONALITIES[personality] || MELODY_PERSONALITIES.synth;
+        const n=t.scale.length;
+        let idx=ev.degree;
+        let oct=Math.floor(idx/n), cls=((idx%n)+n)%n;
+        let base=t.root + (personality==="vocal"?12: personality==="robot"?12:24) + (secondVoice?5:0);
+        let midi=base + oct*12 + t.scale[cls];
+        const floor=t.root+7, ceil=Math.min(LEAD_CEIL,t.root+12+P.range+5);
+        while(midi<floor)midi+=12;
+        while(midi>ceil)midi-=12;
+        return leadClamp(midi);
+      }
+
+      /* ============================================================
+         VOCAL + COMPOSER BRAIN
+         Flow/cadence is composed first; pitch and synthetic voice follow.
+         The Composer Brain assigns space so drums, A.R.I., lead and guest
+         behave like one live ensemble rather than four independent loops.
+         ============================================================ */
+      const VOCAL_FLOW_CELLS = {
+        sparse: [[0,3,7,11],[0,4,10],[2,6,12]],
+        pocket: [[0,2,5,7,10,13],[1,4,6,9,12,14],[0,3,6,8,11,15]],
+        rolling: [[0,2,3,6,8,10,11,14],[1,3,5,7,9,11,13,15]],
+        hook: [[0,4,8,12],[0,3,8,11],[2,6,10,14]],
+      };
+      function vocalPerformerDNA(t) {
+        const d=t.guestDNA||{};
+        return {
+          flow: Math.max(.15,Math.min(.95,(d.complexity||50)/100)),
+          melody: Math.max(.08,Math.min(.9,(d.warmth||50)/120)),
+          adlibs: Math.max(.05,Math.min(.7,(d.chaos||30)/130)),
+          energy: Math.max(.2,Math.min(1,(d.energy||55)/100)),
+          silence: Math.max(.12,Math.min(.75,(d.space||50)/110)),
+          confidence: Math.max(.2,Math.min(1,(d.confidence||55)/100)),
+        };
+      }
+      function composerRoleFor(t,b) {
+        const info=sectionInfoAt(t,b), phrase=b%4;
+        if(info.name==='intro') return phrase<2?'instrumental':'invitation';
+        if(info.name==='break') return phrase===3?'pickup':'open-space';
+        if(info.name==='outro') return phrase<2?'final-response':'landing';
+        if(info.name==='main2') return phrase===0?'hook':phrase===3?'turnaround':'verse';
+        return phrase===0?'statement':phrase===2?'response':phrase===3?'breath':'verse';
+      }
+      function buildComposerBrain(t) {
+        const plan=[];
+        for(let b=0;b<t.bars;b++){
+          const info=sectionInfoAt(t,b), role=composerRoleFor(t,b), phrase=b%4;
+          let guest=1, ari=.2, instrumental=.65, hats=1, fills=1;
+          if(info.name==='intro'){guest=phrase>=2?.35:0; ari=0; instrumental=.75;}
+          else if(info.name==='break'){guest=role==='pickup'?.55:.25; ari=0; instrumental=.28; hats=.35; fills=.35;}
+          else if(role==='hook'){guest=1; ari=0; instrumental=.32; hats=.78; fills=.55;}
+          else if(role==='response'){guest=.45; ari=.15; instrumental=.9;}
+          else if(role==='breath'){guest=.12; ari=.15; instrumental=.88; hats=.72;}
+          else if(role==='turnaround'){guest=.58; ari=0; instrumental=.55; fills=.8;}
+          else if(info.name==='outro'){guest=role==='landing'?.15:.4; ari=0; instrumental=.55; hats=.55;}
+          plan[b]={role,guest,ari,instrumental,hats,fills,section:info.name,phrase};
+        }
+        return {version:1,model:'ensemble space + call/response',plan};
+      }
+      function composerStateAt(t,b){return t?.composerBrain?.plan?.[Math.max(0,Math.min(t.bars-1,b))]||{role:'free',guest:1,ari:1,instrumental:1,hats:1,fills:1};}
+      function nearestMelodyEvent(events,step){
+        if(!events?.length)return null;
+        return events.reduce((best,e)=>Math.abs(e.step-step)<Math.abs(best.step-step)?e:best,events[0]);
+      }
+      function buildVocalBrain(t) {
+        const dna=vocalPerformerDNA(t), plan=[];
+        for(let b=0;b<t.bars;b++){
+          const c=composerStateAt(t,b), mel=t.melodyBrain?.plans?.vocal?.plan?.[b]||[];
+          if(c.guest<.18){plan[b]=[];continue;}
+          let mode=c.role==='hook'?'sung hook':c.role==='pickup'?'ad-lib':(dna.melody>.56&&c.role==='statement'?'half-sung':'rap');
+          let family=mode==='sung hook'?'hook':dna.flow>.68?'rolling':dna.silence>.55?'sparse':'pocket';
+          const bank=VOCAL_FLOW_CELLS[family];
+          const cell=bank[Math.floor(seededUnit(t.seed,'vflow'+b)*bank.length)];
+          const events=[];
+          cell.forEach((step,i)=>{
+            const keep=seededUnit(t.seed,'vkeep'+b+':'+i);
+            if(keep>c.guest*(1-dna.silence*.35)+.18)return;
+            const source=nearestMelodyEvent(mel,step);
+            let degree=source?source.degree:(t.prog[Math.floor(b/2)%t.prog.length]+(i%3));
+            if(mode==='rap'&&i%3===1)degree=events.length?events[events.length-1].degree:degree;
+            if(mode==='ad-lib')degree+=seededUnit(t.seed,'vad'+b)>0.5?2:0;
+            const next=cell[i+1]??16;
+            events.push({step,degree,dur:Math.max(1,Math.min(mode==='sung hook'?5:3,next-step)),velocity:.62+dna.energy*.28,mode,accent:i===0||i===cell.length-1,syllable:i%4});
+          });
+          if(events.length&&mode==='sung hook'){
+            events[events.length-1].degree=nearestIndexOfClass(events[events.length-1].degree,0,t.scale.length);
+            events[events.length-1].dur=Math.max(4,events[events.length-1].dur);
+          }
+          plan[b]=events;
+        }
+        return {version:1,dna,plan,model:'flow → cadence → pitch → synthetic voice'};
+      }
+      function vocalEventAt(t,b,s){return t?.vocalBrain?.plan?.[b]?.find(e=>e.step===s)||null;}
+
+
+      /* ============================================================
+         AUDIENCE BRAIN
+         A synthetic livestream community that reacts to musical events,
+         keeps a small memory of earlier performances and produces a noisy,
+         opinionated signal rather than a single objective score.
+         ============================================================ */
+      const AUDIENCE_ARCHETYPES = [
+        {kind:'basshead', likes:['bass','drop'], strict:'intro'},
+        {kind:'drummer', likes:['drums','fill','groove'], strict:'timing'},
+        {kind:'melody fan', likes:['melody','hook','chords'], strict:'repetition'},
+        {kind:'producer', likes:['transition','mix','arrangement'], strict:'clutter'},
+        {kind:'guest fan', likes:['guest','vocal','solo'], strict:'silence'},
+        {kind:'casual', likes:['hype','hook','drop'], strict:'none'},
+      ];
+      function loadCommunityMemory(){
+        try{return JSON.parse(localStorage.getItem('ariCommunityMemoryV1')||'{}')||{}}catch(e){return {}}
+      }
+      function saveCommunityMemory(mem){
+        try{localStorage.setItem('ariCommunityMemoryV1',JSON.stringify(mem))}catch(e){}
+      }
+      function buildAudienceBrain(t){
+        const mem=loadCommunityMemory(), prior=mem[t.genre]||{plays:0,love:.55};
+        const base=RI(1850,4850), returning=Math.round(base*(.06+Math.min(.16,prior.plays*.008)));
+        const active=.4+seededUnit(t.seed,'aud-active')*.2;
+        const traits={
+          positivity:.45+seededUnit(t.seed,'aud-positive')*.3,
+          expertise:.18+seededUnit(t.seed,'aud-expert')*.34,
+          volatility:.18+seededUnit(t.seed,'aud-volatile')*.42,
+          guestBias:.35+seededUnit(t.seed,'aud-guest')*.45,
+        };
+        return {
+          version:1, viewers:base, returning, active, retention:.88,
+          mood:'CURIOUS', chatRate:0, favorite:'—', weakest:'—',
+          traits, scores:{drums:.5,bass:.5,melody:.5,guest:.5,arrangement:.5},
+          reactions:[], eventsSeen:{}, trackSeed:t.seed, priorLove:prior.love,
+          archetypes:AUDIENCE_ARCHETYPES,
+        };
+      }
+      function audienceState(){return track?.audienceBrain||null;}
+      function finalizeAudienceTrack(t){
+        const a=t?.audienceBrain;if(!a)return;
+        const vals=Object.values(a.scores||{}), avg=vals.length?vals.reduce((n,v)=>n+v,0)/vals.length:.5;
+        const love=Math.max(0,Math.min(1,avg*.72+a.retention*.28));
+        const mem=loadCommunityMemory(), old=mem[t.genre]||{plays:0,love:.55};
+        mem[t.genre]={plays:(old.plays||0)+1,love:(old.love||.55)*.82+love*.18,favorite:a.favorite,weakest:a.weakest,lastTrack:t.name};
+        saveCommunityMemory(mem);
+      }
+
       // density/intensity per section — everything downstream reads these
       const SECT = {
         intro: { drums: 0.55, hats: 0.4, bass: 1, harm: 1, lead: 0, fill: 0 },
@@ -5447,6 +5740,11 @@
           };
         });
         built.drumBrain = buildDrumBrain(built);
+        built.melodyBrain = buildMelodyBrain(built);
+        built.composerBrain = buildComposerBrain(built);
+        built.vocalBrain = buildVocalBrain(built);
+        built.audienceBrain = buildAudienceBrain(built);
+        built.generatorVersion = 96;
         track = built;
         leadEchoA.bar = leadEchoV.bar = -1;
         leadEchoA.notes = [];
@@ -6551,6 +6849,7 @@
         const sect = sectionAt(bar),
           D = SECT[sect] || SECT.main,
           drumState = drumStateAt(bar),
+          composerState = composerStateAt(track, bar),
           kp = drumState?.kick || track.kick,
           sp = drumState?.snare || track.snare,
           gp = drumState?.ghost || track.ghost,
@@ -6593,7 +6892,7 @@
         if (gp && gp[sIdx] && D.drums > 0)
           playSnare(gtt, drumState?.velocity?.ghost?.[sIdx] || 0.34);
         /* hats per genre, gated by section density */
-        const hatGate = Math.min(1.25, D.hats * (drumState?.hatMul || 1));
+        const hatGate = Math.min(1.25, D.hats * (drumState?.hatMul || 1) * (composerState.hats ?? 1));
         const hatMode = track.hatMode || g.hat;
         if (hatGate > 0) {
           if (hp) {
@@ -6646,6 +6945,7 @@
            so we never get the old half-random "maybe one tap, maybe three" result. */
         if (
           drumState?.useFill &&
+          (composerState.fills ?? 1) > 0.3 &&
           drumState.fillSnare?.[sIdx] &&
           !sp[sIdx]
         ) {
@@ -6655,6 +6955,7 @@
         }
         if (
           drumState?.useFill &&
+          (composerState.fills ?? 1) > 0.3 &&
           drumState.fillHat?.[sIdx] &&
           !hp?.[sIdx]
         ) {
@@ -6730,75 +7031,56 @@
           if (visitor && visitorPhase === "performing" && vis1)
             fireLeadEcho(leadEchoV, tt, vis1.instr, 0.28);
         }
-        if (ariSing && D.lead > 0 && sIdx % 2 === 1 && Math.random() < 0.3) {
-          lastLeadIdxA = nextLeadIdx(
-            lastLeadIdxA,
-            PENT.length * 2 - 1,
-            leadRunA,
-          );
-          const oct = Math.floor(lastLeadIdxA / PENT.length);
-          const midi = leadClamp(
-            track.root +
-              oct * 12 +
-              leadPent()[lastLeadIdxA % leadPent().length],
-          );
-          const adur = s16 * pick([2, 2, 3, 4]);
-          playLead(tt, midi, adur, "on the mic", 0.9);
-          recLeadEcho(leadEchoA, sIdx * s16, midi, adur);
-          visQ.push({ t: tt, type: "alead" });
-        }
-        /* visitor leads — respect section density (quieter in break/outro) */
-        if (
-          visitor &&
-          visitorPhase === "performing" &&
-          D.lead > 0 &&
-          sIdx % 2 === 0 &&
-          Math.random() < 0.32 * D.lead
-        ) {
-          lastLeadIdx = nextLeadIdx(lastLeadIdx, PENT.length * 2 - 1, leadRun);
-          const oct = Math.floor(lastLeadIdx / PENT.length);
-          const midi = leadClamp(
-            track.root + oct * 12 + leadPent()[lastLeadIdx % leadPent().length],
-          );
-          const dur = s16 * pick([2, 2, 3, 4, 6]);
-          let vmul = 1;
-          if (vis1.instr === "on the mic") {
-            const dp = micDroop(tt, vis1.micPh || 0);
-            vmul = Math.random() < dp * 0.55 ? 0 : 1 - dp * 0.8; // drooped mic: notes vanish or come through faint
-          }
-          if (vmul > 0) {
-            playLead(tt, midi, dur, vis1.instr, vmul);
-            recLeadEcho(leadEchoV, sIdx * s16, midi, dur);
-            visQ.push({ t: tt, type: "lead", v: 1 });
+        if (ariSing && D.lead > 0 && (composerState.ari ?? 1) > 0.12) {
+          const personality = "robot",
+            ev = melodyEventAt(track, personality, bar, sIdx);
+          if (ev) {
+            const midi = melodyMidi(track, ev, personality, false),
+              adur = s16 * ev.dur;
+            playLead(tt, midi, adur, "on the mic", 0.72 + ev.velocity * 0.2);
+            recLeadEcho(leadEchoA, sIdx * s16, midi, adur);
+            visQ.push({ t: tt, type: "alead" });
           }
         }
-        if (
-          visitor2 &&
-          visitorPhase === "performing" &&
-          D.lead > 0 &&
-          sIdx % 4 === 2 &&
-          Math.random() < 0.3 * D.lead
-        ) {
-          lastLeadIdx2 = nextLeadIdx(
-            lastLeadIdx2,
-            PENT.length * 2 - 1,
-            leadRun2,
-          );
-          const oct = Math.floor(lastLeadIdx2 / PENT.length);
-          const midi = leadClamp(
-            track.root +
-              oct * 12 +
-              leadPent()[lastLeadIdx2 % leadPent().length],
-          );
-          const dur = s16 * pick([2, 3, 4]);
-          let vmul = 1;
-          if (vis2.instr === "on the mic") {
-            const dp = micDroop(tt, vis2.micPh || 0);
-            vmul = Math.random() < dp * 0.55 ? 0 : 1 - dp * 0.8;
+        /* visitor melodies now follow pre-composed motifs and phrase development */
+        if (visitor && visitorPhase === "performing" && D.lead > 0 && vis1 && (composerState.guest ?? 1) > 0.1) {
+          const isMic = vis1.instr === "on the mic";
+          const personality = melodyPersonalityFor(vis1.instr, false);
+          const ev = isMic
+            ? vocalEventAt(track, bar, sIdx)
+            : ((composerState.instrumental ?? 1) > 0.18 ? melodyEventAt(track, personality, bar, sIdx) : null);
+          if (ev) {
+            const midi = melodyMidi(track, ev, isMic ? "vocal" : personality, false),
+              dur = s16 * ev.dur;
+            let vmul = (0.72 + ev.velocity * 0.25) * Math.max(.45, composerState.guest ?? 1);
+            if (isMic) {
+              const dp = micDroop(tt, vis1.micPh || 0);
+              vmul *= Math.random() < dp * 0.42 ? 0 : 1 - dp * 0.72;
+              if (ev.mode === "rap") vmul *= .88;
+              if (ev.mode === "sung hook") vmul *= 1.08;
+            }
+            if (vmul > 0) {
+              playLead(tt, midi, dur, vis1.instr, vmul);
+              recLeadEcho(leadEchoV, sIdx * s16, midi, dur);
+              visQ.push({ t: tt, type: "lead", v: 1 });
+            }
           }
-          if (vmul > 0) {
-            playLead(tt, midi, dur, vis2.instr, vmul);
-            visQ.push({ t: tt, type: "lead", v: 2 });
+        }
+        if (visitor2 && visitorPhase === "performing" && D.lead > 0 && vis2 && (composerState.guest ?? 1) > 0.35) {
+          const personality = melodyPersonalityFor(vis2.instr, false),
+            ev = melodyEventAt(track, personality, bar, sIdx);
+          if (ev && (sIdx % 2 === 0 || personality === "vocal")) {
+            const midi = melodyMidi(track, ev, personality, true),
+              dur = s16 * ev.dur;
+            let vmul = 0.62 + ev.velocity * 0.2;
+            if (vis2.instr === "on the mic") {
+              const dp = micDroop(tt, vis2.micPh || 0);
+              vmul *= Math.random() < dp * 0.55 ? 0 : 1 - dp * 0.8;
+            }
+            if (vmul > 0) {
+              playLead(tt, midi, dur, vis2.instr, vmul);
+              visQ.push({ t: tt, type: "lead", v: 2 });
+            }
           }
         }
       }
@@ -6844,6 +7126,7 @@
         }
       }
       function crossToNext(forced) {
+        if (typeof finalizeAudienceTrack === "function") finalizeAudienceTrack(track);
         stopAriSing();
         const t = ctx.currentTime;
         master.gain.setValueAtTime(master.gain.value, t);
@@ -9011,6 +9294,19 @@
               <div class="krow"><span>prog</span><b class="prog">${progHTML}</b></div>
               <div class="krow"><span>lead</span><b>${esc(t.leadWave || "—")}</b><span class="kdim">A.R.I. sings ${t.ariSings ? "yes" : "no"}</span></div>
             </div>
+            <div class="devsec"><div class="devh">MELODY BRAIN <span class="devh2">motif + phrase composer</span></div>
+              ${(()=>{const mp=t.melodyBrain?.plans?.synth, ev=mp?.plan?.[bar]||[], dna=mp?.dna||{}; return `<div class="krow"><span>contour</span><b>${esc(dna.contour||"—")}</b><span class="kdim">range ${dna.range||0} · density ${pct(dna.density||0)}</span></div><div class="krow"><span>phrase</span><b>${esc(ev[0]?.role||"rest")}</b><span class="kdim">${ev.length} notes · harmonic targets</span></div><div class="dflags">motif memory · chord tones on strong beats · passing/neighbor tones · cadential landing</div>`})()}
+            </div>
+            <div class="devsec"><div class="devh">COMPOSER BRAIN <span class="devh2">ensemble space</span></div>
+              ${(()=>{const c=composerStateAt(t,bar); return `<div class="krow"><span>role</span><b>${esc(c.role||"free")}</b><span class="kdim">${esc(c.section||"")}</span></div><div class="krow"><span>space</span><b>guest ${pct(c.guest||0)}</b><span class="kdim">lead ${pct(c.instrumental||0)} · hats ${pct(c.hats||0)}</span></div><div class="dflags">call/response · vocal space · arranged density · shared transitions</div>`})()}
+            </div>
+            <div class="devsec"><div class="devh">VOCAL BRAIN <span class="devh2">flow before words</span></div>
+              ${(()=>{const v=t.vocalBrain||{}, ev=v.plan?.[bar]||[], d=v.dna||{}; return `<div class="krow"><span>mode</span><b>${esc(ev[0]?.mode||"rest")}</b><span class="kdim">${ev.length} syllable events</span></div><div class="krow"><span>DNA</span><b>flow ${pct(d.flow||0)}</b><span class="kdim">melody ${pct(d.melody||0)} · silence ${pct(d.silence||0)}</span></div><div class="dflags">cadence · breath space · hooks · ad-libs · harmonic response</div>`})()}
+            </div>
+            <div class="devsec"><div class="devh">AUDIENCE BRAIN <span class="devh2">simulated live community</span></div>
+              <div id="devAudienceLive">${typeof audienceDevHTML==='function'?audienceDevHTML(t):'<div class="devnone">waiting for chat…</div>'}</div>
+            </div>
+            <div class="devsec"><div class="devh">LIVE CHAT <span class="devh2">latest reactions</span></div><div id="devChatBuffer">${typeof audienceBufferHTML==='function'?audienceBufferHTML(18):'<div class="devnone">no reactions yet</div>'}</div></div>
             <div class="devsec"><div class="devh">GEAR</div>
               <div class="krow"><span>bass</span><b>${esc(gear.bassSynth || "")}</b></div>
               <div class="krow"><span>pad</span><b>${esc(gear.padSynth || "")}</b></div>
@@ -9039,6 +9335,10 @@
           const cur = ((gStep % 16) + 16) % 16;
           if (cur !== devStep) {
             devStep = cur;
+            const audLive = panel.querySelector("#devAudienceLive");
+            if (audLive && typeof audienceDevHTML === "function") audLive.innerHTML = audienceDevHTML(track);
+            const audBuf = panel.querySelector("#devChatBuffer");
+            if (audBuf && typeof audienceBufferHTML === "function") audBuf.innerHTML = audienceBufferHTML(18);
             const prev = panel.querySelectorAll(".dstep.play");
             for (let i = 0; i < prev.length; i++) prev[i].classList.remove("play");
             const now = panel.querySelectorAll('.dstep[data-c="' + cur + '"]');
@@ -9238,232 +9538,114 @@
       });
       applyTheme();
 
-      /* ---------- fictional stream chat — pure garnish, desktop only. handles are invented, not real users ---------- */
+      /* ---------- Audience Brain + event-driven fictional livestream chat ---------- */
       const chatLogEl = document.getElementById("chatLog");
+      const focusEl = document.getElementById("audienceFocus");
+      const focusLogEl = document.getElementById("audienceFocusLog");
+      const focusStatsEl = document.getElementById("audienceFocusStats");
       const chatOn = () => innerWidth >= 1280 && !!chatLogEl;
-      const CHAT_USERS = [...Array(22)].map(() => ({
-        nick: fakeHandle().replace(/^@/, ""),
-        ci: RI(0, 5),
+      const audienceBuffer = [];
+      const CHAT_USERS = [...Array(46)].map((_,i) => ({
+        nick: fakeHandle().replace(/^@/, ""), ci: RI(0,5),
+        kind: AUDIENCE_ARCHETYPES[i%AUDIENCE_ARCHETYPES.length].kind,
+        regular: i<10,
       }));
-      const CHAT_HYPE = [
-        "this beat tho",
-        "yoooo",
-        "vibes",
-        "turn it up",
-        "no skips tonight",
-        "who produced this",
-        "bass go crazy",
-        "on repeat",
-        "lowkey a banger",
-        "grid check",
-        "first time here, love this",
-        "realest robot in nyc",
-        "headphone warning lol",
-        "loopin this forever",
-        "sheeeesh",
-        "clean mix",
-        "it do be knockin",
-        "w stream",
-        "certified street signal",
-        "nodding at my desk rn",
-        "somebody clip this",
-        "ok the drums",
-        "my neighbors hate me rn",
-        "volume maxed, no regrets",
-        "this from a robot??",
-        "street signal strong tonight",
-        "caught it live for once",
-        "whoever tuned that snare, thank u",
-        "the pole sign is my fav character",
-        "walking playlist material",
-        "stuck in my head already",
-        "crispy hats",
-        "sub bass wobbling my desk",
-        "nyc energy fr",
-        "need this on vinyl",
-        "robot got taste",
-        "how is this free",
-        "the groove is criminal",
-        "late night grid walks hit different",
-        "yo the keys tho",
-        "drums are talking to me",
-        "transitions seamless fr",
-        "been here since track 001",
-        "average night on the grid (elite)",
-        "my dog is vibing too",
-        "headset mic stays iconic",
-        "someone get this bot a residency",
-        "tape hiss of the future",
-        "wait for the drop",
-        "city soundtrack fr",
+      const REGULAR_LINES = [
+        "been here since track 001", "ARI always finds the pocket", "that bass again 😂",
+        "night shift checking in", "grid regulars know", "this guest came back stronger",
       ];
-      const CHAT_FIRE = [
-        "\ud83d\udd25",
-        "\ud83d\udd25\ud83d\udd25",
-        "\ud83d\udcaf",
-        "\ud83c\udfa7",
-        "\ud83e\udd16",
-      ];
-      let chatPrev = {
-        trackNo: 0,
-        phase: "",
-        sing: false,
-        batt: false,
-        v2: false,
+      const EVENT_LINES = {
+        newtrack:["new one!","ok {genre}","“{name}” already sounds dangerous","{bpm} bpm, lock in","the {genre} arc continues"],
+        intro:["let it breathe","slow cook","intro people stand up","where is this going...","clean opening"],
+        hook:["THERE IT IS","hook!!","ok this is the one","that motif came back 🔥","caught myself singing that"],
+        drop:["DROP","bass just folded my desk","YOOOOO","that low end","headphones were a mistake 🔥"],
+        fill:["that fill was clean","drummer chat heard that","tiny turnaround, huge difference","ghost notes!!"],
+        guest:["guest pulled up","who is this??","let them cook","street collab incoming","they look nervous lol"],
+        performance:["guest locked in","chemistry is real","they got pocket","ARI giving them space","this feels live fr"],
+        response:["call and response!!","ARI answered that line","they are actually listening to each other","nice handoff"],
+        break:["the space >>>","needed that breath","wait for it...","breakdown is floating"],
+        ending:["strong landing","one more","that ending resolved perfectly","save this one"],
+        weak:["hmm hats getting repetitive","intro ran a little long","too much happening at once","melody lost me there","guest is buried"],
+        battery:["rip battery","the ritual","stretch break y'all","he carries spares dw"],
       };
-      function chatPush(user, txt) {
-        if (!chatOn()) return;
-        const d = document.createElement("div");
-        d.className = "chatMsg";
-        const nk = document.createElement("span");
-        nk.className = "nick";
-        nk.style.color = visPalette()[user.ci % visPalette().length];
-        nk.textContent = user.nick;
-        d.appendChild(nk);
-        d.appendChild(document.createTextNode(txt));
-        chatLogEl.appendChild(d);
-        while (chatLogEl.children.length > 16) chatLogEl.firstChild.remove();
-        requestAnimationFrame(() => d.classList.add("in"));
+      function fillLine(line){
+        return line.replaceAll('{genre}',track?displayGenre(track.genre):'beat').replaceAll('{name}',track?.name||'this').replaceAll('{bpm}',track?.bpm||'');
       }
-      const chatSay = (txt) => chatPush(pick(CHAT_USERS), txt);
-      setInterval(() => {
-        if (!chatOn() || !playing || !started) return;
-        if (batteryIntermission !== chatPrev.batt) {
-          chatPrev.batt = batteryIntermission;
-          if (batteryIntermission) {
-            chatSay(
-              pick([
-                "rip battery",
-                "swap it swap it",
-                "classic. every stream",
-                "hydration break",
-                "the ritual",
-                "pack game weak today lol",
-                "intermission!!",
-                "stretch break y'all",
-                "he carries spares dw",
-                "most reliable part of the show",
-              ]),
-            );
-            return;
-          }
-        }
-        if (track && trackNo !== chatPrev.trackNo) {
-          chatPrev.trackNo = trackNo;
-          if (Math.random() < 0.7) {
-            chatSay(
-              pick(
-                [
-                  "new one!",
-                  "ok " + track.genre,
-                  "this " + track.genre + " hits",
-                  "tempo!",
-                  "\u201c" + track.name + "\u201d goes hard",
-                  track.bpm + " bpm sheesh",
-                  "oh we in " + track.keyName + " now",
-                  "track " + String(trackNo).padStart(3, "0") + " already??",
-                  "name of the night: " + track.name,
-                  "this one's for the walkers",
-                  "instant classic",
-                  "the " + track.genre + " arc continues",
-                  "ooh new flip",
-                ].concat(
-                  track.subStyle
-                    ? [
-                        track.subStyle + "!!",
-                        "oh we in " + track.subStyle + " territory",
-                        "real heads know " + track.subStyle,
-                      ]
-                    : [],
-                ),
-              ),
-            );
-            return;
-          }
-        }
-        const phase = visitor ? visitorPhase : "";
-        if (phase !== chatPrev.phase) {
-          chatPrev.phase = phase;
-          if (phase === "requesting") {
-            chatSay(
-              pick([
-                "guest pulled up",
-                "oh? who this",
-                "request incoming",
-                "let them cook",
-                "walk-ups are the best part",
-                "a wild guest appears",
-                "they look nervous lol",
-                "block talent showing up",
-                "yo grant the request!!",
-              ]),
-            );
-            return;
-          }
-          if (phase === "performing") {
-            chatSay(
-              pick([
-                "guest " + (vis1 ? displayInstr(vis1.instr) : "") + "!!",
-                "they got bars",
-                "collab stream??",
-                "crowd forming fr",
-                "duo of the year",
-                "ok they can PLAY",
-                "street auditions open apparently",
-                "somebody sign them",
-                "a.r.i. found a friend",
-                "chemistry is real",
-              ]),
-            );
-            return;
-          }
-        }
-        if (visitor2 !== chatPrev.v2) {
-          chatPrev.v2 = visitor2;
-          if (visitor2) {
-            chatSay("CYPHER??");
-            return;
-          }
-        }
-        if (ariSing !== chatPrev.sing) {
-          chatPrev.sing = ariSing;
-          if (ariSing) {
-            chatSay(
-              pick([
-                "a.r.i. on the mic!!",
-                "bars incoming",
-                "he sings too??",
-                "MIC CHECK",
-                "vocal mode activated",
-                "robot bars >>>",
-                "the headset finally earning its keep",
-                "he's feeling it tonight",
-                "lore drop: he can sing",
-              ]),
-            );
-            return;
-          }
-        }
-        if (Math.random() < 0.1)
-          chatSay(Math.random() < 0.25 ? pick(CHAT_FIRE) : pick(CHAT_HYPE));
-      }, 1100);
-      /* the chat would steal focus if it were always there — it drifts in every other location change, then bows out */
-      let chatLocCount = 0,
-        chatHideTimer = null;
-      function flashChat() {
-        const el = document.getElementById("chat");
-        if (!el || !chatOn() || !playing) return;
-        el.classList.add("on");
-        clearTimeout(chatHideTimer);
-        chatHideTimer = setTimeout(
-          () => el.classList.remove("on"),
-          R(18000, 28000),
-        );
+      function audiencePush(txt, user, signal){
+        if(!txt)return;
+        const u=user||pick(CHAT_USERS), msg={nick:u.nick,ci:u.ci,txt,kind:u.kind,signal:signal||'chat',time:Date.now()};
+        audienceBuffer.push(msg); while(audienceBuffer.length>60)audienceBuffer.shift();
+        const a=audienceState(); if(a){a.reactions.push(msg);while(a.reactions.length>80)a.reactions.shift();a.chatRate=Math.min(1,a.chatRate*.82+.18);}
+        if(chatOn()) appendChatNode(chatLogEl,msg,'chatMsg',16);
+        if(focusEl?.classList.contains('on')) appendChatNode(focusLogEl,msg,'focusMsg',10);
       }
-      function chatOnLocation() {
-        if (++chatLocCount % 2 === 0) flashChat();
+      function appendChatNode(parent,msg,cls,max){
+        if(!parent)return; const d=document.createElement('div');d.className=cls;
+        const nk=document.createElement('span');nk.className='nick';nk.style.color=visPalette()[msg.ci%visPalette().length];nk.textContent=msg.nick;
+        d.appendChild(nk);d.appendChild(document.createTextNode(msg.txt));parent.appendChild(d);
+        while(parent.children.length>max)parent.firstChild.remove();requestAnimationFrame(()=>d.classList.add('in'));
       }
-
+      function audienceReact(type, strength=.6){
+        const a=audienceState(); if(!a||!track)return;
+        const bank=EVENT_LINES[type]||EVENT_LINES.newtrack;
+        let count=1+(strength>.72?1:0)+(strength>.9?1:0);
+        for(let i=0;i<count;i++){
+          const regular=Math.random()<.18?CHAT_USERS[RI(0,9)]:null;
+          const line=regular&&Math.random()<.35?pick(REGULAR_LINES):pick(bank);
+          setTimeout(()=>audiencePush(fillLine(line),regular,type),i*RI(180,520));
+        }
+        const scoreMap={hook:'melody',drop:'bass',fill:'drums',performance:'guest',response:'arrangement',ending:'arrangement'};
+        if(scoreMap[type])a.scores[scoreMap[type]]=Math.min(1,a.scores[scoreMap[type]]+strength*.08);
+        if(type==='weak')a.retention=Math.max(.55,a.retention-.012*strength); else a.retention=Math.min(.98,a.retention+.002*strength);
+        const entries=Object.entries(a.scores).sort((x,y)=>y[1]-x[1]);a.favorite=entries[0][0];a.weakest=entries.at(-1)[0];
+        const avg=entries.reduce((n,x)=>n+x[1],0)/entries.length;
+        a.mood=avg>.68?'HYPED':avg>.57?'LOCKED IN':avg>.47?'CURIOUS':'RESTLESS';
+      }
+      function audienceDevHTML(t){
+        const a=t?.audienceBrain;if(!a)return '<div class="devnone">—</div>';
+        return `<div class="krow"><span>watching</span><b>${Math.round(a.viewers).toLocaleString()}</b><span class="kdim">${Math.round(a.active*100)}% active · ${a.returning} regulars</span></div>
+          <div class="krow"><span>mood</span><b>${a.mood}</b><span class="kdim">retention ${Math.round(a.retention*100)}% · chat ${Math.round(a.chatRate*100)}%</span></div>
+          <div class="krow"><span>favorite</span><b>${a.favorite}</b><span class="kdim">weakest ${a.weakest}</span></div>
+          <div class="dflags">opinionated personas · event reactions · community memory · noisy feedback, not a truth score</div>`;
+      }
+      function audienceBufferHTML(max=18){
+        const rows=audienceBuffer.slice(-max);if(!rows.length)return '<div class="devnone">no reactions yet</div>';
+        return rows.map(m=>`<div class="krow"><span style="width:86px;color:${visPalette()[m.ci%visPalette().length]}">${String(m.nick).replace(/[&<>]/g,'')}</span><b style="font-weight:400;color:#dfeef0">${String(m.txt).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</b></div>`).join('');
+      }
+      let focusTimer=null, lastFocusTrack=0;
+      function showAudienceFocus(){
+        if(!focusEl||innerWidth>=900||!playing||lastFocusTrack===trackNo)return;
+        lastFocusTrack=trackNo;document.body.classList.add('audience-focus');focusEl.classList.add('on');focusEl.setAttribute('aria-hidden','false');
+        focusStatsEl.textContent=`${Math.round(audienceState()?.viewers||0).toLocaleString()} watching · ${audienceState()?.mood||'LIVE'}`;
+        focusLogEl.innerHTML='';audienceBuffer.slice(-7).forEach(m=>appendChatNode(focusLogEl,m,'focusMsg',10));
+        clearTimeout(focusTimer);focusTimer=setTimeout(()=>{focusEl.classList.remove('on');focusEl.setAttribute('aria-hidden','true');document.body.classList.remove('audience-focus');},RI(4200,5600));
+      }
+      let audiencePrev={trackNo:0,bar:-1,phase:'',batt:false,v2:false};
+      setInterval(()=>{
+        if(!playing||!started||!track)return;const a=audienceState();if(!a)return;a.chatRate*=.9;
+        a.viewers=Math.max(700,a.viewers+RI(-18,26));
+        if(trackNo!==audiencePrev.trackNo){audiencePrev={trackNo,bar:-1,phase:'',batt:false,v2:false};audienceReact('newtrack',.75);return;}
+        if(batteryIntermission!==audiencePrev.batt){audiencePrev.batt=batteryIntermission;if(batteryIntermission)audienceReact('battery',.7);return;}
+        if(visitorPhase!==audiencePrev.phase){audiencePrev.phase=visitorPhase;if(visitorPhase==='requesting')audienceReact('guest',.72);if(visitorPhase==='performing')audienceReact('performance',.85);}
+        if(bar!==audiencePrev.bar){
+          audiencePrev.bar=bar;const c=composerStateAt(track,bar),d=drumStateAt(bar),sect=sectionAt(bar);
+          if(bar===0)audienceReact('intro',.45);
+          if(c.role==='hook')audienceReact('hook',.9);
+          else if(c.role==='response')audienceReact('response',.72);
+          if(sect==='break'&&bar%4===0)audienceReact('break',.65);
+          if(d?.useFill)audienceReact('fill',.55);
+          if(sect==='main2'&&bar%4===0)audienceReact('drop',.88);
+          if(bar>=track.bars-2)audienceReact('ending',.65);
+          const clutter=(c.guest||0)+(c.instrumental||0)+(c.hats||0);
+          if(clutter>2.55&&Math.random()<.28)audienceReact('weak',.45);
+          if(innerWidth<900 && bar>5 && bar<track.bars-4 && bar%4===0 && Math.random()<.18)showAudienceFocus();
+        }
+        if(Math.random()<.065)audiencePush(fillLine(pick(["vibes","clean mix","nyc energy fr","robot got taste","this groove is criminal","whoever tuned that snare, thank u","lowkey a banger","let it breathe"])),null,'ambient');
+      },650);
+      /* desktop chat remains occasional; compact screens use the brief focus overlay */
+      let chatLocCount=0,chatHideTimer=null;
+      function flashChat(){const el=document.getElementById('chat');if(!el||!chatOn()||!playing)return;el.classList.add('on');clearTimeout(chatHideTimer);chatHideTimer=setTimeout(()=>el.classList.remove('on'),R(16000,24000));}
+      function chatOnLocation(){if(++chatLocCount%2===0)flashChat();}
       /* ---------- weather: a small, quiet text line in the empty corner ---------- */
       const WX_LABEL = {
         0: "clear",
