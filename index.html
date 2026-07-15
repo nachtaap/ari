@@ -1083,37 +1083,79 @@
         }
       }
 
-      /* ---------- dev inspector panel (click/tap the track title) ---------- */
+      /* ---------- details drawer ---------- */
+      #detailsTab {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        z-index: 61;
+        transform: translateY(-50%);
+        width: 28px;
+        min-height: 92px;
+        padding: 10px 5px;
+        border: 1px solid rgba(62, 232, 222, 0.42);
+        border-right: 0;
+        border-radius: 9px 0 0 9px;
+        background: rgba(4, 5, 10, 0.9);
+        color: var(--cyan);
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        cursor: pointer;
+        touch-action: manipulation;
+        box-shadow: -5px 0 22px rgba(0, 0, 0, 0.38);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      #detailsTab:hover,
+      #detailsTab:focus-visible {
+        color: var(--magenta);
+        border-color: rgba(255, 95, 210, 0.55);
+        outline: none;
+      }
+      #detailsTab.hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(8px, -50%);
+      }
       .devpanel {
         position: fixed;
         top: 12px;
-        right: 12px;
+        right: 0;
+        bottom: 12px;
         z-index: 60;
-        width: 344px;
-        max-width: 92vw;
-        max-height: 90vh;
+        width: 360px;
+        max-width: min(92vw, 420px);
         overflow: auto;
-        background: rgba(4, 5, 10, 0.94);
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        background: rgba(4, 5, 10, 0.96);
         border: 1px solid rgba(62, 232, 222, 0.35);
-        border-radius: 10px;
+        border-right: 0;
+        border-radius: 12px 0 0 12px;
         padding: 12px 14px 14px;
         font-family: "IBM Plex Mono", monospace;
         font-size: 11px;
         line-height: 1.5;
         color: #dfeef0;
         letter-spacing: 0.02em;
-        box-shadow: 0 10px 44px rgba(0, 0, 0, 0.6);
-        -webkit-backdrop-filter: blur(6px);
-        backdrop-filter: blur(6px);
-        opacity: 0;
-        transform: translateY(-6px);
+        box-shadow: -12px 0 44px rgba(0, 0, 0, 0.58);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        transform: translateX(102%);
         pointer-events: none;
-        transition: opacity 0.2s ease, transform 0.2s ease;
+        visibility: hidden;
+        transition: transform 0.28s cubic-bezier(.22,.72,.26,1), visibility 0s linear 0.28s;
+        will-change: transform;
       }
       .devpanel.show {
-        opacity: 1;
-        transform: none;
+        transform: translateX(0);
         pointer-events: auto;
+        visibility: visible;
+        transition-delay: 0s;
       }
       .devpanel::-webkit-scrollbar {
         width: 8px;
@@ -1123,16 +1165,30 @@
         border-radius: 4px;
       }
       .devsticky {
-        position: sticky;
-        top: -12px;
-        z-index: 4;
-        margin: -12px -14px 8px;
-        padding: 12px 14px 8px;
-        background: rgba(4, 5, 10, 0.985);
+        position: static;
+        margin: 0 0 8px;
+        padding: 0 0 8px;
+        background: transparent;
         border-bottom: 1px solid #1a2230;
-        box-shadow: 0 8px 14px rgba(4, 5, 10, 0.88);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+      @media (max-width: 640px) {
+        #detailsTab {
+          min-height: 86px;
+          width: 27px;
+          font-size: 8px;
+        }
+        .devpanel {
+          top: 0;
+          bottom: 0;
+          width: min(92vw, 390px);
+          max-width: 92vw;
+          border-radius: 12px 0 0 12px;
+          padding-top: max(14px, env(safe-area-inset-top));
+          padding-bottom: max(14px, env(safe-area-inset-bottom));
+        }
       }
       .devhead {
         display: flex;
@@ -9204,7 +9260,7 @@
       });
 
       /* ============================================================
-   DEV INSPECTOR — click/tap the track title to open/close.
+   DEV INSPECTOR — right-side details drawer.
    A read-only view of every choice the generator made for the
    current track: identity, arrangement, drum/bass patterns (as
    16-step grids with a live playhead), harmony, gear and Guest
@@ -9217,6 +9273,15 @@
         panel.className = "devpanel";
         panel.setAttribute("aria-hidden", "true");
         document.body.appendChild(panel);
+
+        const detailsTab = document.createElement("button");
+        detailsTab.id = "detailsTab";
+        detailsTab.type = "button";
+        detailsTab.textContent = "DETAILS";
+        detailsTab.setAttribute("aria-label", "open track details");
+        detailsTab.setAttribute("aria-controls", "devPanel");
+        detailsTab.setAttribute("aria-expanded", "false");
+        document.body.appendChild(detailsTab);
 
         let devOpen = false,
           devSeed = null,
@@ -9431,49 +9496,33 @@
         }
 
         function openDev() {
+          if (devOpen) return;
           devOpen = true;
           panel.classList.add("show");
           panel.setAttribute("aria-hidden", "false");
-          if (title) title.setAttribute("aria-expanded", "true");
+          detailsTab.classList.add("hidden");
+          detailsTab.setAttribute("aria-expanded", "true");
           render();
           cancelAnimationFrame(devRAF);
           devRAF = requestAnimationFrame(tickLive);
         }
         function closeDev() {
+          if (!devOpen) return;
           devOpen = false;
           panel.classList.remove("show");
           panel.setAttribute("aria-hidden", "true");
-          if (title) title.setAttribute("aria-expanded", "false");
+          detailsTab.classList.remove("hidden");
+          detailsTab.setAttribute("aria-expanded", "false");
           cancelAnimationFrame(devRAF);
         }
         function toggleDev() {
           devOpen ? closeDev() : openDev();
         }
 
-        // Activation: one click/tap on the track title opens the inspector.
-        // Closing is deliberately reserved for the close button, so tapping the
-        // title again can never accidentally dismiss a scrollable mobile panel.
-        const title = document.getElementById("trackname");
-        if (title) {
-          title.style.cursor = "pointer";
-          title.style.userSelect = "none";
-          title.style.webkitUserSelect = "none";
-          title.setAttribute("role", "button");
-          title.setAttribute("tabindex", "0");
-          title.setAttribute("aria-label", "open track inspector");
-          title.setAttribute("aria-expanded", "false");
-          const activate = (e) => {
-            e.stopPropagation();
-            if (!devOpen) openDev();
-          };
-          title.addEventListener("click", activate);
-          title.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              activate(e);
-            }
-          });
-        }
+        detailsTab.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openDev();
+        });
 
         panel.addEventListener("click", (e) => {
           const closeButton = e.target.closest("#devClose");
@@ -9481,6 +9530,45 @@
           e.stopPropagation();
           closeDev();
         });
+
+        // Edge swipe from the right opens the drawer on touch and pointer devices.
+        // Swiping the open drawer back to the right closes it.
+        let swipe = null;
+        const edgeWidth = 34;
+        const minDistance = 56;
+        const maxVerticalDrift = 90;
+
+        document.addEventListener("pointerdown", (e) => {
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          const fromRightEdge = window.innerWidth - e.clientX <= edgeWidth;
+          const insidePanel = devOpen && panel.contains(e.target);
+          if ((!devOpen && !fromRightEdge) || (devOpen && !insidePanel)) return;
+          swipe = {
+            id: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            lastX: e.clientX,
+            mode: devOpen ? "close" : "open",
+          };
+        }, { passive: true });
+
+        document.addEventListener("pointermove", (e) => {
+          if (!swipe || e.pointerId !== swipe.id) return;
+          swipe.lastX = e.clientX;
+        }, { passive: true });
+
+        const finishSwipe = (e) => {
+          if (!swipe || e.pointerId !== swipe.id) return;
+          const dx = (swipe.lastX ?? e.clientX) - swipe.startX;
+          const dy = Math.abs(e.clientY - swipe.startY);
+          if (dy <= maxVerticalDrift) {
+            if (swipe.mode === "open" && dx <= -minDistance) openDev();
+            if (swipe.mode === "close" && dx >= minDistance) closeDev();
+          }
+          swipe = null;
+        };
+        document.addEventListener("pointerup", finishSwipe, { passive: true });
+        document.addEventListener("pointercancel", () => { swipe = null; }, { passive: true });
 
         window.toggleDevPanel = toggleDev;
       })();
