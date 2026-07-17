@@ -675,6 +675,9 @@
         pointer-events: auto;
         cursor: pointer;
         touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none; /* long-press opens the engine room, not text selection */
       }
       #trackname:hover {
         opacity: 0.82;
@@ -1154,6 +1157,134 @@
         outline: 2px solid #a78bff;
         outline-offset: 3px;
       }
+      /* ---------- liner notes: the back of the sleeve ---------- */
+      .liner {
+        position: fixed;
+        inset: 0;
+        z-index: 58;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(2, 3, 7, 0.55);
+        perspective: 900px;
+        opacity: 0;
+        pointer-events: none;
+        visibility: hidden;
+        transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+      }
+      .liner.show {
+        opacity: 1;
+        pointer-events: auto;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .linerInner {
+        width: 272px;
+        height: 272px;
+        max-width: 82vw;
+        max-height: 82vw;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+        cursor: pointer;
+      }
+      .liner.flipped .linerInner {
+        transform: rotateY(180deg);
+      }
+      .linerFace {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        border: 1px solid rgba(62, 232, 222, 0.35);
+        border-radius: 6px;
+        overflow: hidden;
+        background: rgba(4, 5, 10, 0.97);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.65);
+      }
+      .linerFront img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        image-rendering: pixelated;
+      }
+      .linerFront .linerTitle {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 10px 12px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: #dfeef0;
+        background: linear-gradient(transparent, rgba(2, 3, 7, 0.85));
+      }
+      .linerBack {
+        transform: rotateY(180deg);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 18px 22px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        line-height: 1.9;
+        color: #dfeef0;
+        letter-spacing: 0.05em;
+      }
+      .linerBack .lb-h {
+        color: var(--cyan);
+        letter-spacing: 0.22em;
+        font-size: 10px;
+        margin-bottom: 10px;
+      }
+      .linerBack .lb-row span {
+        color: #8fa3a8;
+      }
+      .linerBack .lb-foot {
+        margin-top: 12px;
+        color: #8fa3a8;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        line-height: 1.7;
+      }
+      .linerHint {
+        position: absolute;
+        bottom: -26px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: #8fa3a8;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        font-family: "IBM Plex Mono", monospace;
+      }
+      body.light .linerFace {
+        background: rgba(248, 250, 252, 0.97);
+      }
+      body.light .linerBack,
+      body.light .linerFront .linerTitle {
+        color: #16323a;
+      }
+      /* energy sparkline in the dev panel */
+      .ecurve {
+        display: flex;
+        align-items: flex-end;
+        gap: 1px;
+        height: 20px;
+        margin: 6px 0 2px;
+      }
+      .ecurve i {
+        flex: 1 1 0;
+        min-width: 1px;
+        background: rgba(62, 232, 222, 0.35);
+      }
+      .ecurve i.ec-now {
+        background: #ff5fd2;
+      }
+      .ecurve i.ec-cut {
+        background: rgba(255, 95, 210, 0.5);
+      }
       @media (max-width: 640px) {
         .devpanel {
           top: 10px;
@@ -1472,6 +1603,17 @@
       </div>
       <div id="visitorline"></div>
       <div id="cypherline">A cypher is forming</div>
+    </div>
+
+    <div id="linerCard" class="liner" aria-hidden="true">
+      <div class="linerInner" id="linerInner">
+        <div class="linerFace linerFront">
+          <img id="linerArt" alt="album art" />
+          <div class="linerTitle" id="linerTitle"></div>
+        </div>
+        <div class="linerFace linerBack" id="linerBack"></div>
+        <div class="linerHint">tap to flip · tap outside to close</div>
+      </div>
     </div>
 
     <div id="followBubble" aria-hidden="true">
@@ -9714,6 +9856,13 @@
               <div class="krow"><span>origin</span><b>${t.echoOrigin ? "echo of " + esc(String(t.echoOrigin)) : "fresh"}</b><span class="kdim">gen v${t.generatorVersion}</span></div>
             </div>
             <div class="devsec"><div class="devh">ARRANGEMENT</div>${arrHTML}</div>
+            <div class="devsec"><div class="devh">EVENTS &amp; ENERGY <span class="devh2">rare by design</span></div>
+              <div class="krow"><span>special</span><b>${t.special ? esc(t.special.type) + " @ bar " + t.special.bar : "none"}</b></div>
+              <div class="krow"><span>dj cut</span><b>${t.cutBar != null ? "bar " + t.cutBar : "none"}</b></div>
+              <div class="krow"><span>borrowed</span><b>${t.borrowed ? esc(t.borrowed.kind) + " on deg " + t.borrowed.deg : "none"}</b><span class="kdim">picardy ${t.picardy ? "yes" : "no"}</span></div>
+              <div class="ecurve" id="devEcurve">${(t.energyCurve || []).map((v, i) => `<i style="height:${(3 + v * 15).toFixed(1)}px"${t.cutBar === i ? ' class="ec-cut"' : ""}></i>`).join("")}</div>
+              <div class="kdim">energy curve · <span id="devEnergyNow">—</span></div>
+            </div>
             <div class="devsec"><div class="devh">DRUM BRAIN <span class="devh2">${esc(gear.drumMachine || "")}</span></div>
               <div id="devBrainLive">${brainLiveHTML(t, currentDrums)}</div>
             </div>
@@ -9795,6 +9944,17 @@
               const n = r.querySelector(".arrnow");
               if (n) n.textContent = on ? "◄ bar " + bar : "";
             }
+            const ec = panel.querySelectorAll("#devEcurve i");
+            for (let i = 0; i < ec.length; i++)
+              ec[i].classList.toggle("ec-now", i === bar);
+            const en = panel.querySelector("#devEnergyNow");
+            if (en)
+              en.textContent =
+                "bar " +
+                bar +
+                " · " +
+                Math.round((track.energyCurve?.[bar] ?? 0.55) * 100) +
+                "%";
           }
         }
 
@@ -9820,20 +9980,90 @@
           devOpen ? closeDev() : openDev();
         }
 
+        /* ---------- liner notes: the public, diegetic layer ----------
+           A tap on the track name shows the sleeve; tap it to flip to the
+           credits on the back. The full telemetry stays available, but only
+           via long-press, Shift+D or ?dev=1 — visitors see liner notes,
+           the operator sees the engine room. */
+        const linerEl = document.getElementById("linerCard"),
+          linerInner = document.getElementById("linerInner"),
+          linerArt = document.getElementById("linerArt"),
+          linerTitle = document.getElementById("linerTitle"),
+          linerBack = document.getElementById("linerBack");
+        function renderLiner() {
+          if (!track) return;
+          linerArt.src = track.artURL || "";
+          linerTitle.textContent = "“" + track.name + "”";
+          const gear = track.gear || {};
+          const guest =
+            typeof visitor !== "undefined" &&
+            visitor &&
+            visitorPhase === "performing" &&
+            vis1
+              ? `<div class="lb-row"><span>feat.</span> ${esc(displayInstr(vis1.instr))}${vis2 ? " + guest" : ""}</div>`
+              : "";
+          linerBack.innerHTML = `
+            <div class="lb-h">“${esc(track.name)}”</div>
+            <div class="lb-row"><span>style</span> ${esc(displayGenre(track.genre))}${track.subStyle ? " · " + esc(track.subStyle) : ""}</div>
+            <div class="lb-row"><span>key</span> ${esc(track.keyName)} · ${track.bpm} bpm</div>
+            <div class="lb-row"><span>drums</span> ${esc(gear.drumMachine || "—")}</div>
+            <div class="lb-row"><span>bass</span> ${esc(gear.bassSynth || "—")}</div>
+            <div class="lb-row"><span>keys</span> ${esc(gear.padSynth || "—")}</div>
+            <div class="lb-row"><span>voice</span> ${esc(gear.leadSynth || "—")}</div>
+            ${guest}
+            <div class="lb-foot">recorded live · ${esc(curLoc || "the grid")}<br>a.r.i. productions · gen v${track.generatorVersion}</div>`;
+        }
+        function openLiner() {
+          renderLiner();
+          linerEl.classList.add("show");
+          linerEl.classList.remove("flipped");
+          linerEl.setAttribute("aria-hidden", "false");
+        }
+        function closeLiner() {
+          linerEl.classList.remove("show");
+          linerEl.setAttribute("aria-hidden", "true");
+        }
+        linerInner.addEventListener("click", (e) => {
+          e.stopPropagation();
+          linerEl.classList.toggle("flipped");
+        });
+        linerEl.addEventListener("click", closeLiner);
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeLiner();
+        });
+
         const trackNameEl = document.getElementById("trackname");
+        let pressTimer = null,
+          longFired = false;
+        trackNameEl.addEventListener("pointerdown", () => {
+          longFired = false;
+          clearTimeout(pressTimer);
+          pressTimer = setTimeout(() => {
+            longFired = true;
+            openDev(); // the engine room, for the operator only
+          }, 600);
+        });
+        const cancelPress = () => clearTimeout(pressTimer);
+        trackNameEl.addEventListener("pointerup", cancelPress);
+        trackNameEl.addEventListener("pointerleave", cancelPress);
+        trackNameEl.addEventListener("pointercancel", cancelPress);
+        trackNameEl.addEventListener("contextmenu", (e) => e.preventDefault());
         trackNameEl.addEventListener("click", (e) => {
           e.stopPropagation();
-          openDev();
+          if (longFired) return; // the long-press already opened dev
+          openLiner();
         });
         trackNameEl.setAttribute("role", "button");
         trackNameEl.setAttribute("tabindex", "0");
-        trackNameEl.setAttribute("aria-label", "open track details");
+        trackNameEl.setAttribute("aria-label", "open liner notes");
         trackNameEl.addEventListener("keydown", (e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            openDev();
+            openLiner();
           }
+          if (e.key.toLowerCase() === "d" && e.shiftKey) openDev();
         });
+        if (/[?&]dev=1/.test(location.search)) openDev();
 
         panel.addEventListener("click", (e) => {
           if (e.target.closest("#devClose")) closeDev();
