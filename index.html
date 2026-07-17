@@ -3482,9 +3482,9 @@
         major: [0, 2, 4, 5, 7, 9, 11],
         phryg: [0, 1, 3, 5, 7, 8, 10],
       };
-      const LEAD_CEIL = 62; // ~D4: keep leads out of the piercing register
+      const LEAD_CEIL = 79; // ~G5: leads need to live ABOVE the beat; harshness is tamed by timbre, not by burying the register
       const leadClamp = (m) => {
-        const span = track && track.bpm > 150 ? 12 : 16; // fast genres (dnb, trap) stay lower — short high notes read as beeps
+        const span = track && track.bpm > 150 ? 20 : 24; // fast genres still sit a little lower, but no longer under the bass
         const ceil = Math.min(LEAD_CEIL, (track ? track.root : 46) + span);
         while (m > ceil) m -= 12;
         return m;
@@ -4129,6 +4129,8 @@
 
       let ctx = null,
         master = null,
+        duckBus = null, // pump bus: pads/keys/bass duck under the kick; drums & leads stay on master
+        barEnergy = 0.55, // per-bar macro intensity (see buildEnergyCurve)
         delayNode = null,
         delayGain = null;
       let bgAudioEl = null,
@@ -4225,10 +4227,15 @@
         ctx = new (window.AudioContext || window.webkitAudioContext)();
         master = ctx.createGain();
         master.gain.value = 0.9;
+        /* pump bus — everything harmonic rides here so the kick can duck it.
+           Leads deliberately stay on master: they must sit ON TOP of the pump. */
+        duckBus = ctx.createGain();
+        duckBus.gain.value = 1;
+        duckBus.connect(master);
         const shelf = ctx.createBiquadFilter(); // gentle tamer for harsh highs (headphone comfort)
         shelf.type = "highshelf";
-        shelf.frequency.value = 3000;
-        shelf.gain.value = -7.5;
+        shelf.frequency.value = 3600;
+        shelf.gain.value = -4; // -7.5 dB at 3 kHz was a blanket over the whole mix
         const comp = ctx.createDynamicsCompressor();
         comp.threshold.value = -16;
         comp.ratio.value = 4;
@@ -5550,9 +5557,9 @@
         const n=t.scale.length;
         let idx=ev.degree;
         let oct=Math.floor(idx/n), cls=((idx%n)+n)%n;
-        let base=t.root + (personality==="vocal"?12: personality==="robot"?12:24) + (secondVoice?5:0);
+        let base=t.root + 24 + (secondVoice?5:0); // vocals/robot used to sit an octave lower — straight into the bass register
         let midi=base + oct*12 + t.scale[cls];
-        const floor=t.root+7, ceil=Math.min(LEAD_CEIL,t.root+12+P.range+5);
+        const floor=t.root+12, ceil=Math.min(LEAD_CEIL,t.root+24+P.range+2);
         while(midi<floor)midi+=12;
         while(midi>ceil)midi-=12;
         return leadClamp(midi);
@@ -5582,7 +5589,7 @@
         };
       }
       function composerRoleFor(t,b) {
-        const info=sectionInfoAt(t,b), phrase=b%4;
+        const info=drumSectionInfoFrom(t.sections,b), phrase=b%4;
         if(info.name==='intro') return phrase<2?'instrumental':'invitation';
         if(info.name==='break') return phrase===3?'pickup':'open-space';
         if(info.name==='outro') return phrase<2?'final-response':'landing';
@@ -5592,7 +5599,7 @@
       function buildComposerBrain(t) {
         const plan=[];
         for(let b=0;b<t.bars;b++){
-          const info=sectionInfoAt(t,b), role=composerRoleFor(t,b), phrase=b%4;
+          const info=drumSectionInfoFrom(t.sections,b), role=composerRoleFor(t,b), phrase=b%4;
           let guest=1, ari=.2, instrumental=.65, hats=1, fills=1;
           if(info.name==='intro'){guest=phrase>=2?.35:0; ari=0; instrumental=.75;}
           else if(info.name==='break'){guest=role==='pickup'?.55:.25; ari=0; instrumental=.28; hats=.35; fills=.35;}
@@ -5697,6 +5704,91 @@
         main2: { drums: 1, hats: 1, bass: 1, harm: 1, lead: 1, fill: 0.7 },
         outro: { drums: 0.7, hats: 0.5, bass: 1, harm: 1, lead: 0.3, fill: 0 },
       };
+      /* ---------- energy macro-curve: one slow arc per track ----------
+         Static cutoffs were the quiet killer: bar 4 sounded identical to bar 40.
+         This curve modulates pad/keys/bass brightness, hat level and delay
+         feedback continuously — nothing sits still anymore. */
+      function buildEnergyCurve(t) {
+        const curve = new Array(t.bars).fill(0.55);
+        (t.sections || []).forEach((s) => {
+          const len = Math.max(1, s.end - s.start - 1);
+          for (let b = s.start; b < s.end && b < t.bars; b++) {
+            const p = (b - s.start) / len;
+            let v;
+            if (s.name === "intro") v = 0.22 + p * 0.33;
+            else if (s.name === "main") v = 0.55 + p * 0.2;
+            else if (s.name === "break")
+              v = 0.34 + p * p * 0.5; // dip, then climb into the drop
+            else if (s.name === "main2") v = 0.72 + p * 0.28;
+            else v = 0.55 - p * 0.3; // outro
+            curve[b] = Math.max(
+              0,
+              Math.min(1, v + (seededUnit(t.seed, "energy" + b) - 0.5) * 0.09),
+            );
+          }
+        });
+        return curve;
+      }
+      /* ---------- special events: schaarste is alles ----------
+         ~1 in 7 tracks gets ONE big seeded event (halftime switch or key
+         change). Independently, ~1 in 5-6 gets a DJ cut: a full bar of dead
+         silence right before the drop — or an a-capella bar if someone happens
+         to be on the mic when it lands. Rare on purpose: if every track did
+         this, none of it would mean anything. */
+      function assignTrackEvents(t) {
+        const secs = t.sections || [];
+        const lastMain2 = [...secs].reverse().find((s) => s.name === "main2");
+        const lastBreak = [...secs].reverse().find((s) => s.name === "break");
+        const r = seededUnit(t.seed, "special-roll");
+        t.special = null;
+        if (r < 0.07 && t.bpm >= 100) {
+          t.special = {
+            type: "halftime",
+            bar: lastMain2 ? lastMain2.start : Math.floor(t.bars * 0.55),
+          };
+        } else if (r < 0.14 && lastMain2 && lastMain2.start > 4) {
+          t.special = { type: "keychange", bar: lastMain2.start };
+        }
+        t.cutBar = null;
+        if (seededUnit(t.seed, "cut-roll") < 0.18) {
+          let b = lastBreak ? lastBreak.end - 1 : null;
+          if (b == null) {
+            const firstMain = secs.find((s) => s.name === "main");
+            b = firstMain && firstMain.end - 1 > 2 ? firstMain.end - 1 : null;
+          }
+          if (b != null && b !== t.special?.bar) t.cutBar = b;
+        }
+        /* harmonic risk: one borrowed color per track, saved for main2.
+           We flip the third of one non-tonic triad (minor<->major) — the
+           classic "how did it know" chord (iv in major, IV in minor). */
+        t.borrowed = null;
+        if (seededUnit(t.seed, "borrow-roll") < 0.45) {
+          const sc = t.scale,
+            degs = [
+              ...new Set(t.prog.map((d) => ((d % 7) + 7) % 7)),
+            ].filter((d) => d !== 0);
+          if (degs.length && sc) {
+            const deg =
+              degs[Math.floor(seededUnit(t.seed, "borrow-deg") * degs.length)];
+            const tri = [0, 2, 4].map(
+              (k) => sc[(deg + k) % 7] + Math.floor((deg + k) / 7) * 12,
+            );
+            const third = tri[1] - tri[0];
+            if (third === 3 || third === 4) {
+              tri[1] = tri[0] + (third === 3 ? 4 : 3);
+              t.borrowed = {
+                deg,
+                tones: tri,
+                kind: third === 3 ? "raised third" : "borrowed minor",
+              };
+            }
+          }
+        }
+        /* Picardy ending: minor-mode tracks can resolve on a major tonic */
+        t.picardy =
+          /minor|phryg/.test(t.scaleName || "") &&
+          seededUnit(t.seed, "picardy") < 0.22;
+      }
       function newTrack(forced) {
         const seed = makeSeed();
         const built = withTrackSeed(seed, () => {
@@ -5858,7 +5950,9 @@
         built.composerBrain = buildComposerBrain(built);
         built.vocalBrain = buildVocalBrain(built);
         built.audienceBrain = buildAudienceBrain(built);
-        built.generatorVersion = 96;
+        built.energyCurve = buildEnergyCurve(built);
+        assignTrackEvents(built);
+        built.generatorVersion = 99;
         track = built;
         leadEchoA.bar = leadEchoV.bar = -1;
         leadEchoA.notes = [];
@@ -5867,11 +5961,12 @@
           delayNode.delayTime.value =
             (60 / track.bpm) *
             (track.gear.fxRack.includes("short") ? 0.5 : 0.75);
-          delayGain.gain.value = track.gear.fxRack.includes("dry")
+          track.delayBase = track.gear.fxRack.includes("dry")
             ? 0.08
             : track.gear.fxRack.includes("space")
               ? 0.22
               : 0.15;
+          delayGain.gain.value = track.delayBase;
         }
         trackNo++;
         try {
@@ -5919,6 +6014,16 @@
         g.connect(master);
         o.start(t);
         o.stop(t + kd.d + 0.1);
+        // transient click layer — the sine drop alone has no attack and reads soft
+        const c = ctx.createOscillator(),
+          cg = ctx.createGain();
+        c.frequency.setValueAtTime(kd.f0 * 6.5, t);
+        c.frequency.exponentialRampToValueAtTime(kd.f0 * 1.6, t + 0.02);
+        env(t, 0.001, 0.024, 0.42, cg);
+        c.connect(cg);
+        cg.connect(master);
+        c.start(t);
+        c.stop(t + 0.06);
       }
       function noiseBuf() {
         const b = ctx.createBuffer(1, ctx.sampleRate * 0.4, ctx.sampleRate),
@@ -6029,13 +6134,13 @@
         o.frequency.value = mtof(midi);
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.setValueAtTime(700, t);
+        f.frequency.setValueAtTime(500 + barEnergy * 400, t);
         f.frequency.exponentialRampToValueAtTime(180, t + dur);
         const g = ctx.createGain();
         env(t, 0.008, dur, 0.34, g);
         o.connect(f);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         o.start(t);
         o.stop(t + dur + 0.1);
       }
@@ -6048,7 +6153,7 @@
         const g = ctx.createGain();
         env(t, 0.012, dur, hollow ? 0.25 : 0.31, g);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         [-11, 11].forEach((dt) => {
           const o = ctx.createOscillator();
           o.type = "sawtooth";
@@ -6066,13 +6171,13 @@
         o.frequency.value = mtof(midi);
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.setValueAtTime(900, t);
+        f.frequency.setValueAtTime(650 + barEnergy * 480, t);
         f.frequency.exponentialRampToValueAtTime(260, t + Math.min(dur, 0.35));
         const g = ctx.createGain();
         env(t, 0.008, dur, 0.27, g);
         o.connect(f);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         o.start(t);
         o.stop(t + dur + 0.1);
       }
@@ -6097,7 +6202,7 @@
         o.connect(ws);
         ws.connect(f);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         o.start(t);
         o.stop(t + dur + 0.1);
       }
@@ -6109,7 +6214,7 @@
         const g = ctx.createGain();
         env(t, 0.002, Math.min(dur, 0.24), 0.34, g);
         o.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         o.start(t);
         o.stop(t + 0.35);
       }
@@ -6240,7 +6345,7 @@
         bus.connect(sat);
         sat.connect(lp);
         lp.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
 
         const fundamental = ctx.createOscillator();
         fundamental.type = "sine";
@@ -6276,7 +6381,7 @@
         const lp = ctx.createBiquadFilter();
         lp.type = "lowpass";
         lp.Q.value = 0.72;
-        lp.frequency.setValueAtTime(820, t);
+        lp.frequency.setValueAtTime(620 + barEnergy * 380, t);
         lp.frequency.exponentialRampToValueAtTime(
           310,
           t + Math.min(0.42, Math.max(0.12, dur * 0.45)),
@@ -6286,7 +6391,7 @@
         bus.connect(sat);
         sat.connect(lp);
         lp.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
 
         const sub = ctx.createOscillator();
         sub.type = "sine";
@@ -6317,7 +6422,7 @@
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
         f.Q.value = 1.05;
-        f.frequency.setValueAtTime(980, t);
+        f.frequency.setValueAtTime(700 + barEnergy * 540, t);
         f.frequency.exponentialRampToValueAtTime(
           235,
           t + Math.min(0.28, Math.max(0.08, dur * 0.45)),
@@ -6325,7 +6430,7 @@
         const g = ctx.createGain();
         env(t, 0.006, Math.min(dur, 0.72), 0.27, g);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         const o = ctx.createOscillator();
         o.type = "square";
         o.frequency.setValueAtTime(fr * 1.012, t);
@@ -6349,7 +6454,7 @@
         const g = ctx.createGain();
         env(t, 0.015, dur, 0.37, g);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         const tri = ctx.createOscillator();
         tri.type = "triangle";
         tri.frequency.value = fr;
@@ -6370,13 +6475,13 @@
       function playKeys(t, midis, dur) {
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.value = 2400;
+        f.frequency.value = 1600 + barEnergy * 1500;
         const g = ctx.createGain();
         g.gain.setValueAtTime(0.0001, t);
         g.gain.linearRampToValueAtTime(0.09, t + 0.03);
         g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         g.connect(delayNode);
         midis.forEach((m) => {
           [-3, 3].forEach((det) => {
@@ -6393,11 +6498,11 @@
       function playStab(t, midis) {
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.value = 1900;
+        f.frequency.value = 1300 + barEnergy * 1100;
         const g = ctx.createGain();
         env(t, 0.004, 0.22, 0.14, g);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         midis.forEach((m) => {
           const o = ctx.createOscillator();
           o.type = "sawtooth";
@@ -6425,16 +6530,63 @@
           n.stop(t + d + 0.25);
         });
       }
+      /* ---------- transitions: riser & impact ---------- */
+      function playRiser(t, dur) {
+        NB = NB || noiseBuf();
+        const n = ctx.createBufferSource();
+        n.buffer = NB;
+        n.loop = true;
+        const f = ctx.createBiquadFilter();
+        f.type = "bandpass";
+        f.Q.value = 1.1;
+        f.frequency.setValueAtTime(320, t);
+        f.frequency.exponentialRampToValueAtTime(3400, t + dur);
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.16, t + dur * 0.92);
+        g.gain.linearRampToValueAtTime(0.0001, t + dur);
+        n.connect(f);
+        f.connect(g);
+        g.connect(master);
+        n.start(t);
+        n.stop(t + dur + 0.05);
+      }
+      function playImpact(t) {
+        NB = NB || noiseBuf();
+        const n = ctx.createBufferSource();
+        n.buffer = NB;
+        n.loop = true;
+        const f = ctx.createBiquadFilter();
+        f.type = "highpass";
+        f.frequency.setValueAtTime(3800, t);
+        f.frequency.exponentialRampToValueAtTime(9000, t + 0.7);
+        const g = ctx.createGain();
+        env(t, 0.002, 0.75, 0.3, g);
+        n.connect(f);
+        f.connect(g);
+        g.connect(master);
+        n.start(t);
+        n.stop(t + 0.9);
+        const o = ctx.createOscillator(); // low boom under the crash
+        o.frequency.setValueAtTime(95, t);
+        o.frequency.exponentialRampToValueAtTime(38, t + 0.3);
+        const og = ctx.createGain();
+        env(t, 0.002, 0.32, 0.5, og);
+        o.connect(og);
+        og.connect(master);
+        o.start(t);
+        o.stop(t + 0.45);
+      }
       function playPad(t, midis, dur) {
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
-        f.frequency.value = 1150;
+        f.frequency.value = 700 + barEnergy * 900;
         const g = ctx.createGain();
         g.gain.setValueAtTime(0.0001, t);
         g.gain.linearRampToValueAtTime(0.08, t + dur * 0.3); // 3 voices per note now, keep the same weight
         g.gain.linearRampToValueAtTime(0.0001, t + dur);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         midis.forEach((m) => {
           [-7, 0, 6].forEach((det) => {
             // 3-voice supersaw spread
@@ -6452,13 +6604,14 @@
         const f = ctx.createBiquadFilter();
         f.type = "lowpass";
         f.frequency.value =
-          type === "glass"
+          (type === "glass"
             ? 2100
             : type === "air"
               ? 1500
               : type === "shadow"
                 ? 700
-                : 1200;
+                : 1200) *
+          (0.72 + barEnergy * 0.5);
         const g = ctx.createGain();
         g.gain.setValueAtTime(0.0001, t);
         g.gain.linearRampToValueAtTime(
@@ -6467,7 +6620,7 @@
         );
         g.gain.linearRampToValueAtTime(0.0001, t + dur);
         f.connect(g);
-        g.connect(master);
+        g.connect(duckBus || master);
         if (type === "chorus" || type === "air" || type === "glass")
           g.connect(delayNode);
         const wave =
@@ -6508,7 +6661,12 @@
         out.gain.value = vmul || 1;
         g.connect(out);
         out.connect(master);
-        out.connect(delayNode);
+        /* tamed delay send — a full-strength send smears the vocal into the
+           wash and buries the performance it should decorate */
+        const send = ctx.createGain();
+        send.gain.value = instr === "on the mic" ? 0.4 : 0.7;
+        out.connect(send);
+        send.connect(delayNode);
         const vib = ctx.createOscillator(),
           vg = ctx.createGain();
         vib.frequency.value = 5.4;
@@ -6649,7 +6807,7 @@
             o2.type = "sawtooth";
           else o2.type = "square";
           const g2 = ctx.createGain();
-          g2.gain.value = 0.12;
+          g2.gain.value = 0.2;
           o2.connect(g2);
           g2.connect(g);
           vg.connect(o.detune);
@@ -6657,8 +6815,14 @@
           const f = ctx.createBiquadFilter();
           f.type = "bandpass";
           f.frequency.value = mtof(midi) * 1.8;
-          f.Q.value = 0.9;
-          env(t, 0.03, dur, 0.26, g);
+          f.Q.value = 0.7;
+          /* dry fundamental alongside the formant band — without it the voice
+             is all nose and no chest, and sinks straight into the mix */
+          const dry = ctx.createGain();
+          dry.gain.value = 0.55;
+          o.connect(dry);
+          dry.connect(g);
+          env(t, 0.03, dur, 0.42, g);
           o.connect(f);
           o2.connect(f);
           f.connect(g);
@@ -6925,6 +7089,20 @@
         // scale-degree triad (or 7th when ext), as absolute semitone offsets from root
         const d = ((deg % 7) + 7) % 7;
         const sc = track.scale || MINOR;
+        const sect = sectionAt(bar);
+        /* Picardy: the very last tonic of a minor track lands major */
+        if (
+          track.picardy &&
+          d === 0 &&
+          sect === "outro" &&
+          bar >= track.bars - 2
+        )
+          return [0, 4, 7];
+        /* borrowed color: only revealed in the final stretch, so it reads
+           as an event rather than part of the wallpaper */
+        const b = track.borrowed;
+        if (b && d === b.deg && (sect === "main2" || sect === "outro"))
+          return b.tones.slice();
         return (track.g.ext ? [0, 2, 4, 6] : [0, 2, 4]).map((k) => {
           const idx = d + k;
           return sc[idx % 7] + Math.floor(idx / 7) * 12;
@@ -6968,6 +7146,44 @@
           sp = drumState?.snare || track.snare,
           gp = drumState?.ghost || track.ghost,
           hp = drumState?.hats || track.hatSteps;
+        barEnergy = track.energyCurve?.[bar] ?? 0.55;
+        /* one-shot events for this bar */
+        const cut = track.cutBar != null && bar === track.cutBar; // DJ cut: total silence (or a-capella if someone is on the mic)
+        const half =
+          track.special?.type === "halftime" && bar >= track.special.bar;
+        if (sIdx === 0) {
+          if (half && bar === track.special.bar && !track._specialLive) {
+            track._specialLive = true;
+            speak(
+              pick(["switch it up", "half time", "hold up"]),
+              ARI_VOICE,
+              0.5,
+              Math.max(0, tt - ctx.currentTime),
+            );
+          }
+          if (
+            track.special?.type === "keychange" &&
+            !track._keyShifted &&
+            bar >= track.special.bar
+          ) {
+            track._keyShifted = true;
+            track.root += 2; // whole-step lift for the final stretch
+            track.voiceLead = null; // re-anchor voicings in the new key
+            track.keyName = KEYS[track.root % 12] + " " + track.scaleName;
+            speak(
+              pick(["take it up", "new key", "lift it"]),
+              ARI_VOICE,
+              0.5,
+              Math.max(0, tt - ctx.currentTime),
+            );
+          }
+          if (delayGain && track.delayBase)
+            delayGain.gain.setTargetAtTime(
+              track.delayBase * (0.7 + barEnergy * 0.6),
+              tt,
+              0.5,
+            );
+        }
 
         /* The drum brain has already predicted this complete bar. Do not roll
            another coin here: the remembered motif, mutation and safety pass should
@@ -6977,13 +7193,32 @@
           sntt = tt + (drumState?.micro?.snare?.[sIdx] || 0) * s16,
           gtt = tt + (drumState?.micro?.ghost?.[sIdx] || 0) * s16,
           htt = tt + (drumState?.micro?.hats?.[sIdx] || 0) * s16;
-        if (kp[sIdx]) {
+        const kickNow = cut
+          ? false
+          : half
+            ? sIdx === 0 || (sIdx === 10 && kp[10])
+            : kp[sIdx];
+        if (kickNow) {
           g.kick808 ? play808Kick(ktt) : playKick(ktt);
           visQ.push({ t: ktt, type: "kick" });
+          /* sidechain pump — the missing glue. Four-on-the-floor genres breathe
+             around the kick; dnb gets a shorter tuck so the sub stays punchy.
+             The scheduler emits steps in time order, so no cancel calls needed. */
+          if (duckBus && D.drums > 0) {
+            const four = isFourFloorDrums(track.genre, track.subStyle, track.kick);
+            if (four || track.genre === "drum n bass") {
+              const depth = four ? 0.42 : 0.62,
+                rel = spb * (four ? 0.6 : 0.32);
+              duckBus.gain.setValueAtTime(1, ktt);
+              duckBus.gain.linearRampToValueAtTime(depth, ktt + 0.014);
+              duckBus.gain.linearRampToValueAtTime(1, ktt + rel);
+            }
+          }
         }
         /* occasional 808 cowbell accent — kept incidental so it stays a spice, not a staple */
         if (
           g.cowbell &&
+          !cut &&
           D.drums > 0 &&
           (sIdx === 4 || sIdx === 7 || sIdx === 10) &&
           Math.random() < 0.08
@@ -6991,7 +7226,8 @@
           play808Cowbell(tt, R(0.4, 0.7));
           visQ.push({ t: tt, type: "hat" });
         }
-        if (sp[sIdx]) {
+        const snareNow = cut ? false : half ? sIdx === 8 : sp[sIdx];
+        if (snareNow) {
           const stt =
             track.lateSnare && bar % 4 === 2 && sIdx === 12
               ? sntt + s16 * 0.55
@@ -7003,12 +7239,12 @@
         }
         /* Ghosts are now predicted events with stored velocity and timing, not a
            fresh random layer on every scheduler pass. */
-        if (gp && gp[sIdx] && D.drums > 0)
+        if (gp && gp[sIdx] && D.drums > 0 && !cut && !half)
           playSnare(gtt, drumState?.velocity?.ghost?.[sIdx] || 0.34);
         /* hats per genre, gated by section density */
         const hatGate = Math.min(1.25, D.hats * (drumState?.hatMul || 1) * (composerState.hats ?? 1));
         const hatMode = track.hatMode || g.hat;
-        if (hatGate > 0) {
+        if (hatGate > 0 && !cut) {
           if (hp) {
             // Every brain-generated bar has a concrete hat grid. Accent and open
             // state remain genre-aware, while velocity comes from the human/machine
@@ -7023,22 +7259,27 @@
               const hv = Math.min(
                 1.15,
                 (drumState?.velocity?.hats?.[sIdx] || 0.62) *
-                  Math.min(1, hatGate),
+                  Math.min(1, hatGate) *
+                  (0.82 + barEnergy * 0.3),
               );
               playHat(htt, open, hv);
               if (sIdx % 4 === 2) visQ.push({ t: htt, type: "hat" });
             }
           } else if (hatMode === "eights") {
             if (sIdx % 2 === 0 && Math.random() < track.hatP * hatGate) {
-              playHat(tt, sIdx % 8 === 6 && Math.random() < 0.4);
+              playHat(
+                tt,
+                sIdx % 8 === 6 && Math.random() < 0.4,
+                0.8 + barEnergy * 0.35,
+              );
               visQ.push({ t: tt, type: "hat" });
             }
           } else if (hatMode === "offbeat") {
             if (sIdx % 4 === 2 && Math.random() < hatGate + 0.2) {
-              playHat(tt, true);
+              playHat(tt, true, 0.8 + barEnergy * 0.35);
               visQ.push({ t: tt, type: "hat" });
             } else if (sIdx % 2 === 0 && Math.random() < 0.4 * hatGate)
-              playHat(tt, false);
+              playHat(tt, false, 0.8 + barEnergy * 0.35);
           } else if (hatMode === "rolls") {
             if (Math.random() < track.hatP * hatGate) {
               playHat(tt, false);
@@ -7050,7 +7291,11 @@
             }
           } else if (hatMode === "fast") {
             if (Math.random() < track.hatP * hatGate) {
-              playHat(tt, sIdx % 8 === 6 && Math.random() < 0.3);
+              playHat(
+                tt,
+                sIdx % 8 === 6 && Math.random() < 0.3,
+                0.8 + barEnergy * 0.35,
+              );
               if (sIdx % 4 === 2) visQ.push({ t: tt, type: "hat" });
             }
           }
@@ -7058,6 +7303,7 @@
         /* Phrase/section fill. The whole fill decision is made once for the bar,
            so we never get the old half-random "maybe one tap, maybe three" result. */
         if (
+          !cut &&
           drumState?.useFill &&
           (composerState.fills ?? 1) > 0.3 &&
           drumState.fillSnare?.[sIdx] &&
@@ -7068,6 +7314,7 @@
           visQ.push({ t: tt, type: "snare" });
         }
         if (
+          !cut &&
           drumState?.useFill &&
           (composerState.fills ?? 1) > 0.3 &&
           drumState.fillHat?.[sIdx] &&
@@ -7080,7 +7327,13 @@
           }
         }
         /* bass follows the chord root of the moment */
-        if (track.bassP[sIdx] && D.bass > 0 && Math.random() < D.bass + 0.2) {
+        if (
+          track.bassP[sIdx] &&
+          !cut &&
+          (!half || sIdx % 4 === 0) &&
+          D.bass > 0 &&
+          Math.random() < D.bass + 0.2
+        ) {
           const bm = track.root - 12 + (track.scale || MINOR)[rootDeg];
           const bassType = track.bassType || g.bass;
           // bm already lives in the bass register (roughly MIDI 24–36).
@@ -7101,7 +7354,7 @@
           track.lastBass = bm;
         }
         /* harmony — voice-led, scaled by section */
-        if (D.harm > 0) {
+        if (D.harm > 0 && !cut) {
           const padType = track.padType || g.pad;
           if (padType === "stab") {
             if (sIdx % 4 === 2 && Math.random() < 0.85 * D.harm) {
@@ -7133,6 +7386,23 @@
             for (let i = 0; i < 8; i++) faderTarget[i] = R(0, 1);
           }
         }
+        /* section dramaturgy: riser into a drop, impact on the downbeat.
+           Only for genres where a build-up is idiomatic — a crash in lo-fi
+           or boom bap would be costume jewelry. */
+        if (
+          sIdx === 0 &&
+          /house|garage|drum n bass|dubstep|trap|jerk|afrobeats/.test(track.genre)
+        ) {
+          const info = sectionInfoAt(bar);
+          const nxt = track.sections?.[info.index + 1];
+          if (!cut && info.left === 1 && nxt && /main/.test(nxt.name))
+            playRiser(tt, spb * 4);
+          if (info.pos === 0 && /main/.test(info.name) && info.index > 0) {
+            const prev = track.sections[info.index - 1];
+            if (prev && (prev.name === "break" || prev.name === "intro"))
+              playImpact(tt);
+          }
+        }
         /* A.R.I.'s own vocals — starts in the first main section and lasts the whole track */
         if (sIdx === 0) {
           const canSing = sect === "main" || sect === "main2";
@@ -7145,19 +7415,62 @@
           if (visitor && visitorPhase === "performing" && vis1)
             fireLeadEcho(leadEchoV, tt, vis1.instr, 0.28);
         }
-        if (ariSing && D.lead > 0 && (composerState.ari ?? 1) > 0.12) {
+        const duet =
+          composerState.role === "response" &&
+          visitor &&
+          visitorPhase === "performing" &&
+          vis1 &&
+          D.lead > 0;
+        if (
+          ariSing &&
+          D.lead > 0 &&
+          (composerState.ari ?? 1) > 0.12 &&
+          !(duet && sIdx >= 8)
+        ) {
           const personality = "robot",
             ev = melodyEventAt(track, personality, bar, sIdx);
           if (ev) {
             const midi = melodyMidi(track, ev, personality, false),
               adur = s16 * ev.dur;
-            playLead(tt, midi, adur, "on the mic", 0.72 + ev.velocity * 0.2);
+            playLead(
+              tt,
+              midi,
+              adur,
+              "on the mic",
+              (0.72 + ev.velocity * 0.2) * (cut ? 1.25 : 1),
+            );
             recLeadEcho(leadEchoA, sIdx * s16, midi, adur);
             visQ.push({ t: tt, type: "alead" });
           }
         }
+        /* call: the guest owns the first half of a response bar... */
+        if (duet && sIdx >= 8) {
+          const srcEv =
+            vis1.instr === "on the mic"
+              ? vocalEventAt(track, bar, sIdx - 8)
+              : melodyEventAt(
+                  track,
+                  melodyPersonalityFor(vis1.instr, false),
+                  bar,
+                  sIdx - 8,
+                );
+          if (srcEv) {
+            /* ...and the answer: A.R.I. repeats the guest's phrase a degree
+               lower, half a bar later — imitation with a nod, not a parrot */
+            const ans = { ...srcEv, degree: srcEv.degree - 1 };
+            const midi = melodyMidi(track, ans, "robot", false);
+            playLead(
+              tt,
+              midi,
+              s16 * srcEv.dur,
+              "on the mic",
+              0.6 + (srcEv.velocity || 0.7) * 0.2,
+            );
+            visQ.push({ t: tt, type: "alead" });
+          }
+        }
         /* visitor melodies now follow pre-composed motifs and phrase development */
-        if (visitor && visitorPhase === "performing" && D.lead > 0 && vis1 && (composerState.guest ?? 1) > 0.1) {
+        if (visitor && visitorPhase === "performing" && D.lead > 0 && vis1 && (composerState.guest ?? 1) > 0.1 && !(duet && sIdx >= 8)) {
           const isMic = vis1.instr === "on the mic";
           const personality = melodyPersonalityFor(vis1.instr, false);
           const ev = isMic
@@ -7166,10 +7479,13 @@
           if (ev) {
             const midi = melodyMidi(track, ev, isMic ? "vocal" : personality, false),
               dur = s16 * ev.dur;
-            let vmul = (0.72 + ev.velocity * 0.25) * Math.max(.45, composerState.guest ?? 1);
+            let vmul =
+              (0.72 + ev.velocity * 0.25) *
+              Math.max(.45, composerState.guest ?? 1) *
+              (cut ? 1.3 : 1);
             if (isMic) {
               const dp = micDroop(tt, vis1.micPh || 0);
-              vmul *= Math.random() < dp * 0.42 ? 0 : 1 - dp * 0.72;
+              vmul *= Math.random() < dp * 0.22 ? 0 : 1 - dp * 0.45;
               if (ev.mode === "rap") vmul *= .88;
               if (ev.mode === "sung hook") vmul *= 1.08;
             }
@@ -7189,7 +7505,7 @@
             let vmul = 0.62 + ev.velocity * 0.2;
             if (vis2.instr === "on the mic") {
               const dp = micDroop(tt, vis2.micPh || 0);
-              vmul *= Math.random() < dp * 0.55 ? 0 : 1 - dp * 0.8;
+              vmul *= Math.random() < dp * 0.3 ? 0 : 1 - dp * 0.55;
             }
             if (vmul > 0) {
               playLead(tt, midi, dur, vis2.instr, vmul);
@@ -9229,6 +9545,10 @@
         stopSleepZ();
         hideFollowBubble();
         ctx.resume();
+        if (duckBus) {
+          duckBus.gain.cancelScheduledValues(0);
+          duckBus.gain.value = 1; // never resume into a half-finished duck
+        }
         if (bgAudioEl) bgAudioEl.play().catch(() => {});
         if (batteryIntermission) {
           finishBatterySwap(); // was paused mid-swap — just complete it now rather than staying frozen
@@ -9674,6 +9994,9 @@
         weakGuest:["guest is buried","bring the guest up","can barely hear the guest"],
         weakIntro:["intro ran a little long","still waiting for the track to open up","slow start this time"],
         battery:["rip battery","the ritual","stretch break y'all","he carries spares dw"],
+        switch:["WAIT HE SWITCHED IT","beat switch??","HALF TIME","no way he flipped it","two songs in one 🔥"],
+        keychange:["KEY CHANGE","it LIFTED","modulation?? from a robot??","goosebumps fr","final stretch energy"],
+        cut:["THE SILENCE","he cut EVERYTHING","that dropout 💀","my heart stopped","dead air into THAT"],
       };
       function fillLine(line){
         return line.replaceAll('{genre}',track?displayGenre(track.genre):'beat').replaceAll('{name}',track?.name||'this').replaceAll('{bpm}',track?.bpm||'');
@@ -9762,6 +10085,8 @@
           if(sect==='break'&&bar%4===0)audienceReact('break',.65);
           if(d?.useFill)audienceReact('fill',.55);
           if(sect==='main2'&&bar%4===0)audienceReact('drop',.88);
+          if(track.special&&bar===track.special.bar)audienceReact(track.special.type==='halftime'?'switch':'keychange',.95);
+          if(track.cutBar!=null&&bar===track.cutBar+1)audienceReact('cut',.95);
           if(bar>=track.bars-2)audienceReact('ending',.65);
 
           // Track how long an audible hat idea has remained materially unchanged.
