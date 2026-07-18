@@ -1208,45 +1208,26 @@
         display: block;
         image-rendering: pixelated;
       }
-      .linerFront .linerTitle {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        padding: 10px 12px;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 11px;
-        letter-spacing: 0.18em;
-        color: #dfeef0;
-        background: linear-gradient(transparent, rgba(2, 3, 7, 0.85));
-      }
       .linerBack {
         transform: rotateY(180deg);
         display: flex;
         flex-direction: column;
         justify-content: center;
-        padding: 18px 22px;
+        padding: 20px 26px;
         font-family: "IBM Plex Mono", monospace;
-        font-size: 11px;
-        line-height: 1.9;
+        font-size: 14px;
+        line-height: 2.15;
         color: #dfeef0;
-        letter-spacing: 0.05em;
-      }
-      .linerBack .lb-h {
-        color: var(--cyan);
-        letter-spacing: 0.22em;
-        font-size: 10px;
-        margin-bottom: 10px;
+        letter-spacing: 0.06em;
       }
       .linerBack .lb-row span {
-        color: #8fa3a8;
-      }
-      .linerBack .lb-foot {
-        margin-top: 12px;
-        color: #8fa3a8;
-        font-size: 9px;
+        color: var(--magenta); /* the pink from the scene, back on the sleeve */
         letter-spacing: 0.14em;
-        line-height: 1.7;
+        font-size: 11px;
+        margin-right: 6px;
+      }
+      body.light .linerBack .lb-row span {
+        color: var(--magenta);
       }
       .linerHint {
         position: absolute;
@@ -1262,8 +1243,7 @@
       body.light .linerFace {
         background: rgba(248, 250, 252, 0.97);
       }
-      body.light .linerBack,
-      body.light .linerFront .linerTitle {
+      body.light .linerBack {
         color: #16323a;
       }
       /* energy sparkline in the dev panel */
@@ -1609,7 +1589,6 @@
       <div class="linerInner" id="linerInner">
         <div class="linerFace linerFront">
           <img id="linerArt" alt="album art" />
-          <div class="linerTitle" id="linerTitle"></div>
         </div>
         <div class="linerFace linerBack" id="linerBack"></div>
         <div class="linerHint">tap to flip · tap outside to close</div>
@@ -3700,6 +3679,16 @@
         "subway grate",
         "night bus",
         "the block",
+        "vending alley",
+        "loading dock",
+        "coin laundry",
+        "fire escape",
+        "parking level 3",
+        "the interchange",
+        "neon river",
+        "pale arcade",
+        "sector 9",
+        "transit shed",
       ];
       const NAME_B = [
         "loop",
@@ -3754,20 +3743,42 @@
         "tremor",
         "glide",
         "vandal",
+        "residue",
+        "parallax",
+        "downpour",
+        "vertigo",
+        "backwash",
+        "orbit",
+        "curfew",
+        "smolder",
+        "corridor",
+        "relay",
+        "phosphor",
+        "salvage",
+        "dial tone",
+        "monsoon",
+        "moonwire",
+        "gutter gold",
+        "polaroid",
+        "solder",
       ];
       function makeTrackName() {
-        const shape = RI(0, 5);
+        const shape = RI(0, 8);
         let n;
         if (shape === 0) n = pick(NAME_A) + " " + pick(NAME_B);
         else if (shape === 1) n = pick(NAME_B) + " on " + pick(NAME_A);
         else if (shape === 2) n = pick(NAME_A);
         else if (shape === 3) n = pick(NAME_A) + "'s " + pick(NAME_B);
         else if (shape === 4) n = pick(NAME_B) + " at " + pick(NAME_A);
-        else
+        else if (shape === 5)
           n =
             pick(["late", "deep", "lost", "back", "slow", "wild"]) +
             " " +
             pick(NAME_B);
+        else if (shape === 6) n = pick(NAME_B) + " " + RI(2, 99); // "signal 23"
+        else if (shape === 7)
+          n = pick(["past", "under", "after", "beyond"]) + " " + pick(NAME_A);
+        else n = pick(NAME_B) + " / " + pick(NAME_B); // "static / bloom"
         return n;
       }
       let recentNames = [];
@@ -5222,6 +5233,44 @@
           light: true,
         },
       ];
+      ART_THEMES.push(
+        {
+          bg: "#0a0704",
+          bg2: "#161005",
+          frame: "rgba(255, 176, 92, 0.5)",
+          faint: "rgba(255, 176, 92, 0.16)",
+          cyan: "#ffb05c",
+          lav: "#ff7a59",
+          mag: "#ff5fd2",
+          ink: "rgba(255, 244, 230, 0.92)",
+          fill: "rgba(255, 176, 92, 0.07)",
+          light: false,
+        },
+        {
+          bg: "#050a04",
+          bg2: "#0b1408",
+          frame: "rgba(200, 255, 77, 0.45)",
+          faint: "rgba(200, 255, 77, 0.15)",
+          cyan: "#c8ff4d",
+          lav: "#7ef0c1",
+          mag: "#ff5fd2",
+          ink: "rgba(240, 255, 235, 0.92)",
+          fill: "rgba(200, 255, 77, 0.06)",
+          light: false,
+        },
+        {
+          bg: "#0a0409",
+          bg2: "#040713",
+          frame: "rgba(255, 84, 84, 0.45)",
+          faint: "rgba(122, 160, 255, 0.16)",
+          cyan: "#7aa0ff",
+          lav: "#ff5454",
+          mag: "#ff5fd2",
+          ink: "rgba(245, 240, 255, 0.92)",
+          fill: "rgba(255, 84, 84, 0.06)",
+          light: false,
+        },
+      );
       function artTheme() {
         const dark = ART_THEMES.filter((t) => !t.light),
           light = ART_THEMES.filter((t) => t.light);
@@ -5281,7 +5330,11 @@
         const theme = artTheme();
         artBackground(theme, seed);
         actx.save();
-        actx.translate(256, 256);
+        actx.translate(256, 236); // motif sits slightly above the title band
+        const comp = RI(0, 3);
+        if (comp === 1) actx.rotate(0.1 + R(0, 0.22));
+        else if (comp === 2) actx.translate(R(-46, 46), R(-40, 22));
+        else if (comp === 3) actx.scale(1.22, 1.22);
         if (t.genre === "boom bap") {
           artLine(theme, theme.faint, 1.4, 2);
           for (let y = -210; y <= 210; y += 24) {
@@ -5430,12 +5483,78 @@
           }
         }
         actx.restore();
+        /* finishing pass: seeded texture layer so no two covers share a surface */
+        const fin = RI(0, 4);
+        actx.save();
+        actx.shadowBlur = 0;
+        if (fin === 0) {
+          // scanlines
+          actx.globalAlpha = 0.1;
+          actx.fillStyle = theme.light ? "#16323a" : "#000";
+          for (let y = 12; y < 500; y += 7) actx.fillRect(10, y, 492, 2);
+        } else if (fin === 1) {
+          // dot-matrix corner
+          actx.globalAlpha = 0.5;
+          actx.fillStyle = theme.mag;
+          const ox = pick([44, 396]),
+            oy = pick([52, 150]);
+          for (let i = 0; i < 6; i++)
+            for (let j = 0; j < 6; j++)
+              actx.fillRect(ox + i * 12, oy + j * 12, 3, 3);
+        } else if (fin === 2) {
+          // ghost circle drifting behind the motif
+          artGlow(theme.faint, 10, 0);
+          actx.beginPath();
+          actx.arc(R(120, 392), R(110, 330), R(120, 200), 0, Math.PI * 2);
+          actx.stroke();
+        } else if (fin === 3) {
+          // diagonal hatch band
+          actx.globalAlpha = 0.35;
+          artGlow(theme.lav, 1.4, 0);
+          const yy = R(60, 320);
+          for (let x = -40; x < 552; x += 14) {
+            actx.beginPath();
+            actx.moveTo(x, yy);
+            actx.lineTo(x + 30, yy + 44);
+            actx.stroke();
+          }
+        } // fin === 4: clean
+        actx.restore();
         actx.save();
         actx.shadowBlur = 0;
         artLine(theme, theme.frame, 3, 0);
         actx.strokeRect(8, 8, 496, 496);
         artLine(theme, theme.faint, 1.2, 0);
         actx.strokeRect(18, 18, 476, 476);
+        actx.restore();
+        /* title band: the sleeve always reserves a solid dark strip for the
+           name — white on dark reads, whatever the palette above it does */
+        actx.save();
+        actx.shadowBlur = 0;
+        actx.fillStyle = "rgba(4, 5, 10, 0.93)";
+        actx.fillRect(9, 433, 494, 70);
+        actx.strokeStyle = theme.light
+          ? "rgba(21, 34, 48, 0.5)"
+          : "rgba(62, 232, 222, 0.4)";
+        actx.lineWidth = 2;
+        actx.beginPath();
+        actx.moveTo(9, 433);
+        actx.lineTo(503, 433);
+        actx.stroke();
+        actx.fillStyle = "rgba(235, 245, 255, 0.94)";
+        actx.font = "26px 'IBM Plex Mono', monospace";
+        actx.textAlign = "center";
+        actx.textBaseline = "middle";
+        try {
+          actx.letterSpacing = "5px";
+        } catch (e) {}
+        const nm = "\u201c" + t.name + "\u201d";
+        if (actx.measureText(nm).width > 470)
+          actx.font = "21px 'IBM Plex Mono', monospace";
+        actx.fillText(nm, 256, 469);
+        try {
+          actx.letterSpacing = "0px";
+        } catch (e) {}
         actx.restore();
         return artCanvas.toDataURL("image/png");
       }
@@ -9988,12 +10107,10 @@
         const linerEl = document.getElementById("linerCard"),
           linerInner = document.getElementById("linerInner"),
           linerArt = document.getElementById("linerArt"),
-          linerTitle = document.getElementById("linerTitle"),
           linerBack = document.getElementById("linerBack");
         function renderLiner() {
           if (!track) return;
           linerArt.src = track.artURL || "";
-          linerTitle.textContent = "“" + track.name + "”";
           const gear = track.gear || {};
           const guest =
             typeof visitor !== "undefined" &&
@@ -10003,15 +10120,13 @@
               ? `<div class="lb-row"><span>feat.</span> ${esc(displayInstr(vis1.instr))}${vis2 ? " + guest" : ""}</div>`
               : "";
           linerBack.innerHTML = `
-            <div class="lb-h">“${esc(track.name)}”</div>
             <div class="lb-row"><span>style</span> ${esc(displayGenre(track.genre))}${track.subStyle ? " · " + esc(track.subStyle) : ""}</div>
             <div class="lb-row"><span>key</span> ${esc(track.keyName)} · ${track.bpm} bpm</div>
             <div class="lb-row"><span>drums</span> ${esc(gear.drumMachine || "—")}</div>
             <div class="lb-row"><span>bass</span> ${esc(gear.bassSynth || "—")}</div>
             <div class="lb-row"><span>keys</span> ${esc(gear.padSynth || "—")}</div>
             <div class="lb-row"><span>voice</span> ${esc(gear.leadSynth || "—")}</div>
-            ${guest}
-            <div class="lb-foot">recorded live · ${esc(curLoc || "the grid")}<br>a.r.i. productions · gen v${track.generatorVersion}</div>`;
+            ${guest}`;
         }
         function openLiner() {
           renderLiner();
